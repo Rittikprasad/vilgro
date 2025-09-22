@@ -32,13 +32,12 @@ const Header: React.FC = () => {
         </nav>
 
         {/* CTA Button and Login Link */}
-        <div className={styles.headerActions}>
-          <Link to="/login" className={styles.loginLink}>
-            Login
-          </Link>
+        <div className={styles.headerActions}>  
           <button className={styles.ctaButton}>
+          <Link to="/login" className={styles.loginLink}>
             Start Your Assessment
-          </button>
+            </Link>
+          </button>        
         </div>
       </div>
     </header>

@@ -1,3 +1,10 @@
+@import "tailwindcss";
+
+/* Tailwind CSS imports */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Import custom fonts from Figma design */
 @import url('https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400;0,600;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap');
@@ -6,11 +13,11 @@
 @import url('https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600;700&display=swap');
 
 /* CSS Reset and Base Styles */
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
+} */
 
 html {
   font-family: 'Golos Text', sans-serif;
@@ -32,4 +39,28 @@ body {
   --villgro-light-yellow: #fffc74;
   --villgro-orange: #ffc000;
   --villgro-light-orange: #ffe69c;
+}
+
+/* Reusable Gradient Classes */
+@layer utilities {
+  .gradient-border {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%) border-box;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%);
+  }
+  
+  .signup-bg-gradient {
+    background: linear-gradient(90deg, #f3f1ee 0%, #ffffff 50%, #e8f5e8 100%);
+  }
+  
+  .villgro-green-text {
+    color: #46B753;
+  }
 }

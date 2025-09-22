@@ -1,0 +1,367 @@
+/* SignupStep1 component styles matching Figma design exactly */
+
+.container {
+  background-color: white;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+}
+
+/* Background decorative ellipses - exact positioning from Figma */
+.backgroundEllipse1 {
+  position: absolute;
+  display: flex;
+  height: 0px;
+  align-items: center;
+  justify-content: center;
+  left: 1425.99px;
+  top: 443.02px;
+  width: 0px;
+}
+
+.backgroundEllipse1Inner {
+  flex-shrink: 0;
+  transform: rotate(229.232deg);
+}
+
+.backgroundEllipse1Container {
+  position: relative;
+  width: 565.772px;
+  height: 565.772px;
+}
+
+.backgroundEllipse1Image {
+  position: absolute;
+  inset: -53.025%;
+  display: block;
+  max-width: none;
+  width: 100%;
+  height: 100%;
+}
+
+.backgroundEllipse2 {
+  position: absolute;
+  display: flex;
+  height: 0px;
+  align-items: center;
+  justify-content: center;
+  left: -43.49px;
+  top: 318.11px;
+  width: 0px;
+}
+
+.backgroundEllipse2Inner {
+  flex-shrink: 0;
+  transform: rotate(229.232deg);
+}
+
+.backgroundEllipse2Container {
+  position: relative;
+  width: 310.98px;
+  height: 310.98px;
+}
+
+.backgroundEllipse2Image {
+  position: absolute;
+  inset: -96.469%;
+  display: block;
+  max-width: none;
+  width: 100%;
+  height: 100%;
+}
+
+.backgroundEllipse3 {
+  position: absolute;
+  display: flex;
+  height: 0px;
+  align-items: center;
+  justify-content: center;
+  left: 1403.4px;
+  top: 166.74px;
+  width: 0px;
+}
+
+.backgroundEllipse3Inner {
+  flex-shrink: 0;
+  transform: rotate(229.232deg);
+}
+
+.backgroundEllipse3Container {
+  position: relative;
+  width: 357.976px;
+  height: 357.976px;
+}
+
+.backgroundEllipse3Image {
+  position: absolute;
+  inset: -83.804%;
+  display: block;
+  max-width: none;
+  width: 100%;
+  height: 100%;
+}
+
+.backgroundEllipse4 {
+  position: absolute;
+  display: flex;
+  height: 0px;
+  align-items: center;
+  justify-content: center;
+  left: -364.35px;
+  top: -307.58px;
+  width: 0px;
+}
+
+.backgroundEllipse4Inner {
+  flex-shrink: 0;
+  transform: rotate(229.232deg);
+}
+
+.backgroundEllipse4Container {
+  position: relative;
+  width: 584.82px;
+  height: 584.82px;
+}
+
+.backgroundEllipse4Image {
+  position: absolute;
+  inset: -51.298%;
+  display: block;
+  max-width: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* Villgro Logo - exact positioning */
+.logo {
+  position: absolute;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 71.721px;
+  left: 50%;
+  top: 58.97px;
+  transform: translateX(-50%);
+  width: 173.238px;
+  background-color: #46b753;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoText {
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Main title - exact positioning */
+.title {
+  position: absolute;
+  font-family: 'Baskervville', serif;
+  font-weight: 600;
+  line-height: 0;
+  left: 50%;
+  font-style: normal;
+  color: #231f20;
+  font-size: 30px;
+  text-align: center;
+  white-space: nowrap;
+  top: 191px;
+  transform: translateX(-50%);
+}
+
+.titleText {
+  line-height: 1.24;
+  white-space: pre;
+}
+
+.titleAccent {
+  color: #46b753;
+}
+
+/* Form container */
+.form {
+  position: relative;
+}
+
+/* Form fields - exact positioning with gradient borders */
+.formField {
+  position: absolute;
+  left: 704px;
+  width: 512px;
+  border-radius: 8px;
+  padding: 1px;
+  background: linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%);
+}
+
+.formFieldInner {
+  background-color: white;
+  border-radius: 7px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.emailField {
+  top: 299px;
+}
+
+.passwordField {
+  top: 355px;
+}
+
+.confirmPasswordField {
+  top: 411px;
+}
+
+.fieldBorder {
+  display: none;
+}
+
+.input {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: normal;
+  line-height: 0;
+  position: relative;
+  flex-shrink: 0;
+  color: #a8a8a8;
+  font-size: 16px;
+  white-space: nowrap;
+  background-color: transparent;
+  outline: none;
+  width: 100%;
+  border: none;
+}
+
+.input::placeholder {
+  color: #a8a8a8;
+}
+
+/* Error messages - positioned to push content down */
+.errorMessage {
+  position: absolute;
+  left: 704px;
+  color: #ef4444;
+  font-size: 14px;
+  font-family: 'Golos Text', sans-serif;
+}
+
+.emailError {
+  top: 335px;
+}
+
+.passwordError {
+  top: 391px;
+}
+
+.confirmPasswordError {
+  top: 447px;
+}
+
+.termsError {
+  top: 510px;
+}
+
+/* Terms and Conditions Checkbox - exact positioning */
+.checkboxContainer {
+  position: absolute;
+  left: 704px;
+  top: 476.31px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.checkbox {
+  background-color: #d9d9d9;
+  width: 17.597px;
+  height: 17.597px;
+  margin-top: 1px;
+  accent-color: #46b753;
+}
+
+.termsText {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: normal;
+  line-height: 1.24;
+  color: #231f20;
+  font-size: 14px;
+  width: 486.605px;
+}
+
+.termsLink {
+  text-underline-position: from-font;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  color: #46b753;
+  cursor: pointer;
+}
+
+/* Create Account Button - exact positioning */
+.submitButton {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  left: 50%;
+  padding: 12px 60px;
+  border-radius: 8px;
+  top: 537.31px;
+  transform: translateX(-50%);
+  border: none;
+  background: linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitButton:hover {
+  transform: translateX(-50%) scale(1.02);
+  box-shadow: 0 4px 12px rgba(70, 183, 83, 0.3);
+}
+
+.submitButtonText {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: normal;
+  line-height: normal;
+  position: relative;
+  flex-shrink: 0;
+  color: white;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+/* Login Link - exact positioning */
+.loginLink {
+  position: absolute;
+  font-family: 'Golos Text', sans-serif;
+  font-weight: normal;
+  line-height: 0;
+  color: #231f20;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  top: 640.31px;
+  transform: translateX(-50%);
+  left: calc(50% + 0.197px);
+}
+
+.loginLinkText {
+  line-height: 1.24;
+  white-space: pre;
+}
+
+.loginLinkAccent {
+  text-underline-position: from-font;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  color: #46b753;
+  cursor: pointer;
+}

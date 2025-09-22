@@ -1,0 +1,241 @@
+// import React from 'react';
+// import { useForm } from 'react-hook-form';
+// import { zodResolver } from '@hookform/resolvers/zod';
+// import { z } from 'zod';
+// import styles from './SignupStep1.module.css';
+
+// /**
+//  * Zod schema for the first signup step validation
+//  */
+// const signupStep1Schema = z.object({
+//   email: z.string().email('Please enter a valid email address'),
+//   password: z.string().min(8, 'Password must be at least 8 characters'),
+//   confirmPassword: z.string(),
+//   acceptTerms: z.boolean().refine(val => val === true, 'You must accept the terms and conditions'),
+// }).refine((data) => data.password === data.confirmPassword, {
+//   message: "Passwords don't match",
+//   path: ["confirmPassword"],
+// });
+
+// type SignupStep1Data = z.infer<typeof signupStep1Schema>;
+
+// interface SignupStep1Props {
+//   onNext: (data: SignupStep1Data) => void;
+// }
+
+// // Background ellipse images (using gradients as fallback)
+// const imgEllipse41 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3CradialGradient id='a'%3E%3Cstop stop-color='%23fbbf24'/%3E%3Cstop offset='1' stop-color='%2322c55e'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='100' fill='url(%23a)' opacity='0.3'/%3E%3C/svg%3E";
+// const imgEllipse44 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3CradialGradient id='b'%3E%3Cstop stop-color='%2322c55e'/%3E%3Cstop offset='1' stop-color='%233b82f6'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='100' fill='url(%23b)' opacity='0.2'/%3E%3C/svg%3E";
+// const imgEllipse45 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3CradialGradient id='c'%3E%3Cstop stop-color='%233b82f6'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='100' fill='url(%23c)' opacity='0.15'/%3E%3C/svg%3E";
+// const imgEllipse43 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3CradialGradient id='d'%3E%3Cstop stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%23fbbf24'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='100' fill='url(%23d)' opacity='0.1'/%3E%3C/svg%3E";
+
+// /**
+//  * First step of the signup process - Account Creation
+//  * Matches the Figma design exactly using CSS Modules like the home page components
+//  */
+// const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
+//   const {
+//     register,
+//     handleSubmit,
+//     formState: { errors },
+//   } = useForm<SignupStep1Data>({
+//     resolver: zodResolver(signupStep1Schema),
+//   });
+
+//   const onSubmit = (data: SignupStep1Data) => {
+//     onNext(data);
+//   };
+
+//   // Calculate dynamic positioning based on errors
+//   const hasEmailError = !!errors.email;
+//   const hasPasswordError = !!errors.password;
+//   const hasConfirmPasswordError = !!errors.confirmPassword;
+//   const hasTermsError = !!errors.acceptTerms;
+
+//   // Adjust positioning based on errors
+//   const passwordFieldTop = hasEmailError ? 355 + 20 : 355;
+//   const confirmPasswordFieldTop = hasPasswordError ? 411 + 20 : 411;
+//   const checkboxTop = hasConfirmPasswordError ? 476.31 + 20 : 476.31;
+//   const buttonTop = hasTermsError ? 537.31 + 20 : 537.31;
+//   const loginLinkTop = hasTermsError ? 640.31 + 20 : 640.31;
+
+//   return (
+//     <div className={styles.container} data-name="Sign up">
+//       {/* Background decorative ellipses - exact positioning from Figma */}
+//       <div className={styles.backgroundEllipse1}>
+//         <div className={styles.backgroundEllipse1Inner}>
+//           <div className={styles.backgroundEllipse1Container}>
+//             <div>
+//               <img 
+//                 alt="" 
+//                 className={styles.backgroundEllipse1Image}
+//                 src={imgEllipse41} 
+//               />
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className={styles.backgroundEllipse2}>
+//         <div className={styles.backgroundEllipse2Inner}>
+//           <div className={styles.backgroundEllipse2Container}>
+//             <div>
+//               <img 
+//                 alt="" 
+//                 className={styles.backgroundEllipse2Image}
+//                 src={imgEllipse44} 
+//               />
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className={styles.backgroundEllipse3}>
+//         <div className={styles.backgroundEllipse3Inner}>
+//           <div className={styles.backgroundEllipse3Container}>
+//             <div>
+//               <img 
+//                 alt="" 
+//                 className={styles.backgroundEllipse3Image}
+//                 src={imgEllipse45} 
+//               />
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className={styles.backgroundEllipse4}>
+//         <div className={styles.backgroundEllipse4Inner}>
+//           <div className={styles.backgroundEllipse4Container}>
+//             <div>
+//               <img 
+//                 alt="" 
+//                 className={styles.backgroundEllipse4Image}
+//                 src={imgEllipse43} 
+//               />
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Villgro Logo - exact positioning */}
+//       <div className={styles.logo} data-name="villgro-logo 2">
+//         <span className={styles.logoText}>VILLGRO</span>
+//       </div>
+
+//       {/* Main title - exact positioning */}
+//       <div className={styles.title}>
+//         <p className={styles.titleText}>
+//           <span>Create an </span>
+//           <span className={styles.titleAccent}>account</span>
+//         </p>
+//       </div>
+
+//       <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+//         {/* Email Field - exact positioning */}
+//         <div className={`${styles.formField} ${styles.emailField}`}>
+//           <div className={styles.formFieldInner}>
+//             <input
+//               {...register('email')}
+//               type="email"
+//               placeholder="Email ID"
+//               className={styles.input}
+//             />
+//           </div>
+//         </div>
+//         {errors.email && (
+//           <div className={`${styles.errorMessage} ${styles.emailError}`}>
+//             {errors.email.message}
+//           </div>
+//         )}
+
+//         {/* Password Field - exact positioning */}
+//         <div 
+//           className={`${styles.formField} ${styles.passwordField}`}
+//           style={{ top: `${passwordFieldTop}px` }}
+//         >
+//           <div className={styles.formFieldInner}>
+//             <input
+//               {...register('password')}
+//               type="password"
+//               placeholder="Password"
+//               className={styles.input}
+//             />
+//           </div>
+//         </div>
+//         {errors.password && (
+//           <div className={`${styles.errorMessage} ${styles.passwordError}`}>
+//             {errors.password.message}
+//           </div>
+//         )}
+
+//         {/* Confirm Password Field - exact positioning */}
+//         <div 
+//           className={`${styles.formField} ${styles.confirmPasswordField}`}
+//           style={{ top: `${confirmPasswordFieldTop}px` }}
+//         >
+//           <div className={styles.formFieldInner}>
+//             <input
+//               {...register('confirmPassword')}
+//               type="password"
+//               placeholder="Confirm Password"
+//               className={styles.input}
+//             />
+//           </div>
+//         </div>
+//         {errors.confirmPassword && (
+//           <div className={`${styles.errorMessage} ${styles.confirmPasswordError}`}>
+//             {errors.confirmPassword.message}
+//           </div>
+//         )}
+
+//         {/* Terms and Conditions Checkbox - exact positioning */}
+//         <div 
+//           className={styles.checkboxContainer}
+//           style={{ top: `${checkboxTop}px` }}
+//         >
+//           <input
+//             {...register('acceptTerms')}
+//             type="checkbox"
+//             className={styles.checkbox}
+//           />
+//           <div className={styles.termsText}>
+//             <span>Creating an account means you're okay with our </span>
+//             <span className={styles.termsLink}>Terms and Conditions </span>
+//             <span>and our default </span>
+//             <span className={styles.termsLink}>Notification Settings</span>
+//           </div>
+//         </div>
+//         {errors.acceptTerms && (
+//           <div className={`${styles.errorMessage} ${styles.termsError}`}>
+//             {errors.acceptTerms.message}
+//           </div>
+//         )}
+
+//         {/* Create Account Button - exact positioning */}
+//         <button 
+//           type="submit" 
+//           className={styles.submitButton}
+//           style={{ top: `${buttonTop}px` }}
+//         >
+//           <div className={styles.submitButtonText}>
+//             <p>Create Account</p>
+//           </div>
+//         </button>
+//       </form>
+
+//       {/* Login Link - positioned below form */}
+//       <div 
+//         className={styles.loginLink}
+//         style={{ top: `${loginLinkTop}px` }}
+//       >
+//         <p className={styles.loginLinkText}>
+//           <span>Already have an account? </span>
+//           <span className={styles.loginLinkAccent}>Login here</span>
+//         </p>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default SignupStep1;

@@ -2,49 +2,58 @@ import React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import { BackgroundGradients } from "../ui/BackgroundGradients"
 
-// Validation schema for login form
-const loginSchema = z.object({
+// Validation schema for create new password form
+const createNewPasswordSchema = z.object({
   email: z
     .string()
     .min(1, "Email is required")
     .email("Please enter a valid email address"),
-  password: z
+  newPassword: z
     .string()
-    .min(1, "Password is required"),
+    .min(8, "Password must be at least 8 characters long")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 })
 
-type LoginFormData = z.infer<typeof loginSchema>
+type CreateNewPasswordFormData = z.infer<typeof createNewPasswordSchema>
 
 /**
- * Login Component - User authentication form
- * Features same design as SignupStep1 with login-specific fields
+ * Create New Password Component - Second step of forgot password flow
+ * User creates a new password and confirms it
  */
-const Login: React.FC = () => {
+const CreateNewPassword: React.FC = () => {
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<CreateNewPasswordFormData>({
+    resolver: zodResolver(createNewPasswordSchema),
   })
 
   /**
    * Handle form submission
    * @param data - Form data validated by Zod schema
    */
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: CreateNewPasswordFormData) => {
     try {
-      console.log("Login form submitted:", data)
-      // Add your login logic here
+      console.log("New password created:", data)
+      // Navigate back to login screen
+      navigate("/login")
     } catch (error) {
-      console.error("Login error:", error)
+      console.error("Password creation error:", error)
     }
   }
 
@@ -62,21 +71,14 @@ const Login: React.FC = () => {
               <img src={logo} alt="logo" className="object-contain w-[173.238px] h-[71.721px]" />
             </div>
 
-            {/* Form Title */}
-            <div className="text-center mb-8">
-              <h1 className="text-[30px] font-semibold text-[#231f20] leading-[1.24] font-['Baskervville']">
-                Log in into <span className="text-[#46b753]">account</span>
-              </h1>
-            </div>
-
-            {/* Login Form */}
+            {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Email Input */}
               <div className="space-y-1">
                 <Input
                   {...register("email")}
                   type="email"
-                  placeholder="Email ID"
+                  placeholder="123@organization.com"
                   className={cn(
                     "w-[512px] h-12 px-4 py-3 rounded-lg bg-white border border-[#46b753] focus:outline-none focus:ring-0 focus:border-[#46b753] text-[16px] placeholder:text-[#a8a8a8]",
                     errors.email && "border-red-500"
@@ -86,57 +88,50 @@ const Login: React.FC = () => {
                   <p className="text-red-500 text-sm">{errors.email.message}</p>
                 )}
               </div>
-         
-              {/* Password Input */}
+
+              {/* New Password Input */}
               <div className="space-y-1">
                 <Input
-                  {...register("password")}
+                  {...register("newPassword")}
                   type="password"
-                  placeholder="Password"
+                  placeholder="Create new password"
                   className={cn(
                     "w-[512px] h-12 px-4 py-3 rounded-lg bg-white border border-[#46b753] focus:outline-none focus:ring-0 focus:border-[#46b753] text-[16px] placeholder:text-[#a8a8a8]",
-                    errors.password && "border-red-500"
+                    errors.newPassword && "border-red-500"
                   )}
                 />
-                {errors.password && (
-                  <p className="text-red-500 text-sm">{errors.password.message}</p>
+                {errors.newPassword && (
+                  <p className="text-red-500 text-sm">{errors.newPassword.message}</p>
+                )}
+              </div>
+
+              {/* Confirm Password Input */}
+              <div className="space-y-1">
+                <Input
+                  {...register("confirmPassword")}
+                  type="password"
+                  placeholder="Confirm new password"
+                  className={cn(
+                    "w-[512px] h-12 px-4 py-3 rounded-lg bg-white border border-[#46b753] focus:outline-none focus:ring-0 focus:border-[#46b753] text-[16px] placeholder:text-[#a8a8a8]",
+                    errors.confirmPassword && "border-red-500"
+                  )}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
                 )}
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-center">
+              <div className="flex justify-center w-[512px]">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-[300px] h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  className="w-[312px] h-12 text-white font-normal text-[16px] rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
-                  {isSubmitting ? "Logging in..." : "Login"}
+                  {isSubmitting ? "Creating..." : "Confirm & Login again"}
                 </Button>
               </div>
             </form>
-
-            {/* Forget Password Link */}
-            <div className="text-center mt-6">
-              <Link 
-                to="/forgot-password" 
-                className="text-[14px] text-[#46b753] underline hover:underline cursor-pointer"
-              >
-                Forget Password
-              </Link>
-            </div>
-
-            {/* Sign up Link */}
-            <div className="text-center mt-8">
-              <span className="text-[14px] text-[#231f20] leading-[1.24]">
-                Don't have an account?{" "}
-                <Link 
-                  to="/signup" 
-                  className="text-[#46b753] underline cursor-pointer hover:underline"
-                >
-                  Sign up here
-                </Link>
-              </span>
-            </div>
           </div>
         </div>
       </div>
@@ -144,4 +139,4 @@ const Login: React.FC = () => {
   )
 }
 
-export default Login
+export default CreateNewPassword

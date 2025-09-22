@@ -63,8 +63,8 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
       {/* Left Content Section */}
       <div className="flex-1">
         {/* Main Content */}
-        <div className="flex items-start justify-center min-h-screen px-6 py-8 pt-24">
-          <div className="w-full max-w-2xl">
+        <div className="flex items-start justify-start min-h-screen px-6 py-8 pt-24">
+          <div className="w-full max-w-2xl ml-8">
             {/* Form Title */}
             <div className="mb-8">
               <h1 className="text-2xl font-semibold text-gray-800">
@@ -78,8 +78,8 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Annual Operating Budget */}
-              <div className="space-y-4">
-                <label className="text-lg font-medium text-gray-700">
+              <div className="space-y-3">
+                <label className="block text-lg font-medium text-gray-700 mb-3">
                   Annual Operating Budget{" "}
                   <span className="text-sm text-gray-500">
                     (*Cost spending by the enterprise or latest FY)
@@ -102,8 +102,8 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
               </div>
 
               {/* Funding Source */}
-              <div className="space-y-4">
-                <label className="text-lg font-medium text-gray-700">
+              <div className="space-y-3">
+                <label className="block text-lg font-medium text-gray-700 mb-3">
                   What are you using the questionnaire for funding or self assessment?
                 </label>
                 <RadioGroup
@@ -130,8 +130,8 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
               </div>
 
               {/* Philanthropic Funding */}
-              <div className="space-y-4">
-                <label className="text-lg font-medium text-gray-700">
+              <div className="space-y-3">
+                <label className="block text-lg font-medium text-gray-700 mb-3">
                   Have you receive philanthropic funding before?
                 </label>
                 <RadioGroup
@@ -158,7 +158,7 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
               </div>
 
               {/* Navigation Buttons */}
-              <div className="flex justify-center pt-6">
+              <div className="flex justify-start pt-6">
                 <Button
                   type="submit"
                   disabled={isSubmitting}

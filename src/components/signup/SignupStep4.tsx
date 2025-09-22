@@ -63,32 +63,27 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
     {
       id: "agriculture",
       name: "Agriculture",
-      icon: "🌾",
-      description: "Farming & AgTech solutions"
+      icon: "🌾"
     },
     {
       id: "supply-chain-management",
       name: "Supply Chain Management",
-      icon: "🚛",
-      description: "Logistics & distribution"
+      icon: "🚛"
     },
     {
       id: "healthcare",
       name: "Healthcare",
-      icon: "🏥",
-      description: "Medical & wellness solutions"
+      icon: "🏥"
     },
     {
       id: "livelihoods",
       name: "Livelihoods",
-      icon: "💼",
-      description: "Employment & income generation"
+      icon: "💼"
     },
     {
       id: "education",
       name: "Education",
-      icon: "📚",
-      description: "Learning & skill development"
+      icon: "📚"
     }
   ]
 
@@ -97,8 +92,8 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
       {/* Left Content Section */}
       <div className="flex-1">
         {/* Main Content */}
-        <div className="flex items-start justify-center min-h-screen px-6 py-8 pt-24">
-          <div className="w-full max-w-4xl">
+        <div className="flex items-start justify-start min-h-screen px-6 py-8 pt-24">
+          <div className="w-full max-w-4xl ml-8">
             {/* Form Title */}
             <div className="mb-8">
               <h1 className="text-2xl font-semibold text-gray-800">
@@ -112,16 +107,16 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Focus Sector Selection */}
-              <div className="space-y-6">
-                <label className="text-lg font-medium text-gray-700">
+              <div className="space-y-4">
+                <label className="block text-lg font-medium text-gray-700 mb-4">
                   Which is your main focus sector?
                 </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2">
                   {focusSectors.map((sector) => (
                     <div
                       key={sector.id}
                       className={cn(
-                        "relative cursor-pointer rounded-lg border-2 p-6 text-center transition-all hover:shadow-md",
+                        "relative cursor-pointer rounded-lg border-2 p-2 text-center transition-all hover:shadow-md",
                         selectedFocusSector === sector.id
                           ? "border-[#46B753] bg-green-50"
                           : "border-gray-200 bg-white hover:border-gray-300"
@@ -129,10 +124,9 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                       onClick={() => setValue("focusSector", sector.id as any)}
                     >
                       <div className="text-4xl mb-3">{sector.icon}</div>
-                      <h3 className="text-sm font-medium text-gray-900 mb-2">
+                      <p className="text-sm font-medium text-gray-900 mb-2">
                         {sector.name}
-                      </h3>
-                      <p className="text-xs text-gray-500">{sector.description}</p>
+                      </p>
 
                       {selectedFocusSector === sector.id && (
                         <div className="absolute top-2 right-2 w-4 h-4 bg-[#46B753] rounded-full flex items-center justify-center">
@@ -148,8 +142,8 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* Stage Selection */}
-              <div className="space-y-4">
-                <label className="text-lg font-medium text-gray-700">
+              <div className="space-y-3">
+                <label className="block text-lg font-medium text-gray-700 mb-3">
                   At what stage you are?
                 </label>
                 <RadioGroup
@@ -188,8 +182,8 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* Impact Focus */}
-              <div className="space-y-4">
-                <label className="text-lg font-medium text-gray-700">
+              <div className="space-y-3">
+                <label className="block text-lg font-medium text-gray-700 mb-3">
                   What kind of impact you focus on creating?
                 </label>
                 <RadioGroup
@@ -222,7 +216,7 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* Navigation Buttons */}
-              <div className="flex justify-center pt-6">
+              <div className="flex justify-start pt-6">
                 <Button
                   type="submit"
                   disabled={isSubmitting}

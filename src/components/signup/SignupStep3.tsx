@@ -74,8 +74,8 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
       {/* Left Content Section */}
       <div className="flex-1">
         {/* Main Content */}
-        <div className="flex items-start justify-center min-h-screen px-6 py-8 pt-24">
-          <div className="w-full max-w-2xl">
+        <div className="flex items-start justify-start min-h-screen px-6 py-8 pt-24">
+          <div className="w-full max-w-2xl ml-8">
             {/* Form Title */}
             <div className="mb-8">
               <h1 className="text-2xl font-semibold text-gray-800">
@@ -89,8 +89,8 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Type of Innovation */}
-              <div className="space-y-4">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Type of Innovation
                 </label>
                 <RadioGroup
@@ -123,8 +123,8 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* Geographic Scope of work */}
-              <div className="space-y-4">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Geographic Scope of work
                 </label>
                 <RadioGroup
@@ -163,8 +163,8 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* State Selection */}
-              <div className="space-y-4">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Select top 5 states based on customer presence
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -196,7 +196,7 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* Navigation Buttons */}
-              <div className="flex justify-center pt-6">
+              <div className="flex justify-start pt-6">
                 <Button
                   type="submit"
                   disabled={isSubmitting}

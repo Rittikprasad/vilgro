@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import ProgressTracker from "../ui/ProgressTracker"
+import Navbar from "../ui/Navbar"
 
 // Validation schema for Step 3
 const step3Schema = z.object({
@@ -71,8 +72,11 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Top Navbar */}
+      <Navbar />
+
       {/* Left Content Section */}
-      <div className="flex-1">
+      <div className="flex-1 pt-4">
         {/* Main Content */}
         <div className="flex items-start justify-start min-h-screen px-6 py-8 pt-24">
           <div className="w-full max-w-2xl ml-8">

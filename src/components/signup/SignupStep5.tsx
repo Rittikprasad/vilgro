@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/RadioGroup"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import ProgressTracker from "../ui/ProgressTracker"
+import Navbar from "../ui/Navbar"
 
 // Validation schema for Step 5
 const step5Schema = z.object({
@@ -60,8 +61,11 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Top Navbar */}
+      <Navbar />
+
       {/* Left Content Section */}
-      <div className="flex-1">
+      <div className="flex-1 pt-4">
         {/* Main Content */}
         <div className="flex items-start justify-start min-h-screen px-6 py-8 pt-24">
           <div className="w-full max-w-2xl ml-8">

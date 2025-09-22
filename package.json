@@ -1,0 +1,30 @@
+{
+  "name": "vilgro-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rsbuild build",
+    "dev": "rsbuild dev --open",
+    "preview": "rsbuild preview"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.8",
+    "framer-motion": "^12.23.16",
+    "lucide-react": "^0.544.0",
+    "postcss-loader": "^8.2.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.9.1",
+    "tailwindcss-mcp-server": "^0.1.1"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "^1.5.6",
+    "@rsbuild/plugin-react": "^1.4.0",
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "typescript": "^5.9.2"
+  },
+  "packageManager": "yarn@4.10.2"
+}

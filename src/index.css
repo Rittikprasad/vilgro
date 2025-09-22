@@ -1,0 +1,35 @@
+/* Import custom fonts from Figma design */
+@import url('https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Taviraj:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600;700&display=swap');
+
+/* CSS Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Golos Text', sans-serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  line-height: 1.6;
+  color: #231f20;
+}
+
+/* Villgro Design System Colors */
+:root {
+  --villgro-green: #46b753;
+  --villgro-yellow: #e0dc32;
+  --villgro-dark: #231f20;
+  --villgro-cream: #f3f1ee;
+  --villgro-light-green: #55e966;
+  --villgro-light-yellow: #fffc74;
+  --villgro-orange: #ffc000;
+  --villgro-light-orange: #ffe69c;
+}

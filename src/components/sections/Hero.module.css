@@ -1,0 +1,324 @@
+/* Hero section styles matching Figma design exactly */
+
+.hero {
+  min-height: 100vh;
+  padding-top: 128px;
+  padding-bottom: 64px;
+  position: relative;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  position: relative;
+  z-index: 10;
+}
+
+.heroContent {
+  text-align: center;
+  max-width: 1390px;
+  margin: 0 auto 48px;
+}
+
+.heroTitle {
+  font-family: 'Baskervville', serif;
+  font-size: 70px;
+  font-weight: 600;
+  line-height: 1.24;
+  margin-bottom: 24px;
+  color: var(--villgro-dark);
+}
+
+.heroTitleGreen {
+  color: var(--villgro-green);
+}
+
+.heroDescription {
+  font-family: 'Golos Text', sans-serif;
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--villgro-dark);
+  max-width: 684px;
+  margin: 0 auto 48px;
+}
+
+.heroButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.dashboardMockup {
+  position: relative;
+  max-width: 1302px;
+  margin: 0 auto;
+}
+
+.assessmentInterface {
+  backdrop-filter: blur(23.25px);
+  background: rgba(255, 255, 255, 0.37);
+  border-radius: 15px;
+  box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
+  padding: 32px;
+  position: relative;
+}
+
+.browserControls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.browserDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.browserDotRed {
+  background-color: #ff5f57;
+}
+
+.browserDotYellow {
+  background-color: #ffbd2e;
+}
+
+.browserDotGreen {
+  background-color: #28ca42;
+}
+
+.interfaceContent {
+  background-color: var(--villgro-cream);
+  border-radius: 8px;
+  padding: 32px;
+  display: flex;
+  gap: 12px;
+}
+
+.sidebar {
+  background: rgba(255, 255, 255, 0.51);
+  border-radius: 8px;
+  box-shadow: 0px 0px 11.6px -2px rgba(0, 0, 0, 0.15);
+  width: 215px;
+  height: 492px;
+  padding: 24px;
+}
+
+.mainContent {
+  background: rgba(255, 255, 255, 0.51);
+  border-radius: 8px;
+  box-shadow: 0px 0px 11.6px -2px rgba(0, 0, 0, 0.15);
+  flex: 1;
+  height: 492px;
+  padding: 24px;
+}
+
+.sectionTitle {
+  font-family: 'Golos Text', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--villgro-green);
+  margin-bottom: 16px;
+}
+
+.questionTitle {
+  font-family: 'Golos Text', sans-serif;
+  font-size: 14.972px;
+  font-weight: 500;
+  color: var(--villgro-green);
+  margin-bottom: 16px;
+}
+
+.floatingChart {
+  position: absolute;
+  backdrop-filter: blur(23.25px);
+  background: rgba(255, 255, 255, 0.37);
+  border-radius: 15px;
+  box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
+  padding: 24px;
+}
+
+.floatingChartRight {
+  right: -64px;
+  top: 64px;
+  width: 320px;
+  height: 320px;
+}
+
+.floatingChartLeft {
+  left: -80px;
+  top: 128px;
+  width: 320px;
+  height: 320px;
+}
+
+.pieChart {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pieSegmentLarge {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--villgro-green) 0%, var(--villgro-light-green) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.pieSegmentMedium {
+  position: absolute;
+  top: -32px;
+  right: -32px;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--villgro-yellow) 0%, var(--villgro-light-yellow) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.pieSegmentSmall {
+  position: absolute;
+  bottom: -16px;
+  left: -16px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--villgro-orange) 0%, var(--villgro-light-orange) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.barChart {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 12px;
+  height: 200px;
+}
+
+.barItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+}
+
+.barLabel {
+  font-size: 20px;
+  color: black;
+  text-align: center;
+}
+
+.bar {
+  width: 54px;
+  background: linear-gradient(to right, var(--villgro-green) 0%, var(--villgro-yellow) 100%);
+  border-radius: 8px;
+}
+
+.bar30 {
+  height: 54px;
+}
+
+.bar70 {
+  height: 108px;
+}
+
+.bar100 {
+  height: 148px;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .floatingChartRight,
+  .floatingChartLeft {
+    display: none;
+  }
+}
+
+@media (max-width: 1200px) {
+  .heroTitle {
+    font-size: clamp(36px, 6vw, 56px);
+  }
+  
+  .container {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding-top: 120px;
+    padding-bottom: 40px;
+  }
+  
+  .heroTitle {
+    font-size: clamp(28px, 7vw, 42px);
+    line-height: 1.2;
+  }
+  
+  .heroDescription {
+    font-size: clamp(16px, 2.5vw, 18px);
+    margin-bottom: 32px;
+  }
+  
+  .heroButtons {
+    gap: 12px;
+  }
+  
+  .interfaceContent {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    padding: 16px;
+  }
+  
+  .mainContent {
+    height: auto;
+    padding: 16px;
+  }
+  
+  .assessmentInterface {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding-top: 100px;
+  }
+  
+  .heroTitle {
+    font-size: 24px;
+  }
+  
+  .heroDescription {
+    font-size: 14px;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+}

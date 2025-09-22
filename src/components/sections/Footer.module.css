@@ -1,0 +1,122 @@
+/* Footer component styles matching Figma design */
+
+.footer {
+  background-color: var(--villgro-dark);
+  color: white;
+  padding: 64px 0;
+  position: relative;
+  /* Match Figma: top: 5718px, height: 313px */
+  height: 313px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+}
+
+.villgroLogo {
+  width: 246px;
+  height: 101px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--villgro-green);
+  font-family: 'Golos Text', sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  /* Positioning to match Figma: left: calc(50% - 603px), top: 5835px */
+}
+
+.partnerLogo {
+  width: 262px;
+  height: 118px;
+  background: #444;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+  /* Positioning to match Figma: left: 1424px, top: 5827px */
+}
+
+.footerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1400px;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.footerLink {
+  color: #ccc;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.footerLink:hover {
+  color: white;
+}
+
+.copyright {
+  color: #999;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 32px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .container {
+    flex-direction: column;
+    gap: 32px;
+    text-align: center;
+  }
+  
+  .footerContent {
+    flex-direction: column;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 0;
+    height: auto;
+  }
+  
+  .villgroLogo {
+    width: 200px;
+    height: 80px;
+    font-size: 20px;
+  }
+  
+  .partnerLogo {
+    width: 200px;
+    height: 80px;
+  }
+  
+  .footerLinks {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

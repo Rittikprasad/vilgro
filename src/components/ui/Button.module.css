@@ -1,0 +1,65 @@
+/* Button components matching Figma design */
+
+.btnPrimary {
+  background-color: var(--villgro-dark);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--villgro-green);
+  font-family: 'Golos Text', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0px 1px 13.2px 0px rgba(0, 0, 0, 0.25);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btnPrimary:hover {
+  background-color: var(--villgro-green);
+  transform: translateY(-1px);
+  box-shadow: 0px 2px 16px 0px rgba(0, 0, 0, 0.3);
+}
+
+.btnSecondary {
+  background-color: transparent;
+  color: var(--villgro-dark);
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--villgro-green);
+  font-family: 'Golos Text', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btnSecondary:hover {
+  background-color: var(--villgro-green);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btnLink {
+  background: none;
+  border: none;
+  color: var(--villgro-dark);
+  text-decoration: underline;
+  font-family: 'Golos Text', sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btnLink:hover {
+  color: var(--villgro-green);
+}

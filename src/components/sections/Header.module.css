@@ -1,0 +1,132 @@
+/* Header component styles matching Figma design */
+
+.header {
+  position: fixed;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
+.headerContainer {
+  backdrop-filter: blur(11.75px);
+  background: rgba(255, 255, 255, 0.37);
+  border-radius: 15px;
+  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.15);
+  padding: 8px 29px 8px 29px;
+  display: flex;
+  align-items: center;
+  gap: 315px;
+  min-width: max-content;
+}
+
+.logo {
+  width: 126px;
+  height: 52px;
+  background-color: var(--villgro-green);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.navLink {
+  font-family: 'Golos Text', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--villgro-dark);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: var(--villgro-green);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.loginLink {
+  font-family: 'Golos Text', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--villgro-dark);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.loginLink:hover {
+  color: var(--villgro-green);
+}
+
+.ctaButton {
+  background-color: var(--villgro-dark);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--villgro-green);
+  font-family: 'Golos Text', sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ctaButton:hover {
+  background-color: var(--villgro-green);
+  transform: translateY(-1px);
+}
+
+/* Mobile responsive */
+@media (max-width: 1024px) {
+  .headerContainer {
+    gap: 100px;
+    padding: 8px 20px;
+  }
+  
+  .nav {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .headerContainer {
+    gap: 20px;
+    padding: 8px 16px;
+  }
+  
+  .logo {
+    width: 100px;
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  .headerActions {
+    gap: 12px;
+  }
+  
+  .loginLink {
+    font-size: 14px;
+  }
+  
+  .ctaButton {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}

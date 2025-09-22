@@ -1,0 +1,165 @@
+/* FAQ section styles matching Figma design */
+
+.section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #f8f4e6 0%, #f5f0d8 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  position: relative;
+  z-index: 10;
+}
+
+.sectionTitle {
+  text-align: center;
+  margin-bottom: 64px;
+  /* Positioning to match Figma: left: calc(50% - 377px), top: 4889px */
+}
+
+.title {
+  font-family: 'Baskervville', serif;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1.029;
+  margin: 0;
+  color: var(--villgro-dark);
+}
+
+.titleGreen {
+  color: var(--villgro-green);
+}
+
+.faqContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.faqItem {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.faqButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.faqButton:hover {
+  color: var(--villgro-green);
+}
+
+.faqQuestion {
+  font-family: 'Golos Text', sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--villgro-dark);
+  line-height: 1.2;
+  margin: 0;
+  padding-right: 32px;
+}
+
+.faqToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.faqLine {
+  width: 28px;
+  height: 1px;
+  background-color: #999;
+}
+
+.faqIcon {
+  width: 24px;
+  height: 24px;
+  color: #666;
+}
+
+.faqAnswer {
+  padding-bottom: 24px;
+  padding-right: 64px;
+}
+
+.faqAnswerText {
+  font-family: 'Golos Text', sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--villgro-dark);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* FAQ lines positioning to match Figma */
+.faqHorizontalLine {
+  position: absolute;
+  width: 828px;
+  height: 1px;
+  background-color: #ccc;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.faqLine1 {
+  top: 539px; /* Match Figma positioning */
+}
+
+.faqLine2 {
+  top: 658px;
+}
+
+.faqLine3 {
+  top: 777px;
+}
+
+.faqLine4 {
+  top: 896px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .faqHorizontalLine {
+    width: 90%;
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 60px 0;
+  }
+  
+  .title {
+    font-size: 42px;
+    line-height: 1.2;
+  }
+  
+  .faqQuestion {
+    font-size: 24px;
+  }
+  
+  .faqAnswerText {
+    font-size: 16px;
+  }
+  
+  .faqAnswer {
+    padding-right: 0;
+  }
+  
+  .faqHorizontalLine {
+    display: none;
+  }
+}

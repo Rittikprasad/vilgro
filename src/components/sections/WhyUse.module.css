@@ -1,0 +1,146 @@
+/* Why Use This Tool section styles matching Figma design */
+
+.section {
+  padding: 80px 0;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 32px;
+  position: relative;
+  z-index: 10;
+}
+
+.sectionTitle {
+  text-align: center;
+  margin-bottom: 64px;
+  /* Positioning to match Figma: left: calc(50% + 31px), top: 2648px */
+}
+
+.title {
+  font-family: 'Baskervville', serif;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1.029;
+  margin: 0;
+  color: var(--villgro-dark);
+}
+
+.titleGreen {
+  color: var(--villgro-green);
+}
+
+.contentContainer {
+  display: grid;
+  grid-template-columns: 686px 1fr;
+  gap: 64px;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Background image section matching Figma Rectangle 34 */
+.imageSection {
+  width: 686px;
+  height: 579px;
+  background-image: url('http://localhost:3845/assets/8d1968265d1ad410e65f970b9a4297bfc89f71f3.png');
+  background-size: 145.76% 115.27%;
+  background-repeat: no-repeat;
+  background-position: 32.14% 50%;
+  border-radius: 15px;
+  box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
+  position: relative;
+  /* Positioning to match Figma: left: 234px, top: 2648px */
+}
+
+/* Benefits list on the right side */
+.benefitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-top: 60px;
+  max-width: 600px;
+}
+
+.benefitItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.benefitDot {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: var(--villgro-green);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.benefitText {
+  font-family: 'Golos Text', sans-serif;
+  font-size: clamp(18px, 2.2vw, 30px);
+  font-weight: 400;
+  color: var(--villgro-dark);
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* Connecting lines positioned as in Figma */
+.connectingLine {
+  position: absolute;
+  left: 1006px;
+  top: 88px;
+  width: 1px;
+  height: 402px;
+  background: linear-gradient(to bottom, transparent 0%, var(--villgro-green) 20%, var(--villgro-green) 80%, transparent 100%);
+  opacity: 0.3;
+}
+
+.connectingLineShort {
+  position: absolute;
+  left: 1006px;
+  top: 88px;
+  width: 1px;
+  height: 153px;
+  background: var(--villgro-green);
+  opacity: 0.6;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .connectingLine,
+  .connectingLineShort {
+    display: none;
+  }
+  
+  .imageSection {
+    width: 100%;
+    max-width: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 60px 0;
+  }
+  
+  .title {
+    font-size: 42px;
+    line-height: 1.2;
+  }
+  
+  .imageSection {
+    height: 300px;
+  }
+}

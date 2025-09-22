@@ -60,12 +60,14 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left Content Section */}
-      <div className="flex-1">
+    <div className="min-h-screen flex flex-col lg:flex-row relative">
+      {/* White gradient overlay in the middle */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent z-10 hidden lg:block"></div>
 
+      {/* Left Content Section */}
+      <div className="flex-1 relative">
         {/* Main Content */}
-        <div className="flex items-start justify-center min-h-screen px-6 py-8 pt-24">
+        <div className="flex items-start justify-center min-h-screen px-6 py-8 pt-24 relative z-20">
           <div className="w-full max-w-2xl">
             {/* Form Title */}
             <div className="mb-8">
@@ -219,6 +221,9 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${background1})` }}
         />
+
+        {/* White gradient overlay extending from left */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/20 to-transparent z-10"></div>
 
         {/* Logo positioned in top right corner over the image */}
         <div className="absolute top-6 right-6 z-20">

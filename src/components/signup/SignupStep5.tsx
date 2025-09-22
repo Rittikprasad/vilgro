@@ -183,7 +183,7 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
       {/* Mobile Background - Optional */}
       <div className="lg:hidden h-64 w-full relative bg-white">
         <div className="absolute inset-0 bg-gradient-to-t from-white/60 to-transparent"></div>
-        
+
         {/* Logo positioned in top right corner for mobile */}
         <div className="absolute top-4 right-4 z-20">
           <img src={logo} alt="logo" className="object-contain w-24" />

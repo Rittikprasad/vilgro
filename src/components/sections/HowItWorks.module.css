@@ -31,11 +31,12 @@
 }
 
 .stepsContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  display: flex;
+  justify-content: center;
   gap: 32px;
   max-width: 1500px;
   margin: 0 auto;
+  flex-wrap: wrap;
 }
 
 .stepCard {
@@ -47,6 +48,16 @@
   height: 291px;
   position: relative;
   transition: transform 0.3s ease;
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 20px;
 }
 
 .stepCard:hover {
@@ -56,12 +67,35 @@
 .stepCard::before {
   content: '';
   position: absolute;
-  top: -6px;
+  top: 24px;
   left: 32px;
-  width: 48px;
-  height: 4px;
+  right: 80px;
+  height: 2px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--villgro-green) 0,
+    var(--villgro-green) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.stepCard::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: 32px;
+  width: 8px;
+  height: 8px;
   background-color: var(--villgro-green);
-  border-radius: 2px;
+  border-radius: 50%;
+}
+
+.stepHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .stepIcon {
@@ -73,7 +107,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+.stepIconImage {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.stepText {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .stepNumber {
@@ -85,18 +131,36 @@
 }
 
 .stepDescription {
+  color: #231F20;
   font-family: 'Golos Text', sans-serif;
   font-size: 30px;
+  font-style: normal;
   font-weight: 400;
-  color: var(--villgro-dark);
-  line-height: 1.3;
+  line-height: normal;
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
   .stepsContainer {
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 24px;
+  }
+  
+  .stepCard {
+    min-width: 280px;
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stepsContainer {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .stepCard {
+    width: 100%;
+    max-width: 500px;
+    min-width: auto;
   }
 }
 
@@ -111,13 +175,13 @@
   }
   
   .stepsContainer {
-    grid-template-columns: 1fr;
     gap: 20px;
   }
   
   .stepCard {
     height: auto;
     padding: 24px;
+    max-width: 100%;
   }
   
   .stepDescription {

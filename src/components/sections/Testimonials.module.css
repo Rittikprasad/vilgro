@@ -17,9 +17,7 @@
 
 .sectionTitle {
   margin-bottom: 64px;
-  /* Positioning to match Figma: left: calc(50% - 726px), top: 4061px */
-  position: relative;
-  left: -492px; /* Offset to match Figma positioning */
+  text-align: center;
 }
 
 .title {
@@ -33,9 +31,10 @@
 
 .testimonialsContainer {
   display: grid;
-  grid-template-columns: 714px 714px;
-  gap: 44px;
-  justify-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .testimonialCard {
@@ -44,18 +43,12 @@
   border-radius: 15px;
   box-shadow: 0px 0px 15.1px -1px rgba(0, 0, 0, 0.15);
   padding: 32px;
-  height: 406px;
+  min-height: 300px;
   position: relative;
-  /* Positioning to match Figma: left: 234px/972px, top: 4183px */
+  display: flex;
+  flex-direction: column;
 }
 
-.testimonialCard:first-child {
-  /* Left card positioning */
-}
-
-.testimonialCard:last-child {
-  /* Right card positioning */
-}
 
 .testimonialHeader {
   display: flex;
@@ -85,24 +78,14 @@
   color: var(--villgro-dark);
   line-height: 1.58;
   margin: 0;
+  flex: 1;
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
-  .sectionTitle {
-    left: 0;
-    text-align: center;
-  }
-  
+@media (max-width: 1000px) {
   .testimonialsContainer {
     grid-template-columns: 1fr;
-    gap: 32px;
     max-width: 600px;
-    margin: 0 auto;
-  }
-  
-  .testimonialCard {
-    height: auto;
   }
 }
 
@@ -111,9 +94,18 @@
     padding: 60px 0;
   }
   
+  .container {
+    padding: 0 20px;
+  }
+  
   .title {
     font-size: 42px;
     line-height: 1.2;
+  }
+  
+  .testimonialCard {
+    padding: 24px;
+    min-height: 250px;
   }
   
   .testimonialText {
@@ -122,5 +114,28 @@
   
   .organizationName {
     font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .testimonialCard {
+    padding: 20px;
+    min-height: 200px;
+  }
+  
+  .title {
+    font-size: 36px;
+  }
+  
+  .testimonialText {
+    font-size: 16px;
+  }
+  
+  .organizationName {
+    font-size: 20px;
   }
 }

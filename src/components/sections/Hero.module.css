@@ -8,7 +8,7 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1250px;
   margin: 0 auto;
   padding: 0 32px;
   position: relative;
@@ -22,7 +22,7 @@
 }
 
 .heroTitle {
-  font-family: 'Baskervville', serif;
+  font-family: Baskervville;
   font-size: 70px;
   font-weight: 600;
   line-height: 1.24;
@@ -63,6 +63,17 @@
   box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
   padding: 32px;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assessmentImage {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  border-radius: 8px;
+  object-fit: contain;
 }
 
 .browserControls {
@@ -141,17 +152,17 @@
 }
 
 .floatingChartRight {
-  right: -64px;
-  top: 64px;
-  width: 320px;
-  height: 320px;
+  right: -84px;
+  top: -10px;
+  width: 250px;
+  height: 250px;
 }
 
 .floatingChartLeft {
   left: -80px;
-  top: 128px;
-  width: 320px;
-  height: 320px;
+  top: 400px;
+  width: 275px;
+  height: 230px;
 }
 
 .pieChart {
@@ -159,11 +170,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 10px;
 }
 
 .pieSegmentLarge {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--villgro-green) 0%, var(--villgro-light-green) 100%);
   display: flex;
@@ -176,10 +188,10 @@
 
 .pieSegmentMedium {
   position: absolute;
-  top: -32px;
-  right: -32px;
-  width: 128px;
-  height: 128px;
+  top: -20px;
+  right: -22px;
+  width: 108px;
+  height: 108px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--villgro-yellow) 0%, var(--villgro-light-yellow) 100%);
   display: flex;
@@ -194,8 +206,8 @@
   position: absolute;
   bottom: -16px;
   left: -16px;
-  width: 96px;
-  height: 96px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--villgro-orange) 0%, var(--villgro-light-orange) 100%);
   display: flex;
@@ -320,5 +332,192 @@
   
   .container {
     padding: 0 16px;
+  }
+}
+
+/* How It Works Section Styles */
+.howItWorksSection {
+  padding: 80px 0;
+  position: relative;
+}
+
+.sectionTitle {
+  text-align: center;
+  margin-bottom: 64px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 32px;
+}
+
+.title {
+  font-family: 'Baskervville', serif;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1.04;
+  color: var(--villgro-dark);
+  margin-bottom: 16px;
+}
+
+.titleGreen {
+  color: var(--villgro-green);
+}
+
+.stepsContainer {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  max-width: 1500px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.stepCard {
+  backdrop-filter: blur(23.25px);
+  background: rgba(255, 255, 255, 0.37);
+  border-radius: 15px;
+  box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
+  padding: 32px;
+  height: 291px;
+  position: relative;
+  transition: transform 0.3s ease;
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.stepCard:hover {
+  transform: translateY(-4px);
+}
+
+.stepCard::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 32px;
+  right: 80px;
+  height: 2px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--villgro-green) 0,
+    var(--villgro-green) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.stepCard::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: 32px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--villgro-green);
+  border-radius: 50%;
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 20px;
+}
+
+.stepHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.stepIcon {
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stepIconImage {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.stepText {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.stepNumber {
+  font-family: 'Golos Text', sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--villgro-green);
+  margin-bottom: 16px;
+}
+
+.stepDescription {
+  color: #231F20;
+  font-family: 'Golos Text', sans-serif;
+  font-size: 30px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+
+/* How It Works Responsive Design */
+@media (max-width: 1200px) {
+  .stepsContainer {
+    gap: 24px;
+  }
+  
+  .stepCard {
+    min-width: 280px;
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stepsContainer {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .stepCard {
+    width: 100%;
+    max-width: 500px;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .howItWorksSection {
+    padding: 60px 0;
+  }
+  
+  .title {
+    font-size: 42px;
+    line-height: 1.2;
+  }
+  
+  .stepsContainer {
+    gap: 20px;
+  }
+  
+  .stepCard {
+    height: auto;
+    padding: 24px;
+    max-width: 100%;
+  }
+  
+  .stepDescription {
+    font-size: 24px;
   }
 }

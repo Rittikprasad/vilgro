@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Header.module.css';
+import buttonStyles from '../ui/Button.module.css';
+import logoImage from '../../assets/logo.png';
 
 /**
  * Header component with navigation and logo
@@ -12,7 +14,7 @@ const Header: React.FC = () => {
       <div className={styles.headerContainer}>
         {/* Logo */}
         <Link to="/" className={styles.logo}>
-          VILLGRO
+          <img src={logoImage} alt="Villgro Logo" className={styles.logoImage} />
         </Link>
 
         {/* Navigation */}
@@ -33,11 +35,9 @@ const Header: React.FC = () => {
 
         {/* CTA Button and Login Link */}
         <div className={styles.headerActions}>  
-          <button className={styles.ctaButton}>
-          <Link to="/login" className={styles.loginLink}>
+          <Link to="/login" className={buttonStyles.btnPrimary}>
             Start Your Assessment
-            </Link>
-          </button>        
+          </Link>        
         </div>
       </div>
     </header>

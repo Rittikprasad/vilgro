@@ -1,6 +1,11 @@
 import React from 'react';
 import styles from './Hero.module.css';
 import buttonStyles from '../ui/Button.module.css';
+import { Button } from '../ui/Button';
+import heroSectionImage from '../../assets/heroSection.png';
+import Step1Icon from '../../assets/svg/Step1.svg';
+import Step2Icon from '../../assets/svg/Step2.svg';
+import Step3Icon from '../../assets/svg/Step3.svg';
 
 /**
  * Hero section with main headline, description and CTA buttons
@@ -23,9 +28,9 @@ const Hero: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className={styles.heroButtons}>
-            <button className={buttonStyles.btnSecondary}>
+            <Button variant="gradient" size="lg">
               Start Your Assessment Now
-            </button>
+            </Button>
             
             <button className={buttonStyles.btnLink}>
               Want to learn more before starting?
@@ -33,50 +38,16 @@ const Hero: React.FC = () => {
           </div>
         </div>
 
-        {/* Dashboard Mockup */}
-        <div className={styles.dashboardMockup}>
-          {/* Main Assessment Interface */}
-          <div className={styles.assessmentInterface}>
-            <div className={styles.browserControls}>
-              <div className={`${styles.browserDot} ${styles.browserDotRed}`}></div>
-              <div className={`${styles.browserDot} ${styles.browserDotYellow}`}></div>
-              <div className={`${styles.browserDot} ${styles.browserDotGreen}`}></div>
-            </div>
-            
-            <div className={styles.interfaceContent}>
-              {/* Left Sidebar */}
-              <div className={styles.sidebar}>
-                <div className={styles.sectionTitle}>Impact</div>
-                <div>
-                  <div>Impact</div>
-                  <div>Risk</div>
-                  <div>Return</div>
-                  <div>Sector Maturity</div>
-                  <div>Result</div>
-                </div>
-              </div>
-
-              {/* Main Content */}
-              <div className={styles.mainContent}>
-                <div>
-                  <h3 className={styles.questionTitle}>What</h3>
-                  <p className={styles.questionTitle}>
-                    1. What is the level of innovation introduced by the intervention?
-                  </p>
-                </div>
-                
-                <div>
-                  <p className={styles.questionTitle}>
-                    2. What is the impact on the affordability of products for the target group?
-                  </p>
-                  <div>
-                    <div>0%</div>
-                    <div>Progress bar placeholder</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Dashboard Mockup */}
+          <div className={styles.dashboardMockup}>
+            {/* Main Assessment Interface */}
+            {/* <div className={styles.assessmentInterface}> */}
+              <img 
+                src={heroSectionImage} 
+                alt="Assessment Interface Mockup" 
+                className={styles.assessmentImage}
+              />
+            {/* </div> */}
 
           {/* Floating Bar Chart */}
           <div className={`${styles.floatingChart} ${styles.floatingChartRight}`}>
@@ -102,6 +73,68 @@ const Hero: React.FC = () => {
               <div className={styles.pieSegmentLarge}>90%</div>
               <div className={styles.pieSegmentMedium}>50%</div>
               <div className={styles.pieSegmentSmall}>10%</div>
+            </div>
+          </div>
+        </div>
+
+        {/* How It Works Section */}
+        <div className={styles.howItWorksSection}>
+          {/* Section Title */}
+          <div className={styles.sectionTitle}>
+            <h2 className={styles.title}>
+              <span>How It </span>
+              <span className={styles.titleGreen}>Works</span>
+            </h2>
+          </div>
+
+          {/* Steps */}
+          <div className={styles.stepsContainer}>
+            {/* Step 1 */}
+            <div className={styles.stepCard}>
+              <div className={styles.stepContent}>
+                <div className={styles.stepHeader}>
+                  <h3 className={styles.stepNumber}>Step 1</h3>
+                  <div className={styles.stepIcon}>
+                    <img src={Step1Icon} alt="Step 1 Icon" className={styles.stepIconImage} />
+                  </div>
+                </div>
+                
+                <p className={styles.stepDescription}>
+                  Answer a carefully curated set of questions (5-7 mins)
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className={styles.stepCard}>
+              <div className={styles.stepContent}>
+                <div className={styles.stepHeader}>
+                  <h3 className={styles.stepNumber}>Step 2</h3>
+                  <div className={styles.stepIcon}>
+                    <img src={Step2Icon} alt="Step 2 Icon" className={styles.stepIconImage} />
+                  </div>
+                </div>
+                
+                <p className={styles.stepDescription}>
+                  Get instant recommendations
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className={styles.stepCard}>
+              <div className={styles.stepContent}>
+                <div className={styles.stepHeader}>
+                  <h3 className={styles.stepNumber}>Step 3</h3>
+                  <div className={styles.stepIcon}>
+                    <img src={Step3Icon} alt="Step 3 Icon" className={styles.stepIconImage} />
+                  </div>
+                </div>
+                
+                <p className={styles.stepDescription}>
+                  Receive tailored guidance on next steps
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -1,5 +1,7 @@
 import React from 'react';
 import styles from './Footer.module.css';
+import VilgroLogoSvg from '../../assets/svg/VilgroLogo.svg';
+import convergenceImage from '../../assets/convergence.png';
 
 /**
  * Footer component with Villgro branding and partner logos
@@ -10,22 +12,14 @@ const Footer: React.FC = () => {
     <footer className={styles.footer}>
       <div className={styles.container}>
         <div className={styles.footerContent}>
-          {/* Left - Villgro Logo */}
           <div className={styles.logoSection}>
-            <div className={styles.villgroLogo}>
-              VILLGRO
-            </div>
+            <p className={styles.developedBy}>developed by</p>
+            <img src={VilgroLogoSvg} alt="Villgro Logo" className={styles.villgroLogo} />
           </div>
-
-          {/* Right - Partner Logo */}
-          <div className={styles.partnerLogo}>
-            Partner Logo
+          <div className={styles.partnerSection}>
+            <p className={styles.supportedBy}>supported by</p>
+            <img src={convergenceImage} alt="Convergence Logo" className={styles.convergenceLogo} />
           </div>
-        </div>
-
-        {/* Copyright */}
-        <div className={styles.copyright}>
-          © 2024 Villgro. All rights reserved.
         </div>
       </div>
     </footer>

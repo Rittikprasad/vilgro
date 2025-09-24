@@ -46,10 +46,10 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
       <BackgroundGradients />
 
       {/* Header */}
-      <div className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
+      {/* <div className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
         <span className="text-lg font-medium">Sign up</span>
         <div className="text-xl">&lt;/&gt;</div>
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-6">
@@ -83,7 +83,7 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
                 <p className="text-red-500 text-sm">{errors.email.message}</p>
               )}
             </div>
-       
+
             {/* Password Input */}
             <div className="space-y-1">
               <Input

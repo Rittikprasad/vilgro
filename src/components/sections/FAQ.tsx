@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { PlusIcon, MinusIcon } from 'lucide-react';
 import styles from './FAQ.module.css';
 
 /**
@@ -43,6 +43,7 @@ const FAQ: React.FC = () => {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
+        <div className = {styles.gradientBackground}></div>
         {/* Section Title */}
         <div className={styles.sectionTitle}>
           <h2 className={styles.title}>
@@ -67,13 +68,11 @@ const FAQ: React.FC = () => {
                   </h3>
                   
                   <div className={styles.faqToggle}>
-                    <div className={styles.faqLine}></div>
                     {isOpen ? (
-                      <ChevronUp className={styles.faqIcon} />
+                      <MinusIcon className={styles.faqIcon} />
                     ) : (
-                      <ChevronDown className={styles.faqIcon} />
+                      <PlusIcon className={styles.faqIcon} />
                     )}
-                    <div className={styles.faqLine}></div>
                   </div>
                 </button>
                 

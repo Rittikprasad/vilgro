@@ -3,14 +3,11 @@ import styles from './Hero.module.css';
 import buttonStyles from '../ui/Button.module.css';
 import { Button } from '../ui/Button';
 import heroSectionImage from '../../assets/heroSection.png';
+import heroVideo from '../../assets/video/hero.mp4';
 import Step1Icon from '../../assets/svg/Step1.svg';
 import Step2Icon from '../../assets/svg/Step2.svg';
 import Step3Icon from '../../assets/svg/Step3.svg';
 
-/**
- * Hero section with main headline, description and CTA buttons
- * Features the assessment dashboard mockup and glassmorphism effects
- */
 const Hero: React.FC = () => {
   return (
     <section className={styles.hero}>
@@ -19,7 +16,8 @@ const Hero: React.FC = () => {
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
             <span className={styles.heroTitleGreen}>Quickly Assess your Funding Readiness</span>
-            <span> and Get Matched with the Right Instrument</span>
+            <span> and </span><br/>
+            <span>Get Matched with the Right Instrument</span>
           </h1>
           
           <p className={styles.heroDescription}>
@@ -38,43 +36,19 @@ const Hero: React.FC = () => {
           </div>
         </div>
 
-          {/* Dashboard Mockup */}
-          <div className={styles.dashboardMockup}>
-            {/* Main Assessment Interface */}
-            {/* <div className={styles.assessmentInterface}> */}
-              <img 
-                src={heroSectionImage} 
-                alt="Assessment Interface Mockup" 
-                className={styles.assessmentImage}
-              />
-            {/* </div> */}
-
-          {/* Floating Bar Chart */}
-          <div className={`${styles.floatingChart} ${styles.floatingChartRight}`}>
-            <div className={styles.barChart}>
-              <div className={styles.barItem}>
-                <div className={styles.barLabel}>30%</div>
-                <div className={`${styles.bar} ${styles.bar30}`}></div>
-              </div>
-              <div className={styles.barItem}>
-                <div className={styles.barLabel}>70%</div>
-                <div className={`${styles.bar} ${styles.bar70}`}></div>
-              </div>
-              <div className={styles.barItem}>
-                <div className={styles.barLabel}>100%</div>
-                <div className={`${styles.bar} ${styles.bar100}`}></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Floating Pie Chart */}
-          <div className={`${styles.floatingChart} ${styles.floatingChartLeft}`}>
-            <div className={styles.pieChart}>
-              <div className={styles.pieSegmentLarge}>90%</div>
-              <div className={styles.pieSegmentMedium}>50%</div>
-              <div className={styles.pieSegmentSmall}>10%</div>
-            </div>
-          </div>
+        <div className={styles.videoWrapper}>
+          <video
+            className={styles.heroVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={heroSectionImage}
+            aria-label="Assessment Interface Demo Video"
+          >
+            <source src={heroVideo} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </div>
 
         {/* How It Works Section */}

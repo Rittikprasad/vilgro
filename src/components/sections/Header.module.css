@@ -6,6 +6,8 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
+  width: 85%;
+  
 }
 
 .headerContainer {
@@ -13,20 +15,21 @@
   background: rgba(255, 255, 255, 0.37);
   border-radius: 15px;
   box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.15);
-  padding: 8px 29px 8px 29px;
+  padding: 6px clamp(16px, 4vw, 15px);
   display: flex;
-  align-items: center;
-  gap: 315px;
-  min-width: max-content;
+  gap: clamp(20px, 8vw, 315px);
+  width: 100%;
+  justify-content: space-between;
 }
 
 .logo {
-  width: 126px;
-  height: 52px;
+  width: clamp(80px, 10vw, 100px);
+  height: clamp(32px, 4vw, 42px);
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .logoImage {
@@ -43,7 +46,7 @@
 
 .navLink {
   font-family: 'Golos Text', sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: var(--villgro-dark);
   text-decoration: none;
@@ -67,10 +70,6 @@
   .headerContainer {
     gap: 100px;
     padding: 8px 20px;
-  }
-  
-  .nav {
-    display: none;
   }
 }
 

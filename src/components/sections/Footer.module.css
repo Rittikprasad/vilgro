@@ -8,13 +8,14 @@
 }
 
 .container {
-  max-width: 1400px;
+  max-width: min(1400px, 95vw);
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 clamp(16px, 4vw, 32px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
+  gap: clamp(20px, 4vh, 40px);
+  width: 100%;
 }
 
 .footerContent {
@@ -22,7 +23,8 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 1000px;
+  max-width: min(1000px, 100%);
+  gap: clamp(20px, 4vw, 40px);
 }
 
 .logoSection {
@@ -42,7 +44,7 @@
 }
 
 .villgroLogo {
-  width: 200px;
+  width: clamp(120px, 15vw, 200px);
   height: auto;
   object-fit: contain;
 }
@@ -84,7 +86,7 @@
 }
 
 .convergenceLogo {
-  width: 200px;
+  width: clamp(120px, 15vw, 200px);
   height: auto;
   object-fit: contain;
 }

@@ -3,31 +3,28 @@
 .hero {
   min-height: 100vh;
   padding-top: 128px;
-  padding-bottom: 64px;
-  position: relative;
 }
 
 .container {
-  max-width: 1250px;
   margin: 0 auto;
-  padding: 0 32px;
-  position: relative;
   z-index: 10;
+  width: 100%;
 }
 
 .heroContent {
   text-align: center;
-  max-width: 1390px;
-  margin: 0 auto 48px;
+  margin: 0 auto 6rem;
+  position: relative;
 }
 
 .heroTitle {
   font-family: Baskervville;
-  font-size: 70px;
+  font-size: clamp(32px, 4vw, 70px);
   font-weight: 600;
-  line-height: 1.24;
+  line-height: 1.1;
   margin-bottom: 24px;
   color: var(--villgro-dark);
+  /* z-index: 10; */
 }
 
 .heroTitleGreen {
@@ -36,10 +33,10 @@
 
 .heroDescription {
   font-family: 'Golos Text', sans-serif;
-  font-size: 20px;
+  font-size: clamp(16px, 2.5vw, 20px);
   line-height: 1.4;
   color: var(--villgro-dark);
-  max-width: 684px;
+  max-width: min(684px, 80vw);
   margin: 0 auto 48px;
 }
 
@@ -47,223 +44,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
+  /* position: relative; */
+  z-index: 10;
 }
 
-.dashboardMockup {
+/* Video Wrapper */
+.videoWrapper {
   position: relative;
-  max-width: 1302px;
-  margin: 0 auto;
-}
-
-.assessmentInterface {
-  backdrop-filter: blur(23.25px);
-  background: rgba(255, 255, 255, 0.37);
-  border-radius: 15px;
-  box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
-  padding: 32px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.assessmentImage {
   width: 100%;
-  height: auto;
-  max-width: 100%;
-  border-radius: 8px;
-  object-fit: contain;
+  z-index: -99999;
+  margin-top: -22rem;
 }
 
-.browserControls {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+/* Hero Video */
+.heroVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.browserDot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.browserDotRed {
-  background-color: #ff5f57;
-}
-
-.browserDotYellow {
-  background-color: #ffbd2e;
-}
-
-.browserDotGreen {
-  background-color: #28ca42;
-}
-
-.interfaceContent {
-  background-color: var(--villgro-cream);
-  border-radius: 8px;
-  padding: 32px;
-  display: flex;
-  gap: 12px;
-}
-
-.sidebar {
-  background: rgba(255, 255, 255, 0.51);
-  border-radius: 8px;
-  box-shadow: 0px 0px 11.6px -2px rgba(0, 0, 0, 0.15);
-  width: 215px;
-  height: 492px;
-  padding: 24px;
-}
-
-.mainContent {
-  background: rgba(255, 255, 255, 0.51);
-  border-radius: 8px;
-  box-shadow: 0px 0px 11.6px -2px rgba(0, 0, 0, 0.15);
-  flex: 1;
-  height: 492px;
-  padding: 24px;
-}
-
-.sectionTitle {
-  font-family: 'Golos Text', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--villgro-green);
-  margin-bottom: 16px;
-}
-
-.questionTitle {
-  font-family: 'Golos Text', sans-serif;
-  font-size: 14.972px;
-  font-weight: 500;
-  color: var(--villgro-green);
-  margin-bottom: 16px;
-}
-
-.floatingChart {
-  position: absolute;
-  backdrop-filter: blur(23.25px);
-  background: rgba(255, 255, 255, 0.37);
-  border-radius: 15px;
-  box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
-  padding: 24px;
-}
-
-.floatingChartRight {
-  right: -84px;
-  top: -10px;
-  width: 250px;
-  height: 250px;
-}
-
-.floatingChartLeft {
-  left: -80px;
-  top: 400px;
-  width: 275px;
-  height: 230px;
-}
-
-.pieChart {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10px;
-}
-
-.pieSegmentLarge {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--villgro-green) 0%, var(--villgro-light-green) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.pieSegmentMedium {
-  position: absolute;
-  top: -20px;
-  right: -22px;
-  width: 108px;
-  height: 108px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--villgro-yellow) 0%, var(--villgro-light-yellow) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: black;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.pieSegmentSmall {
-  position: absolute;
-  bottom: -16px;
-  left: -16px;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--villgro-orange) 0%, var(--villgro-light-orange) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: black;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.barChart {
-  display: flex;
-  align-items: end;
-  justify-content: center;
-  gap: 12px;
-  height: 200px;
-}
-
-.barItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 9px;
-}
-
-.barLabel {
-  font-size: 20px;
-  color: black;
-  text-align: center;
-}
-
-.bar {
-  width: 54px;
-  background: linear-gradient(to right, var(--villgro-green) 0%, var(--villgro-yellow) 100%);
-  border-radius: 8px;
-}
-
-.bar30 {
-  height: 54px;
-}
-
-.bar70 {
-  height: 108px;
-}
-
-.bar100 {
-  height: 148px;
-}
-
-/* Responsive Design */
-@media (max-width: 1400px) {
-  .floatingChartRight,
-  .floatingChartLeft {
-    display: none;
-  }
-}
 
 @media (max-width: 1200px) {
   .heroTitle {
@@ -271,19 +71,23 @@
   }
   
   .container {
-    padding: 0 24px;
+    padding: 0 clamp(16px, 3vw, 24px);
+  }
+  
+  .dashboardMockup {
+    max-width: min(1000px, 85vw);
   }
 }
 
 @media (max-width: 768px) {
   .hero {
-    padding-top: 120px;
-    padding-bottom: 40px;
+    padding-top: clamp(80px, 12vh, 120px);
+    padding-bottom: clamp(30px, 5vh, 40px);
   }
   
   .heroTitle {
-    font-size: clamp(28px, 7vw, 42px);
-    line-height: 1.2;
+    font-size: clamp(26px, 6vw, 38px);
+    line-height: 1.1;
   }
   
   .heroDescription {
@@ -298,7 +102,7 @@
   .interfaceContent {
     flex-direction: column;
     gap: 16px;
-    padding: 20px;
+    padding: clamp(16px, 3vw, 20px);
   }
   
   .sidebar {
@@ -313,50 +117,79 @@
   }
   
   .assessmentInterface {
-    padding: 20px;
+    padding: clamp(16px, 3vw, 20px);
+  }
+  
+  .hero {
+    margin-bottom: 0;
+  }
+  
+  .videoWrapper {
+    top: 50px;
+    height: calc(100% - 50px);
+  }
+  
+  .howItWorksSection {
+    margin-top: clamp(376px, 40vh, 576px);
   }
 }
 
 @media (max-width: 480px) {
   .hero {
-    padding-top: 100px;
+    padding-top: clamp(60px, 10vh, 100px);
   }
   
   .heroTitle {
-    font-size: 24px;
+    font-size: clamp(22px, 5.5vw, 30px);
+    line-height: 1.1;
   }
   
   .heroDescription {
-    font-size: 14px;
+    font-size: clamp(14px, 3vw, 16px);
   }
   
   .container {
-    padding: 0 16px;
+    padding: 0 clamp(12px, 4vw, 16px);
+  }
+  
+  .hero {
+    margin-bottom: 0;
+  }
+  
+  .videoWrapper {
+    top: 40px;
+    height: calc(100% - 40px);
+  }
+  
+  .heroVideo {
+    border-radius: 8px;
+  }
+  
+  .howItWorksSection {
+    margin-top: clamp(326px, 35vh, 476px);
   }
 }
 
 /* How It Works Section Styles */
 .howItWorksSection {
-  padding: 80px 0;
   position: relative;
+  padding: 100px;
+  margin-top: clamp(-526px, 50vh, -350px);
+  z-index: 10;
 }
 
 .sectionTitle {
   text-align: center;
   margin-bottom: 64px;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
   padding: 0 32px;
 }
 
 .title {
   font-family: 'Baskervville', serif;
-  font-size: 60px;
+  font-size: clamp(36px, 4vw, 50px);
   font-weight: 600;
   line-height: 1.04;
   color: var(--villgro-dark);
-  margin-bottom: 16px;
 }
 
 .titleGreen {
@@ -366,19 +199,17 @@
 .stepsContainer {
   display: flex;
   justify-content: center;
-  gap: 32px;
-  max-width: 1500px;
-  margin: 0 auto;
+  gap: 15px;
   flex-wrap: wrap;
 }
 
 .stepCard {
   backdrop-filter: blur(23.25px);
   background: rgba(255, 255, 255, 0.37);
-  border-radius: 15px;
+  border-radius: 10px;
   box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
   padding: 32px;
-  height: 291px;
+  height: auto;
   position: relative;
   transition: transform 0.3s ease;
   flex: 1;
@@ -434,9 +265,6 @@
 .stepIcon {
   width: 48px;
   height: 48px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -444,8 +272,8 @@
 }
 
 .stepIconImage {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
 }
 
@@ -457,7 +285,7 @@
 
 .stepNumber {
   font-family: 'Golos Text', sans-serif;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   color: var(--villgro-green);
   margin-bottom: 16px;
@@ -466,7 +294,7 @@
 .stepDescription {
   color: #231F20;
   font-family: 'Golos Text', sans-serif;
-  font-size: 30px;
+  font-size: 20px;
   font-style: normal;
   font-weight: 400;
   line-height: normal;

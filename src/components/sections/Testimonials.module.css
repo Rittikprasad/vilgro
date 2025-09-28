@@ -2,27 +2,26 @@
 
 .section {
   padding: 80px 0;
-  background: linear-gradient(135deg, var(--villgro-green) 0%, var(--villgro-yellow) 100%);
+  background: linear-gradient(105deg, var(--villgro-green) 0%, var(--villgro-yellow) 100%);
   position: relative;
   overflow: hidden;
 }
 
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 9rem;
   position: relative;
   z-index: 10;
+  width: 100%;
 }
 
 .sectionTitle {
   margin-bottom: 64px;
-  text-align: center;
+  /* text-align: center; */
 }
 
 .title {
   font-family: 'Baskervville', serif;
-  font-size: 60px;
+  font-size: clamp(36px, 5vw, 50px);
   font-weight: 600;
   line-height: 1.029;
   margin: 0;
@@ -31,22 +30,22 @@
 
 .testimonialsContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 32px;
-  max-width: 1200px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(20px, 3vw, 32px);
   margin: 0 auto;
+  width: 100%;
 }
 
 .testimonialCard {
-  backdrop-filter: blur(38px);
-  background: rgba(255, 255, 255, 0.37);
   border-radius: 15px;
   box-shadow: 0px 0px 15.1px -1px rgba(0, 0, 0, 0.15);
   padding: 32px;
-  min-height: 300px;
   position: relative;
   display: flex;
   flex-direction: column;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 
@@ -56,15 +55,9 @@
   margin-bottom: 24px;
 }
 
-.quoteIcon {
-  width: 32px;
-  height: 32px;
-  color: var(--villgro-green);
-  margin-right: 16px;
-}
 
 .organizationName {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Golos Text', sans-serif;
   font-size: 30px;
   font-weight: 500;
   color: var(--villgro-dark);
@@ -72,8 +65,8 @@
 }
 
 .testimonialText {
-  font-family: 'General Sans', sans-serif;
-  font-size: 24px;
+  font-family: 'Golos Text', sans-serif;
+  font-size: 20px;
   font-weight: 400;
   color: var(--villgro-dark);
   line-height: 1.58;

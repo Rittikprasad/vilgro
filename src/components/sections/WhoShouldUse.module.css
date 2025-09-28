@@ -1,15 +1,14 @@
 /* Who Should Use section styles matching Figma design exactly */
 
 .section {
-  padding: 60px 0;
+  padding: 85px 80px;
   background: linear-gradient(135deg, var(--villgro-green) 0%, var(--villgro-yellow) 100%);
   position: relative;
   overflow: hidden;
-  min-height: 300px;
 }
 
 .container {
-  max-width: 1400px;
+  /* max-width: 1400px; */
   margin: 0 auto;
   padding: 0 32px;
   position: relative;
@@ -27,7 +26,7 @@
 
 .title {
   font-family: 'Baskervville', serif;
-  font-size: clamp(36px, 4vw, 60px);
+  font-size: clamp(36px, 4vw, 50px);
   font-weight: 600;
   line-height: 1.18;
   margin: 0;
@@ -84,7 +83,7 @@
 
 .audienceTitle {
   font-family: 'Golos Text', sans-serif;
-  font-size: clamp(18px, 2.2vw, 30px);
+  font-size: clamp(18px, 2.2vw, 20px);
   font-weight: 400;
   color: var(--villgro-dark);
   line-height: 1.2;

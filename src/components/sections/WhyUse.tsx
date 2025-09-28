@@ -12,28 +12,29 @@ import ResourceIcon from '../../assets/svg/Resourse.svg';
 const WhyUse: React.FC = () => {
   return (
     <section id="why-use" className={styles.section}>
+      {/* Gradient background div */}
+      <div className={styles.gradientBackground}></div>
+      <div className={styles.gradientBackground1}></div>
       <div className={styles.container}>
-        {/* Why Use This Tool Section */}
         <div className={styles.whyUseSection}>
-          {/* Section Title */}
-          <div className={styles.sectionTitle}>
-            <h2 className={styles.title}>
-              <span className={styles.titleGreen}>Why</span>
-              <span> Use This Tool?</span>
-            </h2>
-          </div>
+          
 
           <div className={styles.contentContainer}>
-            {/* Left side - Background image section */}
             <div className={styles.imageSection}>
               <img src={laptopImage} alt="Person using laptop" className={styles.laptopImage} />
             </div>
 
             {/* Right side - Benefits List */}
             <div className={styles.benefitsList}>
+            <div className={styles.sectionTitle}>
+            <h2 className={styles.title}>
+              <span className={styles.titleGreen}>Why</span>
+              <span> Use This Tool?</span>
+            </h2>
+          </div>
             <div className={styles.benefitItem}>
               <div className={styles.benefitDot}></div>
-              <p className={styles.benefitText}>Recommendation on right capital for you</p>
+              <p className={styles.benefitText}>Get recommendation on right capital for you</p>
             </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitDot}></div>
@@ -53,7 +54,7 @@ const WhyUse: React.FC = () => {
 
         {/* What You'll Get Section */}
         <div className={styles.whatYouGetSection}>
-          <div className={styles.sectionTitle}>
+          <div className={styles.sectionTitle1}>
             <h2 className={styles.title}>
               <span className={styles.titleGreen}>What</span>
               <span className={styles.titleDark}> You'll Get</span>

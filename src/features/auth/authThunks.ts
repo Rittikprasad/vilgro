@@ -1,8 +1,13 @@
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import { LoginRequest, LoginResponse, UserProfileResponse, ThunkApiConfig } from './authTypes';
-import { authSlice } from './authSlice';
-import { api } from '../../services/api';
-import { endpoints } from '../../services/endpoints';
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  LoginRequest,
+  LoginResponse,
+  UserProfileResponse,
+  ThunkApiConfig,
+} from "./authTypes";
+import { authSlice } from "./authSlice";
+import api from "../../services/api";
+import { endpoints } from "../../services/endpoints";
 
 /**
  * Login async thunk
@@ -12,32 +17,32 @@ export const login = createAsyncThunk<
   LoginResponse,
   LoginRequest,
   ThunkApiConfig
->(
-  'auth/login',
-  async (credentials, { rejectWithValue, dispatch }) => {
-    try {
-      // Set loading state
-      dispatch(authSlice.actions.setLoading(true));
-      dispatch(authSlice.actions.clearError());
+>("auth/login", async (credentials, { rejectWithValue, dispatch }) => {
+  try {
+    // Set loading state
+    dispatch(authSlice.actions.setLoading(true));
+    dispatch(authSlice.actions.clearError());
 
-      // Make login API call
-      const response = await api.post<LoginResponse>(endpoints.auth.login, credentials);
-      
-      // Dispatch success actions
-      dispatch(authSlice.actions.setAuthData(response.data));
-      
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Login failed';
-      dispatch(authSlice.actions.setError(errorMessage));
-      return rejectWithValue({
-        message: errorMessage,
-        status: error.response?.status || 500,
-        code: error.response?.data?.code,
-      });
-    }
+    // Make login API call
+    const response = await api.post<LoginResponse>(
+      endpoints.auth.login,
+      credentials
+    );
+
+    // Dispatch success actions
+    dispatch(authSlice.actions.setAuthData(response.data));
+
+    return response.data;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Login failed";
+    dispatch(authSlice.actions.setError(errorMessage));
+    return rejectWithValue({
+      message: errorMessage,
+      status: error.response?.status || 500,
+      code: error.response?.data?.code,
+    });
   }
-);
+});
 
 /**
  * Fetch user profile async thunk
@@ -48,13 +53,13 @@ export const fetchUserProfile = createAsyncThunk<
   void,
   ThunkApiConfig
 >(
-  'auth/fetchUserProfile',
+  "auth/fetchUserProfile",
   async (_, { rejectWithValue, dispatch, getState }) => {
     try {
       // Check if user is authenticated
       const state = getState();
       if (!state.auth.accessToken) {
-        throw new Error('No access token available');
+        throw new Error("No access token available");
       }
 
       // Set loading state
@@ -62,23 +67,26 @@ export const fetchUserProfile = createAsyncThunk<
       dispatch(authSlice.actions.clearError());
 
       // Make API call to fetch user profile
-      const response = await api.get<UserProfileResponse>(endpoints.auth.profile);
-      
+      const response = await api.get<UserProfileResponse>(
+        endpoints.auth.profile
+      );
+
       // Update user data
       dispatch(authSlice.actions.setUser(response.data.user));
       dispatch(authSlice.actions.setLoading(false));
-      
+
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to fetch user profile';
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch user profile";
       dispatch(authSlice.actions.setError(errorMessage));
       dispatch(authSlice.actions.setLoading(false));
-      
+
       // If token is invalid, logout user
       if (error.response?.status === 401) {
         dispatch(authSlice.actions.logout());
       }
-      
+
       return rejectWithValue({
         message: errorMessage,
         status: error.response?.status || 500,
@@ -96,62 +104,57 @@ export const refreshToken = createAsyncThunk<
   { accessToken: string; refreshToken: string },
   void,
   ThunkApiConfig
->(
-  'auth/refreshToken',
-  async (_, { rejectWithValue, dispatch, getState }) => {
-    try {
-      const state = getState();
-      const refreshTokenValue = state.auth.refreshToken;
-      
-      if (!refreshTokenValue) {
-        throw new Error('No refresh token available');
-      }
+>("auth/refreshToken", async (_, { rejectWithValue, dispatch, getState }) => {
+  try {
+    const state = getState();
+    const refreshTokenValue = state.auth.refreshToken;
 
-      // Make API call to refresh token
-      const response = await api.post(endpoints.auth.refresh, {
-        refreshToken: refreshTokenValue,
-      });
-      
-      // Update tokens
-      dispatch(authSlice.actions.setTokens({
-        accessToken: response.data.accessToken,
-        refreshToken: response.data.refreshToken,
-      }));
-      
-      return {
-        accessToken: response.data.accessToken,
-        refreshToken: response.data.refreshToken,
-      };
-    } catch (error: any) {
-      // If refresh fails, logout user
-      dispatch(authSlice.actions.logout());
-      
-      return rejectWithValue({
-        message: 'Token refresh failed',
-        status: error.response?.status || 500,
-        code: error.response?.data?.code,
-      });
+    if (!refreshTokenValue) {
+      throw new Error("No refresh token available");
     }
+
+    // Make API call to refresh token
+    const response = await api.post(endpoints.auth.refresh, {
+      refreshToken: refreshTokenValue,
+    });
+
+    // Update tokens
+    dispatch(
+      authSlice.actions.setTokens({
+        accessToken: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
+      })
+    );
+
+    return {
+      accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+    };
+  } catch (error: any) {
+    // If refresh fails, logout user
+    dispatch(authSlice.actions.logout());
+
+    return rejectWithValue({
+      message: "Token refresh failed",
+      status: error.response?.status || 500,
+      code: error.response?.data?.code,
+    });
   }
-);
+});
 
 /**
  * Logout async thunk
  * Handles user logout and token cleanup
  */
-export const logoutUser = createAsyncThunk<
-  void,
-  void,
-  ThunkApiConfig
->(
-  'auth/logoutUser',
+export const logoutUser = createAsyncThunk<void, void, ThunkApiConfig>(
+  "auth/logoutUser",
   async (_, { dispatch }) => {
     try {
       // Optional: Call logout endpoint to invalidate tokens on server
       await api.post(endpoints.auth.logout);
     } catch (error) {
       // Ignore logout API errors, still clear local state
-      console.warn('Logout API call failed:', error);
+      console.warn("Logout API call failed:", error);
     } finally {
       // Always clear local state
       dispatch(authSlice.actions.logout());

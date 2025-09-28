@@ -3,7 +3,7 @@
  * Centralized location for all API endpoint definitions
  */
 
-const BASE_URL = 'http://13.222.130.172/api';
+const BASE_URL = "http://13.222.130.172/api";
 
 /**
  * Authentication endpoints
@@ -20,7 +20,7 @@ export const endpoints = {
     resetPassword: `${BASE_URL}/auth/reset-password`,
     verifyEmail: `${BASE_URL}/auth/verify-email`,
   },
-  
+
   // User management endpoints
   users: {
     list: `${BASE_URL}/users`,
@@ -29,7 +29,12 @@ export const endpoints = {
     update: (id: string) => `${BASE_URL}/users/${id}`,
     delete: (id: string) => `${BASE_URL}/users/${id}`,
   },
-  
+
+  // Meta options endpoints
+  meta: {
+    options: `${BASE_URL}/meta/options`,
+  },
+
   // Add more endpoint categories as needed
   // Example:
   // posts: {

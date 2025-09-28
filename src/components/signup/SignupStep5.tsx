@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useDispatch, useSelector } from "react-redux"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { RadioGroup, RadioGroupItem } from "../ui/RadioGroup"
@@ -9,13 +10,13 @@ import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import ProgressTracker from "../ui/ProgressTracker"
 import Navbar from "../ui/Navbar"
+import { fetchMetaOptions } from "../../features/meta/metaSlice"
+import type { RootState } from "../../app/store"
 
 // Validation schema for Step 5
 const step5Schema = z.object({
   annualBudget: z.string().min(1, "Annual operating budget is required"),
-  fundingSource: z.enum(["funding", "self-assessment"]).refine((val) => val !== undefined, {
-    message: "Please select funding source"
-  }),
+  fundingSource: z.string().min(1, "Please select funding source"),
   philanthropicFunding: z.enum(["yes", "no"]).refine((val) => val !== undefined, {
     message: "Please select if you have received philanthropic funding"
   })
@@ -33,6 +34,9 @@ interface SignupStep5Props {
  * Collects budget and funding information to complete signup
  */
 const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
+  const dispatch = useDispatch()
+  const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta)
+
   const {
     register,
     handleSubmit,
@@ -45,6 +49,13 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
 
   const selectedFundingSource = watch("fundingSource")
   const selectedPhilanthropicFunding = watch("philanthropicFunding")
+
+  // Fetch meta options on component mount
+  useEffect(() => {
+    if (!options) {
+      dispatch(fetchMetaOptions() as any)
+    }
+  }, [dispatch, options])
 
   /**
    * Handle form submission
@@ -110,24 +121,24 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
                 <label className="block text-lg font-medium text-gray-700 mb-3">
                   What are you using the questionnaire for funding or self assessment?
                 </label>
-                <RadioGroup
-                  value={selectedFundingSource}
-                  onValueChange={(value) => setValue("fundingSource", value as any)}
-                  className="flex flex-wrap gap-6"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="funding" id="funding" />
-                    <label htmlFor="funding" className="text-sm cursor-pointer">
-                      Funding
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="self-assessment" id="self-assessment" />
-                    <label htmlFor="self-assessment" className="text-sm cursor-pointer">
-                      Self assessment
-                    </label>
-                  </div>
-                </RadioGroup>
+                {metaLoading ? (
+                  <div className="text-sm text-gray-500">Loading questionnaire options...</div>
+                ) : (
+                  <RadioGroup
+                    value={selectedFundingSource}
+                    onValueChange={(value) => setValue("fundingSource", value)}
+                    className="flex flex-wrap gap-6"
+                  >
+                    {options?.use_of_questionnaire?.map((option) => (
+                      <div key={option.key} className="flex items-center space-x-2">
+                        <RadioGroupItem value={option.key} id={option.key} />
+                        <label htmlFor={option.key} className="text-sm cursor-pointer">
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                )}
                 {errors.fundingSource && (
                   <p className="text-red-500 text-sm">{errors.fundingSource.message}</p>
                 )}

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import SignupStep1 from './SignupStep1';
 import SignupStep2 from './SignupStep2';
 import SignupStep3 from './SignupStep3';
 import SignupStep4 from './SignupStep4';
 import SignupStep5 from './SignupStep5';
+import { fetchMetaOptions } from '../../features/meta/metaSlice';
+import type { RootState } from '../../app/store';
 
 export interface SignupData {
   step1?: any;
@@ -18,8 +21,17 @@ export interface SignupData {
  * Handles navigation between steps and data collection
  */
 const SignupFlow: React.FC = () => {
+  const dispatch = useDispatch();
+  const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta);
   const [currentStep, setCurrentStep] = useState(1);
   const [signupData, setSignupData] = useState<SignupData>({});
+
+  // Fetch meta options when component mounts
+  useEffect(() => {
+    if (!options && !metaLoading) {
+      dispatch(fetchMetaOptions() as any);
+    }
+  }, [dispatch, options, metaLoading]);
 
   const handleNext = (stepData: any) => {
     setSignupData(prev => ({

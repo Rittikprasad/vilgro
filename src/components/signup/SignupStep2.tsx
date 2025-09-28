@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useDispatch, useSelector } from "react-redux"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { RadioGroup, RadioGroupItem } from "../ui/RadioGroup"
@@ -9,6 +10,8 @@ import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import background1 from "../../assets/background1.jpg"
 import ProgressTracker from "../ui/ProgressTracker"
+import { fetchMetaOptions } from "../../features/meta/metaSlice"
+import type { RootState } from "../../app/store"
 
 // Validation schema for Step 2
 const step2Schema = z.object({
@@ -17,9 +20,7 @@ const step2Schema = z.object({
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
   designation: z.string().min(1, "Designation is required"),
   companyName: z.string().min(1, "Company name is required"),
-  legalRegistrationType: z.enum(["private-limited", "public-limited", "partnership", "sole-proprietorship"]).refine((val) => val !== undefined, {
-    message: "Please select a legal registration type"
-  })
+  legalRegistrationType: z.string().min(1, "Please select a legal registration type")
 })
 
 type Step2FormData = z.infer<typeof step2Schema>
@@ -34,6 +35,9 @@ interface SignupStep2Props {
  * Collects personal and company information
  */
 const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
+  const dispatch = useDispatch()
+  const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta)
+
   const {
     register,
     handleSubmit,
@@ -45,6 +49,13 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
   })
 
   const selectedRegistrationType = watch("legalRegistrationType")
+
+  // Fetch meta options on component mount
+  useEffect(() => {
+    if (!options) {
+      dispatch(fetchMetaOptions() as any)
+    }
+  }, [dispatch, options])
 
   /**
    * Handle form submission
@@ -166,36 +177,24 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
                 <label className="text-sm font-medium text-gray-700 ">
                   Legal Registration Type
                 </label>
-                <RadioGroup
-                  value={selectedRegistrationType}
-                  onValueChange={(value) => setValue("legalRegistrationType", value as any)}
-                  className="grid grid-cols-2 gap-4 pt-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="private-limited" id="private-limited" />
-                    <label htmlFor="private-limited" className="text-sm cursor-pointer">
-                      Private Limited Company
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="public-limited" id="public-limited" />
-                    <label htmlFor="public-limited" className="text-sm cursor-pointer">
-                      Public Limited Company
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="partnership" id="partnership" />
-                    <label htmlFor="partnership" className="text-sm cursor-pointer">
-                      Partnership Firm
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="sole-proprietorship" id="sole-proprietorship" />
-                    <label htmlFor="sole-proprietorship" className="text-sm cursor-pointer">
-                      Sole Proprietorship
-                    </label>
-                  </div>
-                </RadioGroup>
+                {metaLoading ? (
+                  <div className="text-sm text-gray-500">Loading registration types...</div>
+                ) : (
+                  <RadioGroup
+                    value={selectedRegistrationType}
+                    onValueChange={(value) => setValue("legalRegistrationType", value)}
+                    className="grid grid-cols-2 gap-4 pt-2"
+                  >
+                    {options?.registration_types?.map((type) => (
+                      <div key={type.key} className="flex items-center space-x-2">
+                        <RadioGroupItem value={type.key} id={type.key} />
+                        <label htmlFor={type.key} className="text-sm cursor-pointer">
+                          {type.label}
+                        </label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                )}
                 {errors.legalRegistrationType && (
                   <p className="text-red-500 text-sm">{errors.legalRegistrationType.message}</p>
                 )}

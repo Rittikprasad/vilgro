@@ -1,25 +1,22 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useDispatch, useSelector } from "react-redux"
 import { Button } from "../ui/Button"
 import { RadioGroup, RadioGroupItem } from "../ui/RadioGroup"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import ProgressTracker from "../ui/ProgressTracker"
 import Navbar from "../ui/Navbar"
+import { fetchMetaOptions } from "../../features/meta/metaSlice"
+import type { RootState } from "../../app/store"
 
 // Validation schema for Step 4
 const step4Schema = z.object({
-  focusSector: z.enum(["agriculture", "supply-chain-management", "healthcare", "livelihoods", "education"]).refine((val) => val !== undefined, {
-    message: "Please select your main focus sector"
-  }),
-  stage: z.enum(["prototype", "product-ready", "pre-revenue", "early-revenue", "growing-scaling"]).refine((val) => val !== undefined, {
-    message: "Please select your current stage"
-  }),
-  impactFocus: z.enum(["social-impact", "environmental-impact", "both"]).refine((val) => val !== undefined, {
-    message: "Please select your impact focus"
-  })
+  focusSector: z.string().min(1, "Please select your main focus sector"),
+  stage: z.string().min(1, "Please select your current stage"),
+  impactFocus: z.string().min(1, "Please select your impact focus")
 })
 
 type Step4FormData = z.infer<typeof step4Schema>
@@ -34,6 +31,9 @@ interface SignupStep4Props {
  * Allows users to select their main focus sector and impact type
  */
 const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
+  const dispatch = useDispatch()
+  const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta)
+
   const {
     handleSubmit,
     setValue,
@@ -46,6 +46,13 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
   const selectedFocusSector = watch("focusSector")
   const selectedStage = watch("stage")
   const selectedImpactFocus = watch("impactFocus")
+
+  // Fetch meta options on component mount
+  useEffect(() => {
+    if (!options) {
+      dispatch(fetchMetaOptions() as any)
+    }
+  }, [dispatch, options])
 
   /**
    * Handle form submission
@@ -60,33 +67,14 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
     }
   }
 
-  const focusSectors = [
-    {
-      id: "agriculture",
-      name: "Agriculture",
-      icon: "🌾"
-    },
-    {
-      id: "supply-chain-management",
-      name: "Supply Chain Management",
-      icon: "🚛"
-    },
-    {
-      id: "healthcare",
-      name: "Healthcare",
-      icon: "🏥"
-    },
-    {
-      id: "livelihoods",
-      name: "Livelihoods",
-      icon: "💼"
-    },
-    {
-      id: "education",
-      name: "Education",
-      icon: "📚"
-    }
-  ]
+  // Icon mapping for focus sectors
+  const sectorIcons: Record<string, string> = {
+    AGRICULTURE: "🌾",
+    WASTE: "♻️",
+    HEALTH: "🏥",
+    LIVELIHOOD: "💼",
+    OTHERS: "📚"
+  }
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
@@ -115,31 +103,35 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                 <label className="block text-lg font-medium text-gray-700 mb-4">
                   Which is your main focus sector?
                 </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                  {focusSectors.map((sector) => (
-                    <div
-                      key={sector.id}
-                      className={cn(
-                        "relative cursor-pointer rounded-lg border-2 p-2 text-center transition-all hover:shadow-md",
-                        selectedFocusSector === sector.id
-                          ? "border-[#46B753] bg-green-50"
-                          : "border-gray-200 bg-white hover:border-gray-300"
-                      )}
-                      onClick={() => setValue("focusSector", sector.id as any)}
-                    >
-                      <div className="text-4xl mb-3">{sector.icon}</div>
-                      <p className="text-sm font-medium text-gray-900 mb-2">
-                        {sector.name}
-                      </p>
+                {metaLoading ? (
+                  <div className="text-sm text-gray-500">Loading focus sectors...</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                    {options?.focus_sectors?.map((sector) => (
+                      <div
+                        key={sector.key}
+                        className={cn(
+                          "relative cursor-pointer rounded-lg border-2 p-2 text-center transition-all hover:shadow-md",
+                          selectedFocusSector === sector.key
+                            ? "border-[#46B753] bg-green-50"
+                            : "border-gray-200 bg-white hover:border-gray-300"
+                        )}
+                        onClick={() => setValue("focusSector", sector.key)}
+                      >
+                        <div className="text-4xl mb-3">{sectorIcons[sector.key] || "📚"}</div>
+                        <p className="text-sm font-medium text-gray-900 mb-2">
+                          {sector.label}
+                        </p>
 
-                      {selectedFocusSector === sector.id && (
-                        <div className="absolute top-2 right-2 w-4 h-4 bg-[#46B753] rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                        {selectedFocusSector === sector.key && (
+                          <div className="absolute top-2 right-2 w-4 h-4 bg-[#46B753] rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {errors.focusSector && (
                   <p className="text-red-500 text-sm">{errors.focusSector.message}</p>
                 )}
@@ -150,36 +142,24 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                 <label className="block text-lg font-medium text-gray-700 mb-3">
                   At what stage you are?
                 </label>
-                <RadioGroup
-                  value={selectedStage}
-                  onValueChange={(value) => setValue("stage", value as any)}
-                  className="flex flex-wrap gap-6"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="prototype" id="prototype" />
-                    <label htmlFor="prototype" className="text-sm cursor-pointer">
-                      Prototype
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="product-ready" id="product-ready" />
-                    <label htmlFor="product-ready" className="text-sm cursor-pointer">
-                      Product ready - pre revenue
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="early-revenue" id="early-revenue" />
-                    <label htmlFor="early-revenue" className="text-sm cursor-pointer">
-                      Early revenue
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="growing-scaling" id="growing-scaling" />
-                    <label htmlFor="growing-scaling" className="text-sm cursor-pointer">
-                      Growing and scaling
-                    </label>
-                  </div>
-                </RadioGroup>
+                {metaLoading ? (
+                  <div className="text-sm text-gray-500">Loading stages...</div>
+                ) : (
+                  <RadioGroup
+                    value={selectedStage}
+                    onValueChange={(value) => setValue("stage", value)}
+                    className="flex flex-wrap gap-6"
+                  >
+                    {options?.stages?.map((stage) => (
+                      <div key={stage.key} className="flex items-center space-x-2">
+                        <RadioGroupItem value={stage.key} id={stage.key} />
+                        <label htmlFor={stage.key} className="text-sm cursor-pointer">
+                          {stage.label}
+                        </label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                )}
                 {errors.stage && (
                   <p className="text-red-500 text-sm">{errors.stage.message}</p>
                 )}
@@ -190,30 +170,24 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                 <label className="block text-lg font-medium text-gray-700 mb-3">
                   What kind of impact you focus on creating?
                 </label>
-                <RadioGroup
-                  value={selectedImpactFocus}
-                  onValueChange={(value) => setValue("impactFocus", value as any)}
-                  className="flex flex-wrap gap-6"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="social-impact" id="social-impact" />
-                    <label htmlFor="social-impact" className="text-sm cursor-pointer">
-                      Social Impact
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="environmental-impact" id="environmental-impact" />
-                    <label htmlFor="environmental-impact" className="text-sm cursor-pointer">
-                      Environmental Impact
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="both" id="both" />
-                    <label htmlFor="both" className="text-sm cursor-pointer">
-                      Both
-                    </label>
-                  </div>
-                </RadioGroup>
+                {metaLoading ? (
+                  <div className="text-sm text-gray-500">Loading impact focus options...</div>
+                ) : (
+                  <RadioGroup
+                    value={selectedImpactFocus}
+                    onValueChange={(value) => setValue("impactFocus", value)}
+                    className="flex flex-wrap gap-6"
+                  >
+                    {options?.impact_focus?.map((impact) => (
+                      <div key={impact.key} className="flex items-center space-x-2">
+                        <RadioGroupItem value={impact.key} id={impact.key} />
+                        <label htmlFor={impact.key} className="text-sm cursor-pointer">
+                          {impact.label}
+                        </label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                )}
                 {errors.impactFocus && (
                   <p className="text-red-500 text-sm">{errors.impactFocus.message}</p>
                 )}

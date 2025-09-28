@@ -1,5 +1,6 @@
-import { combineReducers } from '@reduxjs/toolkit';
-import { authSlice } from '../features/auth/authSlice.js';
+import { combineReducers } from "@reduxjs/toolkit";
+import { authSlice } from "../features/auth/authSlice.js";
+import metaReducer from "../features/meta/metaSlice.js";
 
 /**
  * Root reducer that combines all feature reducers
@@ -7,4 +8,5 @@ import { authSlice } from '../features/auth/authSlice.js';
  */
 export const rootReducer = combineReducers({
   auth: authSlice.reducer,
+  meta: metaReducer,
 });

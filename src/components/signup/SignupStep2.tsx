@@ -11,6 +11,7 @@ import logo from "../../assets/logo.png"
 import background1 from "../../assets/background1.jpg"
 import ProgressTracker from "../ui/ProgressTracker"
 import { fetchMetaOptions } from "../../features/meta/metaSlice"
+import { completeSignup, clearError } from "../../features/signup/signupSlice"
 import type { RootState } from "../../app/store"
 
 // Validation schema for Step 2
@@ -20,7 +21,10 @@ const step2Schema = z.object({
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
   designation: z.string().min(1, "Designation is required"),
   companyName: z.string().min(1, "Company name is required"),
-  legalRegistrationType: z.string().min(1, "Please select a legal registration type")
+  legalRegistrationType: z.string().min(1, "Please select a legal registration type"),
+  dateOfIncorporation: z.string().optional(),
+  gstNumber: z.string().optional(),
+  cinNumber: z.string().optional(),
 })
 
 type Step2FormData = z.infer<typeof step2Schema>
@@ -37,13 +41,15 @@ interface SignupStep2Props {
 const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
   const dispatch = useDispatch()
   const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta)
+  const { isLoading: signupLoading, error: signupError } = useSelector((state: RootState) => state.signup)
+  const { accessToken, isAuthenticated } = useSelector((state: RootState) => state.auth)
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<Step2FormData>({
     resolver: zodResolver(step2Schema),
   })
@@ -57,6 +63,13 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
     }
   }, [dispatch, options])
 
+  // Clear signup error when component mounts
+  useEffect(() => {
+    if (signupError) {
+      dispatch(clearError())
+    }
+  }, [dispatch, signupError])
+
   /**
    * Handle form submission
    * @param data - Form data validated by Zod schema
@@ -64,7 +77,27 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
   const onSubmit = async (data: Step2FormData) => {
     try {
       console.log("Step 2 submitted:", data)
-      onNext(data)
+      console.log("Current auth state - isAuthenticated:", isAuthenticated, "accessToken:", accessToken ? "present" : "missing")
+
+      // Call signup completion API
+      const signupCompleteData = {
+        org_name: data.companyName,
+        registration_type: data.legalRegistrationType,
+        ...(data.dateOfIncorporation && { date_of_incorporation: data.dateOfIncorporation }),
+        ...(data.gstNumber && { gst_number: data.gstNumber }),
+        ...(data.cinNumber && { cin_number: data.cinNumber }),
+      }
+
+      console.log("Calling completeSignup API with:", signupCompleteData)
+      const result = await dispatch(completeSignup(signupCompleteData) as any)
+
+      if (completeSignup.fulfilled.match(result)) {
+        console.log("Signup completion successful:", result.payload)
+        // Pass the form data to next step
+        onNext(data)
+      } else {
+        console.error("Signup completion failed:", result.payload)
+      }
     } catch (error) {
       console.error("Step 2 error:", error)
     }
@@ -200,14 +233,58 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
                 )}
               </div>
 
+              {/* Optional Fields */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-gray-700">
+                  Additional Information (Optional)
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Date of Incorporation */}
+                  <div className="space-y-1">
+                    <Input
+                      {...register("dateOfIncorporation")}
+                      type="date"
+                      placeholder="Date of Incorporation"
+                      className="w-full h-12 px-4 py-3 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors"
+                    />
+                  </div>
+
+                  {/* GST Number */}
+                  <div className="space-y-1">
+                    <Input
+                      {...register("gstNumber")}
+                      placeholder="GST Number"
+                      className="w-full h-12 px-4 py-3 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* CIN Number */}
+                <div className="space-y-1">
+                  <Input
+                    {...register("cinNumber")}
+                    placeholder="CIN Number"
+                    className="w-full h-12 px-4 py-3 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Error Display */}
+              {signupError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-600 text-sm">{signupError}</p>
+                </div>
+              )}
+
               {/* Navigation Buttons */}
               <div className="flex justify-start pt-6">
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={signupLoading}
                   className="w-full max-w-xs h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
-                  {isSubmitting ? "Processing..." : "Next Account"}
+                  {signupLoading ? "Completing Profile..." : "Continue"}
                 </Button>
               </div>
             </form>

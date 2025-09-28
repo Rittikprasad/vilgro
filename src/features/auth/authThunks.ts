@@ -1,8 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import {
+import type {
   LoginRequest,
   LoginResponse,
   UserProfileResponse,
+  OnboardingProgressResponse,
   ThunkApiConfig,
 } from "./authTypes";
 import { authSlice } from "./authSlice";
@@ -143,15 +144,79 @@ export const refreshToken = createAsyncThunk<
 });
 
 /**
+ * Fetch onboarding progress async thunk
+ * Retrieves current onboarding progress and draft data
+ */
+export const fetchOnboardingProgress = createAsyncThunk<
+  OnboardingProgressResponse,
+  void,
+  ThunkApiConfig
+>(
+  "auth/fetchOnboardingProgress",
+  async (_, { rejectWithValue, dispatch, getState }) => {
+    try {
+      // Check if user is authenticated
+      const state = getState();
+      if (!state.auth.accessToken) {
+        throw new Error("No access token available");
+      }
+
+      // Set loading state
+      dispatch(authSlice.actions.setLoading(true));
+      dispatch(authSlice.actions.clearError());
+
+      // Make API call to fetch onboarding progress
+      const response = await api.get<OnboardingProgressResponse>(
+        endpoints.onboarding.getProgress
+      );
+
+      // Update onboarding data in auth state
+      dispatch(
+        authSlice.actions.updateOnboarding({
+          current_step: response.data.current_step,
+          is_complete: response.data.is_complete,
+        })
+      );
+
+      dispatch(authSlice.actions.setLoading(false));
+
+      return response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch onboarding progress";
+      dispatch(authSlice.actions.setError(errorMessage));
+      dispatch(authSlice.actions.setLoading(false));
+
+      // If token is invalid, logout user
+      if (error.response?.status === 401) {
+        dispatch(authSlice.actions.logout());
+      }
+
+      return rejectWithValue({
+        message: errorMessage,
+        status: error.response?.status || 500,
+        code: error.response?.data?.code,
+      });
+    }
+  }
+);
+
+/**
  * Logout async thunk
  * Handles user logout and token cleanup
  */
 export const logoutUser = createAsyncThunk<void, void, ThunkApiConfig>(
   "auth/logoutUser",
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
     try {
-      // Optional: Call logout endpoint to invalidate tokens on server
-      await api.post(endpoints.auth.logout);
+      // Get refresh token for logout request
+      const state = getState();
+      const refreshToken = state.auth.refreshToken;
+
+      // Call logout endpoint to invalidate tokens on server
+      if (refreshToken) {
+        await api.post(endpoints.auth.logout, { refresh: refreshToken });
+      }
     } catch (error) {
       // Ignore logout API errors, still clear local state
       console.warn("Logout API call failed:", error);

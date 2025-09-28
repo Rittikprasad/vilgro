@@ -1,12 +1,31 @@
 import React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { signupSchema, type SignupFormData } from "../../lib/validations"
+import { z } from "zod"
+import { useDispatch, useSelector } from "react-redux"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import { BackgroundGradients } from "../ui/BackgroundGradients"
+import { startSignup, clearError } from "../../features/signup/signupSlice"
+import { setAuthData } from "../../features/auth/authSlice"
+import type { RootState } from "../../app/store"
+
+// Updated validation schema for Step 1
+const signupSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+  confirmPassword: z.string(),
+  termsAccepted: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms and conditions"
+  })
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"]
+});
+
+type SignupFormData = z.infer<typeof signupSchema>;
 
 interface SignupStep1Props {
   onNext?: (data: SignupFormData) => void
@@ -17,13 +36,23 @@ interface SignupStep1Props {
  * Features form validation, gradient styling, and responsive design
  */
 const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
+  const dispatch = useDispatch()
+  const { isLoading, error, step1Completed } = useSelector((state: RootState) => state.signup)
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
   })
+
+  // Clear error when component mounts
+  React.useEffect(() => {
+    if (error) {
+      dispatch(clearError())
+    }
+  }, [dispatch, error])
 
   /**
    * Handle form submission
@@ -31,9 +60,29 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
    */
   const onSubmit = async (data: SignupFormData) => {
     try {
-      console.log("Form submitted:", data)
-      if (onNext) {
-        onNext(data)
+      const signupData = {
+        email: data.email,
+        password: data.password,
+        confirm_password: data.confirmPassword,
+        agree_to_terms: data.termsAccepted,
+      }
+
+      const result = await dispatch(startSignup(signupData) as any)
+
+      if (startSignup.fulfilled.match(result)) {
+        console.log("Signup successful, updating auth state:", result.payload)
+
+        // Update auth state with user and tokens
+        dispatch(setAuthData({
+          access: result.payload.tokens.access,
+          refresh: result.payload.tokens.refresh,
+          user: result.payload.user
+        }))
+
+        // Signup successful, proceed to next step
+        if (onNext) {
+          onNext(data)
+        }
       }
     } catch (error) {
       console.error("Signup error:", error)
@@ -141,13 +190,20 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
               )}
             </div>
 
+            {/* Error Display */}
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isLoading}
               className="w-full h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
             >
-              {isSubmitting ? "Creating Account..." : "Create Account"}
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 

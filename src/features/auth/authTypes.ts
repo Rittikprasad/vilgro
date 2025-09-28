@@ -5,13 +5,16 @@
 
 // User interface representing the authenticated user
 export interface User {
-  id: string;
+  id?: string;
   email: string;
-  name: string;
-  role?: string;
+  first_name?: string;
+  last_name?: string;
+  name?: string;
+  role: string;
   avatar?: string;
-  createdAt: string;
-  updatedAt: string;
+  has_completed_profile?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Authentication state interface
@@ -22,6 +25,11 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  has_completed_profile: boolean;
+  onboarding: {
+    current_step: number;
+    is_complete: boolean;
+  } | null;
 }
 
 // Login request payload
@@ -32,10 +40,14 @@ export interface LoginRequest {
 
 // Login response from API
 export interface LoginResponse {
+  access: string;
+  refresh: string;
   user: User;
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
+  has_completed_profile?: boolean;
+  onboarding?: {
+    current_step: number;
+    is_complete: boolean;
+  };
 }
 
 // Refresh token request payload
@@ -53,6 +65,13 @@ export interface RefreshTokenResponse {
 // User profile response
 export interface UserProfileResponse {
   user: User;
+}
+
+// Onboarding progress response
+export interface OnboardingProgressResponse {
+  current_step: number;
+  is_complete: boolean;
+  draft_data?: Record<string, any>;
 }
 
 // API error response

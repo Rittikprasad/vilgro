@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-// SignupStep1 removed - "Tell us about yourself" is now step 1 (SignupStep2)
+import SignupStep1 from './SignupStep1';
 import SignupStep2 from './SignupStep2';
 import SignupStep3 from './SignupStep3';
 import SignupStep4 from './SignupStep4';
@@ -34,11 +34,17 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta);
   const { progress: onboardingProgress } = useSelector((state: RootState) => state.onboarding);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   // Get current step from URL query parameter, fallback to initialStep or 1
   // Note: "Tell us about yourself" is step 1 as expected by backend
   const currentStep = parseInt(searchParams.get('step') || initialStep?.toString() || '1', 10);
   const [signupData, setSignupData] = useState<SignupData>({});
+
+  // If user is not authenticated, show account creation flow
+  if (!isAuthenticated) {
+    return <SignupStep1 onNext={() => navigate('/login')} />;
+  }
 
   // Fetch meta options when component mounts
   useEffect(() => {
@@ -168,7 +174,7 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
     switch (currentStep) {
       case 1:
         // Step 1: "Tell us about yourself" - Personal info + signup completion
-        return <SignupStep2 onNext={handleNext} onBack={handleBack} />;
+        return <SignupStep2 onNext={handleNext} />;
       case 2:
         // Step 2: Innovation + Geography (Onboarding Step 2)
         return <SignupStep3 onNext={handleNext} onBack={handleBack} />;
@@ -180,7 +186,7 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
         return <SignupStep5 onComplete={handleComplete} onBack={handleBack} />;
       default:
         // Default to step 1: "Tell us about yourself"
-        return <SignupStep2 onNext={handleNext} onBack={handleBack} />;
+        return <SignupStep2 onNext={handleNext} />;
     }
   };
 

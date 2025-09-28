@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useDispatch, useSelector } from "react-redux"
+import { Link } from "react-router-dom"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
@@ -211,9 +212,12 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
           <div className="text-center">
             <span className="text-gray-600">
               Already have an account?{" "}
-              <span className="villgro-green-text cursor-pointer hover:underline font-medium">
+              <Link
+                to="/login"
+                className="villgro-green-text cursor-pointer hover:underline font-medium"
+              >
                 Login here!
-              </span>
+              </Link>
             </span>
           </div>
         </div>

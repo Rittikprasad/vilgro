@@ -107,29 +107,10 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
         console.error('Onboarding Step 2 error:', error);
       }
     } else if (currentStep === 3) {
-      // This is Sector + Stage + Impact step - call onboarding API (Onboarding Step 3)
-      try {
-        const onboardingData: Step3Request = {
-          focus_sector: stepData.focusSector,
-          org_stage: stepData.stage,
-          impact_focus: stepData.impactFocus,
-          annual_operating_budget: "0", // Will be filled in step 4
-          use_of_questionnaire: "FUNDING", // Default value
-          received_philanthropy_before: false // Default value
-        };
-
-        console.log('Calling updateStep3 API with partial data:', onboardingData);
-        const result = await dispatch(updateStep3(onboardingData) as any);
-
-        if (updateStep3.fulfilled.match(result)) {
-          console.log('Onboarding Step 3 API success, moving to Budget and funding (Step 4)');
-          setSearchParams({ step: '4' });
-        } else {
-          console.error('Onboarding Step 3 API failed:', result.payload);
-        }
-      } catch (error) {
-        console.error('Onboarding Step 3 error:', error);
-      }
+      // This is Sector + Stage + Impact step - just collect data, don't call API yet
+      // API will be called in step 4 with all the combined data
+      console.log('Step 3 data collected:', stepData);
+      setSearchParams({ step: '4' });
     } else {
       setSearchParams({ step: (currentStep + 1).toString() });
     }
@@ -148,20 +129,20 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
     };
     console.log('Complete signup data:', completeData);
 
-    // This is step 5 - Budget and funding step
+    // This is step 4 - Budget and funding step
+    // Combine step 3 (sector/stage/impact) and step 4 (budget/funding) data for API call
     try {
-      // Combine step 4 and step 5 data for final onboarding API call
-      const step4Data = signupData.step4 || {};
+      const step3Data = signupData.step3 || {};
       const onboardingData: Step3Request = {
-        focus_sector: step4Data.focusSector,
-        org_stage: step4Data.stage,
-        impact_focus: step4Data.impactFocus,
+        focus_sector: step3Data.focusSector,
+        org_stage: step3Data.stage,
+        impact_focus: step3Data.impactFocus,
         annual_operating_budget: finalData.annualBudget,
         use_of_questionnaire: finalData.fundingSource,
         received_philanthropy_before: finalData.philanthropicFunding === 'yes'
       };
 
-      console.log('Calling updateStep3 API with complete data:', onboardingData);
+      console.log('Calling updateStep3 API with complete data from steps 3 & 4:', onboardingData);
       const result = await dispatch(updateStep3(onboardingData) as any);
 
       if (updateStep3.fulfilled.match(result)) {
@@ -192,10 +173,10 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
         // Step 2: Innovation + Geography (Onboarding Step 2)
         return <SignupStep3 onNext={handleNext} onBack={handleBack} />;
       case 3:
-        // Step 3: Sector + Stage + Impact (Onboarding Step 3)
+        // Step 3: Sector + Stage + Impact (collects data, no API call yet)
         return <SignupStep4 onNext={handleNext} onBack={handleBack} />;
       case 4:
-        // Step 4: Budget and funding (Onboarding Step 3 completion)
+        // Step 4: Budget and funding (calls API with combined step 3 & 4 data)
         return <SignupStep5 onComplete={handleComplete} onBack={handleBack} />;
       default:
         // Default to step 1: "Tell us about yourself"

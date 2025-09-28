@@ -125,11 +125,7 @@ const AppRouter: React.FC = () => {
 
                 <Route
                     path="/signup"
-                    element={
-                        <AuthRoute>
-                            <SignupFlow />
-                        </AuthRoute>
-                    }
+                    element={<SignupFlow />}
                 />
 
                 {/* Protected Routes */}

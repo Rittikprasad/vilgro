@@ -10,6 +10,7 @@ import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import background1 from "../../assets/background1.jpg"
 import ProgressTracker from "../ui/ProgressTracker"
+import Navbar from "../ui/Navbar"
 import { fetchMetaOptions } from "../../features/meta/metaSlice"
 import { completeSignup, clearError } from "../../features/signup/signupSlice"
 import type { RootState } from "../../app/store"
@@ -31,14 +32,14 @@ type Step2FormData = z.infer<typeof step2Schema>
 
 interface SignupStep2Props {
   onNext: (data: Step2FormData) => void
-  onBack: () => void
+  onBack?: () => void
 }
 
 /**
  * Signup Step 2 Component - Tell us about yourself
  * Collects personal and company information
  */
-const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
+const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
   const dispatch = useDispatch()
   const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta)
   const { isLoading: signupLoading, error: signupError } = useSelector((state: RootState) => state.signup)
@@ -105,11 +106,14 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext, onBack }) => {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative">
+      {/* Top Navbar */}
+      <Navbar />
+
       {/* White gradient overlay in the middle */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent z-10 hidden lg:block"></div>
 
       {/* Left Content Section */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative pt-16">
         {/* Main Content */}
         <div className="flex items-start justify-center min-h-screen px-6 py-8 pt-24 relative z-20">
           <div className="w-full max-w-2xl">

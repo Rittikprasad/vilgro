@@ -213,15 +213,18 @@ export const logoutUser = createAsyncThunk<void, void, ThunkApiConfig>(
       const state = getState();
       const refreshToken = state.auth.refreshToken;
 
-      // Call logout endpoint to invalidate tokens on server
+      // Call logout endpoint with refresh token
       if (refreshToken) {
         await api.post(endpoints.auth.logout, { refresh: refreshToken });
+        console.log("Logout API call successful");
+      } else {
+        console.warn("No refresh token available for logout");
       }
     } catch (error) {
       // Ignore logout API errors, still clear local state
       console.warn("Logout API call failed:", error);
     } finally {
-      // Always clear local state
+      // Always clear local state and localStorage
       dispatch(authSlice.actions.logout());
     }
   }

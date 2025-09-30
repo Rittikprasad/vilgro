@@ -64,7 +64,7 @@ const Navbar: React.FC = () => {
                     <button
                         onClick={handleLogout}
                         disabled={isLoading}
-                        className="px-6 py-2 text-sm text-white rounded-md transition-opacity hover:opacity-90 disabled:opacity-50"
+                        className="px-6 py-2 text-sm text-black rounded-md transition-opacity hover:opacity-90 disabled:opacity-50"
                         style={{ background: 'linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%)' }}
                     >
                         {isLoading ? 'Logging out...' : 'Log out'}

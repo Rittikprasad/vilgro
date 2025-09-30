@@ -75,7 +75,7 @@ const Login: React.FC = () => {
         // Check if user has completed profile
         if (result.payload.has_completed_profile) {
           // User has completed profile, go to welcome screen
-          navigate("/welcome")
+          navigate("/assessment")
         } else {
           // User hasn't completed profile, redirect to onboarding with query parameter
           // "Tell us about yourself" is step 1 as expected by backend
@@ -157,7 +157,7 @@ const Login: React.FC = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-[300px] h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  className="w-[300px] h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
@@ -170,7 +170,7 @@ const Login: React.FC = () => {
                 to="/forgot-password"
                 className="text-[14px] text-[#46b753] underline hover:underline cursor-pointer"
               >
-                Forget Password
+                Forgot Password
               </Link>
             </div>
 

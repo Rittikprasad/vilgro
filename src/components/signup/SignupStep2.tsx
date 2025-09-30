@@ -20,7 +20,7 @@ const step2Schema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
-  designation: z.string().min(1, "Designation is required"),
+  designation: z.string().email("Please enter a valid email address"),
   companyName: z.string().min(1, "Company name is required"),
   legalRegistrationType: z.string().min(1, "Please select a legal registration type"),
   dateOfIncorporation: z.string().optional(),
@@ -43,7 +43,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
   const dispatch = useDispatch()
   const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta)
   const { isLoading: signupLoading, error: signupError } = useSelector((state: RootState) => state.signup)
-  const { accessToken, isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const { accessToken, isAuthenticated, user } = useSelector((state: RootState) => state.auth)
 
   const {
     register,
@@ -70,6 +70,13 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
       dispatch(clearError())
     }
   }, [dispatch, signupError])
+
+  // Pre-fill email from user data
+  useEffect(() => {
+    if (user?.email) {
+      setValue("designation", user.email)
+    }
+  }, [user, setValue])
 
   /**
    * Handle form submission
@@ -113,13 +120,13 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent z-10 hidden lg:block"></div>
 
       {/* Left Content Section */}
-      <div className="flex-1 relative pt-16">
+      <div className="flex-1 relative pt-10">
         {/* Main Content */}
-        <div className="flex items-start justify-center min-h-screen px-6 py-8 pt-24 relative z-20">
+        <div className="flex items-start justify-center min-h-screen px-6 py-8 pt-24 relative z-20 ml-14">
           <div className="w-full max-w-2xl">
             {/* Form Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-800">
+              <h1 className="text-2xl font-semibold text-gray-800" style={{ fontFamily: 'Baskervville' }}>
                 Tell us about yourself
               </h1>
             </div>
@@ -136,9 +143,9 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                 <div className="space-y-1">
                   <Input
                     {...register("firstName")}
-                    placeholder="First Name"
+                    placeholder="First Name *"
                     className={cn(
-                      "w-full h-12 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                      "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
                       errors.firstName ? "border-red-500" : "gradient-border"
                     )}
                   />
@@ -150,9 +157,9 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                 <div className="space-y-1">
                   <Input
                     {...register("lastName")}
-                    placeholder="Last Name"
+                    placeholder="Last Name *"
                     className={cn(
-                      "w-full h-12 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                      "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
                       errors.lastName ? "border-red-500" : "gradient-border"
                     )}
                   />
@@ -162,34 +169,37 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                 </div>
               </div>
 
-              {/* Phone and Designation Row */}
+              {/* Email and Phone Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Input
-                    {...register("phoneNumber")}
-                    placeholder="Phone Number"
-                    type="tel"
-                    className={cn(
-                      "w-full h-12 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
-                      errors.phoneNumber ? "border-red-500" : "gradient-border"
-                    )}
-                  />
-                  {errors.phoneNumber && (
-                    <p className="text-red-500 text-sm">{errors.phoneNumber.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <Input
                     {...register("designation")}
-                    placeholder="Your Designation"
+                    placeholder="Email Address *"
+                    type="email"
+                    disabled
+                    value={user?.email || ""}
                     className={cn(
-                      "w-full h-12 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                      "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-gray-100 cursor-not-allowed",
                       errors.designation ? "border-red-500" : "gradient-border"
                     )}
                   />
                   {errors.designation && (
                     <p className="text-red-500 text-sm">{errors.designation.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <Input
+                    {...register("phoneNumber")}
+                    placeholder="Phone Number *"
+                    type="tel"
+                    className={cn(
+                      "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
+                      errors.phoneNumber ? "border-red-500" : "gradient-border"
+                    )}
+                  />
+                  {errors.phoneNumber && (
+                    <p className="text-red-500 text-sm">{errors.phoneNumber.message}</p>
                   )}
                 </div>
               </div>
@@ -198,9 +208,9 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
               <div className="space-y-1">
                 <Input
                   {...register("companyName")}
-                  placeholder="Company Name"
+                  placeholder="Organization Name *"
                   className={cn(
-                    "w-full h-12 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                    "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
                     errors.companyName ? "border-red-500" : "gradient-border"
                   )}
                 />
@@ -208,6 +218,38 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                   <p className="text-red-500 text-sm">{errors.companyName.message}</p>
                 )}
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Date of Incorporation */}
+                  <div className="space-y-1">
+                    <div className="relative">
+                      <Input
+                        {...register("dateOfIncorporation")}
+                        type="text"
+                        placeholder="Date of Incorporation *"
+                        className="w-full h-11 px-4 py-3 rounded-lg gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]"
+                        onFocus={(e) => {
+                          e.target.type = 'date';
+                          e.target.showPicker?.();
+                        }}
+                        onBlur={(e) => {
+                          if (!e.target.value) {
+                            e.target.type = 'text';
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* GST Number */}
+                  <div className="space-y-1">
+                    <Input
+                      {...register("gstNumber")}
+                      placeholder="DPIIT Number"
+                      className="w-full h-11 px-4 py-3 rounded-lg gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]"
+                    />
+                  </div>
+                </div>
 
               {/* Legal Registration Type */}
               <div className="space-y-4">
@@ -239,38 +281,13 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
 
               {/* Optional Fields */}
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700">
-                  Additional Information (Optional)
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Date of Incorporation */}
-                  <div className="space-y-1">
-                    <Input
-                      {...register("dateOfIncorporation")}
-                      type="date"
-                      placeholder="Date of Incorporation"
-                      className="w-full h-12 px-4 py-3 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors"
-                    />
-                  </div>
-
-                  {/* GST Number */}
-                  <div className="space-y-1">
-                    <Input
-                      {...register("gstNumber")}
-                      placeholder="GST Number"
-                      className="w-full h-12 px-4 py-3 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors"
-                    />
-                  </div>
-                </div>
-
                 {/* CIN Number */}
                 <div className="space-y-1">
-                  <Input
-                    {...register("cinNumber")}
-                    placeholder="CIN Number"
-                    className="w-full h-12 px-4 py-3 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors"
-                  />
+                    <Input
+                      {...register("cinNumber")}
+                      placeholder="CIN Number *"
+                      className="w-full h-11 px-4 py-3 rounded-lg gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]"
+                    />
                 </div>
               </div>
 
@@ -286,7 +303,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                 <Button
                   type="submit"
                   disabled={signupLoading}
-                  className="w-full max-w-xs h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  className="w-full max-w-xs h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
                   {signupLoading ? "Completing Profile..." : "Continue"}
                 </Button>
@@ -302,8 +319,8 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
           style={{ backgroundImage: `url(${background1})` }}
         />
 
-        {/* White gradient overlay extending from left */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/20 to-transparent z-10"></div>
+         {/* White gradient overlay extending from left */}
+         <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent z-10"></div>
 
         {/* Logo positioned in top right corner over the image */}
         <div className="absolute top-6 right-6 z-20">

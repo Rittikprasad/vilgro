@@ -16,7 +16,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        gradient: "bg-gradient-to-r from-[#46B753] to-[#E0DC32] text-white hover:opacity-90",
+        gradient: "bg-gradient-to-r from-[#46B753] to-[#E0DC32] text-black hover:opacity-90",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -44,9 +44,15 @@ export interface ButtonProps
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
+    // Custom gradient styling for the gradient variant
+    const gradientStyle = variant === 'gradient' ? {
+      background: 'linear-gradient(92.06deg, #46B753 0.02%, #E0DC32 100.02%)'
+    } : undefined;
+
     return (
       <button
         className={cn(buttonVariants({ variant, size, className }))}
+        style={gradientStyle}
         ref={ref}
         {...props}
       />

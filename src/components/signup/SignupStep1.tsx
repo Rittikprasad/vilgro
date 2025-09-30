@@ -95,12 +95,6 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
       {/* Background decorative elements */}
       <BackgroundGradients />
 
-      {/* Header */}
-      {/* <div className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
-        <span className="text-lg font-medium">Sign up</span>
-        <div className="text-xl">&lt;/&gt;</div>
-      </div> */}
-
       {/* Main Content */}
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-6">
         <div className="w-full max-w-md space-y-8">
@@ -202,7 +196,7 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+              className="w-full h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
             >
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>

@@ -86,7 +86,7 @@ const Login: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full bg-villgro-green text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-villgro-green focus:ring-offset-2 transition duration-200"
+            className="w-full bg-villgro-green text-black py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-villgro-green focus:ring-offset-2 transition duration-200"
           >
             Sign In
           </button>

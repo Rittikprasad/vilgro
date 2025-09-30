@@ -7,8 +7,10 @@ import heroVideo from '../../assets/video/hero.mp4';
 import Step1Icon from '../../assets/svg/Step1.svg';
 import Step2Icon from '../../assets/svg/Step2.svg';
 import Step3Icon from '../../assets/svg/Step3.svg';
+import { useNavigate } from 'react-router-dom';
 
 const Hero: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <section className={styles.hero}>
       <div className={styles.container}>
@@ -21,12 +23,12 @@ const Hero: React.FC = () => {
           </h1>
           
           <p className={styles.heroDescription}>
-            Our free, expert designed tool, evaluates your Organization's readiness for funding and recommends the most suitable financial instrument
+            Our free, expert designed tool, evaluates your Organization's readiness <br/> for funding and recommends the most suitable financial instrument
           </p>
 
           {/* CTA Buttons */}
           <div className={styles.heroButtons}>
-            <Button variant="gradient" size="lg">
+            <Button variant="gradient" size="lg" onClick={() => navigate('/login')}>
               Start Your Assessment Now
             </Button>
             

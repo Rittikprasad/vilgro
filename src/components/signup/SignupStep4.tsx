@@ -11,6 +11,11 @@ import ProgressTracker from "../ui/ProgressTracker"
 import Navbar from "../ui/Navbar"
 import { fetchMetaOptions } from "../../features/meta/metaSlice"
 import type { RootState } from "../../app/store"
+import AgricultureIcon from '../../assets/Agriculture.svg'
+import RecyclingIcon from '../../assets/Recycling.svg'
+import HealthcareIcon from '../../assets/Healthcare.svg'
+import EnvelopeIcon from '../../assets/Envelope.svg'
+import OthersIcon from '../../assets/others.svg'
 
 // Validation schema for Step 4
 const step4Schema = z.object({
@@ -69,11 +74,11 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
 
   // Icon mapping for focus sectors
   const sectorIcons: Record<string, string> = {
-    AGRICULTURE: "🌾",
-    WASTE: "♻️",
-    HEALTH: "🏥",
-    LIVELIHOOD: "💼",
-    OTHERS: "📚"
+    AGRICULTURE: AgricultureIcon,
+    WASTE: RecyclingIcon,
+    HEALTH: HealthcareIcon,
+    LIVELIHOOD: EnvelopeIcon,
+    OTHERS: OthersIcon
   }
 
   return (
@@ -88,7 +93,7 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
           <div className="w-full max-w-4xl ml-8">
             {/* Form Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-800">
+              <h1 className="text-2xl font-semibold text-gray-800" style={{ fontFamily: 'Baskervville' }}>
                 Tell us about your organisation
               </h1>
             </div>
@@ -118,7 +123,9 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                         )}
                         onClick={() => setValue("focusSector", sector.key)}
                       >
-                        <div className="text-4xl mb-3">{sectorIcons[sector.key] || "📚"}</div>
+                        <div className="text-4xl mb-3">
+                          <img src={sectorIcons[sector.key]} alt={sector.label} className="w-10 h-10 mx-auto" />
+                        </div>
                         <p className="text-sm font-medium text-gray-900 mb-2">
                           {sector.label}
                         </p>
@@ -198,7 +205,7 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full max-w-xs h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  className="w-full max-w-xs h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
                   {isSubmitting ? "Processing..." : "Next"}
                 </Button>

@@ -118,7 +118,7 @@ const LoginForm: React.FC = () => {
             isLoading
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
-          } text-white transition-colors`}
+          } text-black transition-colors`}
         >
           {isLoading ? 'Logging in...' : 'Login'}
         </button>

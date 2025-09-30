@@ -13,17 +13,18 @@
 
 .heroContent {
   text-align: center;
-  margin: 0 auto 6rem;
+  /* margin: 0 auto rem; */
   position: relative;
 }
 
 .heroTitle {
   font-family: Baskervville;
-  font-size: clamp(32px, 4vw, 70px);
+  font-size: clamp(32px, 4vw, 60px);
   font-weight: 600;
   line-height: 1.1;
   margin-bottom: 24px;
   color: var(--villgro-dark);
+  margin-top: 2rem;
   /* z-index: 10; */
 }
 
@@ -33,7 +34,7 @@
 
 .heroDescription {
   font-family: 'Golos Text', sans-serif;
-  font-size: clamp(16px, 2.5vw, 20px);
+  font-size: clamp(10px, 2.5vw, 17px);
   line-height: 1.4;
   color: var(--villgro-dark);
   max-width: min(684px, 80vw);
@@ -174,7 +175,7 @@
 .howItWorksSection {
   position: relative;
   padding: 100px;
-  margin-top: clamp(-526px, 50vh, -350px);
+  margin-top: clamp(-526px, 50vh, -400px);
   z-index: 10;
 }
 
@@ -208,8 +209,8 @@
   background: rgba(255, 255, 255, 0.37);
   border-radius: 10px;
   box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
-  padding: 32px;
-  height: auto;
+  padding: 52px 32px;
+  height: aut;
   position: relative;
   transition: transform 0.3s ease;
   flex: 1;
@@ -224,14 +225,15 @@
 .stepCard::before {
   content: '';
   position: absolute;
-  top: 24px;
+  top: 30px;
   left: 32px;
-  right: 80px;
-  height: 2px;
+  right: 90px;
+  height: 1px;
+  width: 84%;
   background-image: repeating-linear-gradient(
     to right,
     var(--villgro-green) 0,
-    var(--villgro-green) 4px,
+    var(--villgro-green) 2px,
     transparent 4px,
     transparent 8px
   );
@@ -240,10 +242,10 @@
 .stepCard::after {
   content: '';
   position: absolute;
-  top: 20px;
+  top: 28px;
   right: 32px;
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
   background-color: var(--villgro-green);
   border-radius: 50%;
 }
@@ -294,7 +296,7 @@
 .stepDescription {
   color: #231F20;
   font-family: 'Golos Text', sans-serif;
-  font-size: 20px;
+  font-size: 25px;
   font-style: normal;
   font-weight: 400;
   line-height: normal;

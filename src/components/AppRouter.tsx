@@ -63,7 +63,7 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // If user is authenticated, redirect based on profile completion
     if (isAuthenticated) {
         if (user?.has_completed_profile) {
-            return <Navigate to="/welcome" replace />;
+            return <Navigate to="/assessment" replace />;
         } else {
             return <Navigate to="/signup?step=1" replace />;
         }

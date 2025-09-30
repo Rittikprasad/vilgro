@@ -24,10 +24,6 @@ interface SignupFlowProps {
   initialStep?: number;
 }
 
-/**
- * Main signup flow component that manages the multi-step process
- * Handles navigation between steps and data collection using URL query parameters
- */
 const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -36,12 +32,10 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
   const { progress: onboardingProgress } = useSelector((state: RootState) => state.onboarding);
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-  // Get current step from URL query parameter, fallback to initialStep or 1
-  // Note: "Tell us about yourself" is step 1 as expected by backend
+
   const currentStep = parseInt(searchParams.get('step') || initialStep?.toString() || '1', 10);
   const [signupData, setSignupData] = useState<SignupData>({});
 
-  // If user is not authenticated, show account creation flow
   if (!isAuthenticated) {
     return <SignupStep1 onNext={() => navigate('/login')} />;
   }
@@ -158,7 +152,7 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
 
         if (finishOnboarding.fulfilled.match(finishResult)) {
           console.log('Onboarding completed successfully');
-          navigate('/welcome');
+          navigate('/assessment');
         } else {
           console.error('Finish onboarding failed:', finishResult.payload);
         }

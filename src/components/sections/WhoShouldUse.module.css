@@ -10,7 +10,7 @@
 .container {
   /* max-width: 1400px; */
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 25px 80px;
   position: relative;
   z-index: 10;
   display: flex;
@@ -43,7 +43,7 @@
 .audiencesContainer {
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 10px;
   flex: 2;
 }
 
@@ -76,19 +76,19 @@
 }
 
 .audienceIconImage {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
 .audienceTitle {
   font-family: 'Golos Text', sans-serif;
-  font-size: clamp(18px, 2.2vw, 20px);
+  font-size: clamp(18px, 2.2vw, 25px);
   font-weight: 400;
   color: var(--villgro-dark);
   line-height: 1.2;
   margin: 0;
-  flex: 1;
+  /* flex: 1; */
 }
 
 

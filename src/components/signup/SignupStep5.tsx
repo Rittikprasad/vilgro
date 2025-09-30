@@ -16,6 +16,7 @@ import type { RootState } from "../../app/store"
 // Validation schema for Step 5
 const step5Schema = z.object({
   annualBudget: z.string().min(1, "Annual operating budget is required"),
+  companyDescription: z.string().optional(),
   fundingSource: z.string().min(1, "Please select funding source"),
   philanthropicFunding: z.enum(["yes", "no"]).refine((val) => val !== undefined, {
     message: "Please select if you have received philanthropic funding"
@@ -82,7 +83,7 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
           <div className="w-full max-w-2xl ml-8">
             {/* Form Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-800">
+              <h1 className="text-2xl font-semibold text-gray-800" style={{ fontFamily: 'Baskervville' }}>
                 Tell us about your organisation
               </h1>
             </div>
@@ -97,16 +98,16 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
                 <label className="block text-lg font-medium text-gray-700 mb-3">
                   Annual Operating Budget{" "}
                   <span className="text-sm text-gray-500">
-                    (*Cost spending by the enterprise or latest FY)
+                    (*Total spending by the enterprise in latest FY)
                   </span>
                 </label>
                 <div className="space-y-1">
                   <Input
                     {...register("annualBudget")}
-                    placeholder="Enter annual budget in INR"
-                    type="text"
+                    placeholder="Enter here (₹)"
+                    type="number"
                     className={cn(
-                      "w-full h-12 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                      "w-full h-11 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
                       errors.annualBudget ? "border-red-500" : "gradient-border"
                     )}
                   />
@@ -115,6 +116,20 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
                   )}
                 </div>
               </div>
+
+               <div className="space-y-3">
+                 <label className="block text-lg font-medium text-gray-700 mb-3">
+                   Tell us about your company
+                 </label>
+                 <div className="space-y-1">
+                   <Input
+                     {...register("companyDescription")}
+                     placeholder="Type here"
+                     type="text"
+                     className="w-full border-0 border-b border-gray-300 bg-transparent px-0 py-2 focus:outline-none focus:border-gray-500 transition-colors"
+                   />
+                 </div>
+               </div>
 
               {/* Funding Source */}
               <div className="space-y-3">
@@ -177,7 +192,7 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full max-w-xs h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  className="w-full max-w-xs h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
                   {isSubmitting ? "Completing..." : "Start the Assessment"}
                 </Button>

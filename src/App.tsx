@@ -6,6 +6,7 @@ import SignupFlow from './components/signup/SignupFlow';
 import SignupStep1 from './components/signup/SignupStep1';
 import EnterCode from './components/forgot-password/EnterCode';
 import CreateNewPassword from './components/forgot-password/CreateNewPassword';
+import Assessment from './components/assessment';
 
 /**
  * Main App component with routing configuration
@@ -24,6 +25,7 @@ const App: React.FC = () => {
         <Route path="/signup-step1" element={<SignupStep1 />} />
         <Route path="/forgot-password" element={<EnterCode />} />
         <Route path="/create-new-password" element={<CreateNewPassword />} />
+        <Route path="/assessment" element={<Assessment />} />
       </Routes>
     </Router>
   );

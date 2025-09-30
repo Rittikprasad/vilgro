@@ -95,8 +95,8 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Type of Innovation */}
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Type of Innovation
+                <label className="block text-md font-medium text-gray-700 mb-3">
+                  Type of Innovation <span>*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading innovation types...</div>
@@ -123,8 +123,8 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
 
               {/* Geographic Scope of work */}
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Geographic Scope of work
+                <label className="block text-md font-medium text-gray-700 mb-3">
+                  Geographic Scope of work <span>*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading geographic scopes...</div>
@@ -151,8 +151,8 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
 
               {/* State Selection */}
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Select top 5 states based on customer presence
+                <label className="block text-md font-medium text-gray-700 mb-3">
+                  Select top 5 states based on customer presence <span>*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading states...</div>
@@ -191,7 +191,7 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full max-w-xs h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  className="w-full max-w-xs h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
                   {isSubmitting ? "Processing..." : "Next"}
                 </Button>

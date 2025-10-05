@@ -36,10 +36,6 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
   const currentStep = parseInt(searchParams.get('step') || initialStep?.toString() || '1', 10);
   const [signupData, setSignupData] = useState<SignupData>({});
 
-  if (!isAuthenticated) {
-    return <SignupStep1 onNext={() => navigate('/login')} />;
-  }
-
   // Fetch meta options when component mounts
   useEffect(() => {
     if (!options && !metaLoading) {
@@ -73,6 +69,11 @@ const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
       dispatch(resetSignup());
     };
   }, [dispatch]);
+
+  // Early return AFTER all hooks have been called
+  if (!isAuthenticated) {
+    return <SignupStep1 onNext={() => navigate('/login')} />;
+  }
 
   const handleNext = async (stepData: any) => {
     const stepKey = `step${currentStep}`;

@@ -44,4 +44,13 @@ body {
   .villgro-green-text {
     color: #46B753;
   }
+  
+  /* Standard label styling for consistent typography */
+  .label-text {
+    font-family: 'Golos Text', sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 16px;
+    line-height: 1.5;
+  }
 }

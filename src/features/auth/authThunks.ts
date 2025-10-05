@@ -10,10 +10,7 @@ import { authSlice } from "./authSlice";
 import api from "../../services/api";
 import { endpoints } from "../../services/endpoints";
 
-/**
- * Login async thunk
- * Handles user authentication and token management
- */
+
 export const login = createAsyncThunk<
   LoginResponse,
   LoginRequest,
@@ -45,10 +42,7 @@ export const login = createAsyncThunk<
   }
 });
 
-/**
- * Fetch user profile async thunk
- * Retrieves current user information
- */
+
 export const fetchUserProfile = createAsyncThunk<
   UserProfileResponse,
   void,
@@ -97,10 +91,7 @@ export const fetchUserProfile = createAsyncThunk<
   }
 );
 
-/**
- * Refresh token async thunk
- * Handles token refresh when access token expires
- */
+
 export const refreshToken = createAsyncThunk<
   { accessToken: string; refreshToken: string },
   void,

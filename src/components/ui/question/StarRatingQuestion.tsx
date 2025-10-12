@@ -8,6 +8,7 @@ interface StarRatingQuestionProps {
   onChange?: (value: number) => void
   maxStars?: number
   labels?: string[]
+  disabled?: boolean
 }
 
 /**
@@ -19,29 +20,30 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
   question, 
   value = 0, 
   onChange,
-  maxStars = 4,
-  labels = [
-    "Quality is inconsistent.",
-    "Quality is better",
-    "Quality meets standards",
-    "Quality exceeds expectations"
-  ]
+  maxStars = 5,
+  labels = [],
+  disabled = false
 }) => {
   /**
    * Handles star selection
    * Updates the rating value when a star is clicked (1-based index)
    */
   const handleStarClick = (starIndex: number) => {
-    onChange?.(starIndex)
+    if (!disabled) {
+      onChange?.(starIndex)
+    }
   }
+
+  // Show labels only if they exist and match the number of stars
+  const showLabels = labels.length === maxStars;
 
   return (
     <div className="w-full space-y-4">
       {/* Question */}
       <p className="text-green-600 font-medium">{question}</p>
       
-      {/* Star rating scale - left aligned like question */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* Star rating scale - horizontal layout */}
+      <div className="flex items-center gap-4">
         {Array.from({ length: maxStars }, (_, index) => {
           const starNumber = index + 1
           const isFilled = starNumber <= value
@@ -51,26 +53,35 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
               key={index}
               type="button"
               onClick={() => handleStarClick(starNumber)}
-              className="flex flex-col items-center space-y-2 p-2 transition-all duration-200 hover:scale-105 focus:outline-none"
+              disabled={disabled}
+              className={cn(
+                "transition-all duration-200 hover:scale-110 focus:outline-none",
+                disabled && "opacity-50 cursor-not-allowed"
+              )}
             >
-              {/* Star Icon */}
               <Star
                 className={cn(
-                  "h-8 w-8 transition-all duration-200",
+                  "h-10 w-10 transition-all duration-200",
                   isFilled 
-                    ? "fill-yellow-400 text-yellow-400" // Filled star
-                    : "fill-none text-gray-400 stroke-1" // Outline star
+                    ? "fill-yellow-400 text-yellow-400" 
+                    : "fill-none text-gray-300 stroke-1"
                 )}
               />
-              
-              {/* Label for this star */}
-              <span className="label-text text-center leading-tight">
-                {labels[index]}
-              </span>
             </button>
           )
         })}
       </div>
+
+      {/* Optional labels below stars - only show if labels are provided */}
+      {showLabels && (
+        <div className="flex items-start gap-2">
+          {labels.map((label, index) => (
+            <div key={index} className="flex-1 text-xs text-gray-600 text-center">
+              {label}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

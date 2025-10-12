@@ -24,8 +24,8 @@ export interface SignupStartResponse {
 
 export interface SignupCompleteRequest {
   org_name: string;
-  registration_type: string;
-  date_of_incorporation?: string;
+  registration_type?: string; // Made optional
+  date_of_incorporation: string; // Made mandatory
   gst_number?: string;
   cin_number?: string;
 }

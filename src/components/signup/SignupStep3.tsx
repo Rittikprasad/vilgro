@@ -18,24 +18,23 @@ const step3Schema = z.object({
   innovationType: z.string().min(1, "Please select an innovation type"),
   geographicScope: z.string().min(1, "Please select geographic scope"),
   state1: z.string().min(1, "Please select first state"),
-  state2: z.string().optional(),
-  state3: z.string().optional(),
-  state4: z.string().optional(),
-  state5: z.string().optional(),
+  state2: z.string().min(1, "Please select second state"),
+  state3: z.string().min(1, "Please select third state"),
+  state4: z.string().min(1, "Please select fourth state"),
+  state5: z.string().min(1, "Please select fifth state"),
 })
 
 type Step3FormData = z.infer<typeof step3Schema>
 
 interface SignupStep3Props {
   onNext: (data: Step3FormData) => void
-  onBack: () => void
 }
 
 /**
  * Signup Step 3 Component - Tell us about your organisation
  * Collects innovation type and geographic scope information
  */
-const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
+const SignupStep3: React.FC<SignupStep3Props> = ({ onNext }) => {
   const dispatch = useDispatch()
   const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta)
 
@@ -46,10 +45,24 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
     formState: { errors, isSubmitting },
   } = useForm<Step3FormData>({
     resolver: zodResolver(step3Schema),
+    defaultValues: {
+      innovationType: "",
+      geographicScope: "",
+      state1: "",
+      state2: "",
+      state3: "",
+      state4: "",
+      state5: "",
+    },
   })
 
   const selectedInnovationType = watch("innovationType")
   const selectedGeographicScope = watch("geographicScope")
+  const selectedState1 = watch("state1")
+  const selectedState2 = watch("state2")
+  const selectedState3 = watch("state3")
+  const selectedState4 = watch("state4")
+  const selectedState5 = watch("state5")
 
   // Fetch meta options on component mount
   useEffect(() => {
@@ -158,9 +171,18 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
                   <div className="text-sm text-gray-500">Loading states...</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[1, 2, 3, 4, 5].map((num) => (
+                    {[
+                      { num: 1, value: selectedState1 },
+                      { num: 2, value: selectedState2 },
+                      { num: 3, value: selectedState3 },
+                      { num: 4, value: selectedState4 },
+                      { num: 5, value: selectedState5 },
+                    ].map(({ num, value }) => (
                       <div key={num} className="space-y-1">
-                        <Select onValueChange={(value) => setValue(`state${num}` as any, value)}>
+                        <Select 
+                          value={value} 
+                          onValueChange={(newValue) => setValue(`state${num}` as any, newValue)}
+                        >
                           <SelectTrigger className={cn(
                             "w-full h-12 rounded-lg bg-white",
                             errors[`state${num}` as keyof Step3FormData] ? "border-red-500" : "gradient-border"

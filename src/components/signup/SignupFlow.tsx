@@ -1,194 +1,172 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import SignupStep1 from './SignupStep1';
-import SignupStep2 from './SignupStep2';
-import SignupStep3 from './SignupStep3';
-import SignupStep4 from './SignupStep4';
-import SignupStep5 from './SignupStep5';
-import { fetchMetaOptions } from '../../features/meta/metaSlice';
-import { resetSignup } from '../../features/signup/signupSlice';
-import { fetchOnboardingProgress, updateStep2, updateStep3, finishOnboarding } from '../../features/onboarding/onboardingSlice';
-import type { RootState } from '../../app/store';
-import type { Step2Request, Step3Request } from '../../features/onboarding/onboardingTypes';
+import React, { useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchOnboardingProgress,
+  setStep3Data,
+  updateStep2,
+  updateStep3,
+  finishOnboarding
+} from "../../features/onboarding/onboardingSlice";
+import type { RootState } from "../../app/store";
 
-export interface SignupData {
-  step1?: any;
-  step2?: any;
-  step3?: any;
-  step4?: any;
-  step5?: any;
-}
+// ✅ Your existing UI components (no UI changes)
+import SignupStep1 from "./SignupStep1"; // Create account
+import SignupStep2 from "./SignupStep2"; // Innovation + Geography  
+import SignupStep3 from "./SignupStep3"; // Innovation + Geography
+import SignupStep4 from "./SignupStep4"; // Sector + Stage + Impact
+import SignupStep5 from "./SignupStep5"; // Budget + Funding
+import ProgressTracker from "../ui/ProgressTracker";
 
-interface SignupFlowProps {
-  initialStep?: number;
-}
-
-const SignupFlow: React.FC<SignupFlowProps> = ({ initialStep }) => {
+const SignupFlow: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta);
-  const { progress: onboardingProgress } = useSelector((state: RootState) => state.onboarding);
+  const location = useLocation();
+  const currentStep = Number(location.pathname.split("/").pop()) || 1;
+
+  const { progress } = useSelector((state: RootState) => state.onboarding);
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-
-  const currentStep = parseInt(searchParams.get('step') || initialStep?.toString() || '1', 10);
-  const [signupData, setSignupData] = useState<SignupData>({});
-
-  // Fetch meta options when component mounts
+  // Redirect if not logged in (except for step 1 - account creation)
   useEffect(() => {
-    if (!options && !metaLoading) {
-      dispatch(fetchMetaOptions() as any);
+    if (!isAuthenticated && currentStep > 1) {
+      navigate("/login");
     }
-  }, [dispatch, options, metaLoading]);
+  }, [isAuthenticated, navigate, currentStep]);
 
-  // Fetch onboarding progress for returning users
+  // Fetch onboarding progress only if user is authenticated and we don't have local data
   useEffect(() => {
-    if (currentStep > 1) {
-      // This is a returning user, fetch their progress
-      console.log('Returning user detected, fetching onboarding progress...');
-      dispatch(fetchOnboardingProgress() as any);
-    }
-  }, [dispatch, currentStep]);
-
-  // Pre-fill form data when onboarding progress is loaded
-  useEffect(() => {
-    if (onboardingProgress && onboardingProgress.data) {
-      console.log('Pre-filling form data from onboarding progress:', onboardingProgress.data);
-      setSignupData(prev => ({
-        ...prev,
-        ...onboardingProgress.data
-      }));
-    }
-  }, [onboardingProgress]);
-
-  // Reset signup state when component unmounts
-  useEffect(() => {
-    return () => {
-      dispatch(resetSignup());
-    };
-  }, [dispatch]);
-
-  // Early return AFTER all hooks have been called
-  if (!isAuthenticated) {
-    return <SignupStep1 onNext={() => navigate('/login')} />;
-  }
-
-  const handleNext = async (stepData: any) => {
-    const stepKey = `step${currentStep}`;
-    setSignupData(prev => ({
-      ...prev,
-      [stepKey]: stepData,
-    }));
-
-    // Navigate based on current step - "Tell us about yourself" is step 1
-    if (currentStep === 1) {
-      // After "Tell us about yourself" (Step 1), go to Innovation + Geography (Onboarding Step 2)
-      setSearchParams({ step: '2' });
-    } else if (currentStep === 2) {
-      // This is Innovation + Geography step - call onboarding API (Onboarding Step 2)
-      try {
-        const onboardingData: Step2Request = {
-          type_of_innovation: stepData.innovationType,
-          geo_scope: stepData.geographicScope,
-          top_states: [stepData.state1, stepData.state2, stepData.state3, stepData.state4, stepData.state5].filter(Boolean)
-        };
-
-        console.log('Calling updateStep2 API with:', onboardingData);
-        const result = await dispatch(updateStep2(onboardingData) as any);
-
-        if (updateStep2.fulfilled.match(result)) {
-          console.log('Onboarding Step 2 API success, moving to Sector + Stage + Impact (Step 3)');
-          setSearchParams({ step: '3' });
-        } else {
-          console.error('Onboarding Step 2 API failed:', result.payload);
-        }
-      } catch (error) {
-        console.error('Onboarding Step 2 error:', error);
+    if (isAuthenticated && currentStep > 1) {
+      // Only fetch from server if we don't have local step 3 data stored
+      const hasLocalStep3Data = progress?.data?.focusSector || progress?.data?.stage || progress?.data?.impactFocus;
+      if (!hasLocalStep3Data) {
+        dispatch(fetchOnboardingProgress() as any);
       }
-    } else if (currentStep === 3) {
-      // This is Sector + Stage + Impact step - just collect data, don't call API yet
-      // API will be called in step 4 with all the combined data
-      console.log('Step 3 data collected:', stepData);
-      setSearchParams({ step: '4' });
-    } else {
-      setSearchParams({ step: (currentStep + 1).toString() });
+    }
+  }, [dispatch, isAuthenticated, currentStep]);
+
+  // Prevent returning to step 1 if already completed
+  useEffect(() => {
+    if (progress?.current_step && progress.current_step > 1 && currentStep === 1) {
+      navigate(`/signup/step/${progress.current_step}`, { replace: true });
+    }
+  }, [progress, currentStep, navigate]);
+
+  // ------------------------
+  // Step Handlers
+  // ------------------------
+
+  // Step 1 - Account Creation (already handled by SignupStep1)
+  const handleStep1Next = async () => {
+    // Account creation is already handled by SignupStep1 component
+    // Just navigate to step 2 after successful account creation
+    console.log("Account created successfully, navigating to step 2");
+    navigate("/signup/step/2");
+  };
+
+  // Step 2 - Personal/Company Info (already handled by SignupStep2)
+  const handleStep2Next = async () => {
+    if (!isAuthenticated) {
+      console.error("User must be authenticated to proceed to step 2");
+      return;
+    }
+    // SignupStep2 handles completeSignup internally
+    // Just navigate to step 3 (which collects innovation/geography data)
+    console.log("Step 2 completed, navigating to step 3");
+    navigate("/signup/step/3");
+  };
+
+  // Step 3 - Innovation + Geography
+  const handleStep3Next = async (formData: any) => {
+    if (!isAuthenticated) {
+      console.error("User must be authenticated to proceed to step 3");
+      return;
+    }
+    const payload = {
+      type_of_innovation: formData.innovationType,
+      geo_scope: formData.geographicScope,
+      top_states: [
+        formData.state1,
+        formData.state2,
+        formData.state3,
+        formData.state4,
+        formData.state5
+      ].filter(Boolean),
+    };
+    const result = await dispatch(updateStep2(payload) as any);
+    if (updateStep2.fulfilled.match(result)) navigate("/signup/step/4");
+  };
+
+  // Step 4 - Sector + Stage + Impact
+  const handleStep4Next = (formData: any) => {
+    if (!isAuthenticated) {
+      console.error("User must be authenticated to proceed to step 4");
+      return;
+    }
+    console.log("Step 4 - FormData being stored:", formData);
+    dispatch(setStep3Data(formData));
+    console.log("Step 4 - Data dispatched to setStep3Data");
+    navigate("/signup/step/5");
+  };
+
+  // Step 5 - Budget + Funding
+  const handleStep5Complete = async (formData: any) => {
+    if (!isAuthenticated) {
+      console.error("User must be authenticated to complete step 5");
+      return;
+    }
+    const step3Data = progress?.data;
+    console.log("Step 5 - Progress data:", progress);
+    console.log("Step 5 - Step3Data:", step3Data);
+    console.log("Step 5 - FormData:", formData);
+    
+    if (!step3Data?.focusSector || !step3Data?.stage || !step3Data?.impactFocus) {
+      console.error("Missing step 3 data:", {
+        focusSector: step3Data?.focusSector,
+        stage: step3Data?.stage,
+        impactFocus: step3Data?.impactFocus,
+        fullStep3Data: step3Data
+      });
+      return;
+    }
+    const payload = {
+      focus_sector: step3Data.focusSector,
+      org_stage: step3Data.stage,
+      impact_focus: step3Data.impactFocus,
+      annual_operating_budget: formData.annualBudget,
+      use_of_questionnaire: formData.fundingSource,
+      received_philanthropy_before: formData.philanthropicFunding === "yes",
+    };
+    const result = await dispatch(updateStep3(payload) as any);
+    if (updateStep3.fulfilled.match(result)) {
+      const finish = await dispatch(finishOnboarding() as any);
+      if (finishOnboarding.fulfilled.match(finish)) navigate("/welcome");
     }
   };
 
+  // Back handlers
   const handleBack = () => {
     if (currentStep > 1) {
-      setSearchParams({ step: (currentStep - 1).toString() });
+      navigate(`/signup/step/${currentStep - 1}`);
     }
   };
 
-  const handleComplete = async (finalData: any) => {
-    const completeData = {
-      ...signupData,
-      [`step${currentStep}`]: finalData,
-    };
-    console.log('Complete signup data:', completeData);
-
-    // This is step 4 - Budget and funding step
-    // Combine step 3 (sector/stage/impact) and step 4 (budget/funding) data for API call
-    try {
-      const step3Data = signupData.step3 || {};
-      const onboardingData: Step3Request = {
-        focus_sector: step3Data.focusSector,
-        org_stage: step3Data.stage,
-        impact_focus: step3Data.impactFocus,
-        annual_operating_budget: finalData.annualBudget,
-        use_of_questionnaire: finalData.fundingSource,
-        received_philanthropy_before: finalData.philanthropicFunding === 'yes'
-      };
-
-      console.log('Calling updateStep3 API with complete data from steps 3 & 4:', onboardingData);
-      const result = await dispatch(updateStep3(onboardingData) as any);
-
-      if (updateStep3.fulfilled.match(result)) {
-        console.log('Step 3 API success, finishing onboarding');
-        // Now finish onboarding
-        const finishResult = await dispatch(finishOnboarding() as any);
-
-        if (finishOnboarding.fulfilled.match(finishResult)) {
-          console.log('Onboarding completed successfully');
-          navigate('/assessment');
-        } else {
-          console.error('Finish onboarding failed:', finishResult.payload);
-        }
-      } else {
-        console.error('Step 3 API failed:', result.payload);
-      }
-    } catch (error) {
-      console.error('Complete signup error:', error);
-    }
-  };
-
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        // Step 1: "Tell us about yourself" - Personal info + signup completion
-        return <SignupStep2 onNext={handleNext} />;
-      case 2:
-        // Step 2: Innovation + Geography (Onboarding Step 2)
-        return <SignupStep3 onNext={handleNext} onBack={handleBack} />;
-      case 3:
-        // Step 3: Sector + Stage + Impact (collects data, no API call yet)
-        return <SignupStep4 onNext={handleNext} onBack={handleBack} />;
-      case 4:
-        // Step 4: Budget and funding (calls API with combined step 3 & 4 data)
-        return <SignupStep5 onComplete={handleComplete} onBack={handleBack} />;
-      default:
-        // Default to step 1: "Tell us about yourself"
-        return <SignupStep2 onNext={handleNext} />;
-    }
-  };
-
+  // ------------------------
+  // Rendering
+  // ------------------------
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
+      {/* Show tracker only on Step 2–5 and when authenticated */}
+      {currentStep > 1 && isAuthenticated && <ProgressTracker currentStep={currentStep - 1} totalSteps={3} />}
 
-      {renderCurrentStep()}
+      <Routes>
+        <Route path="step/1" element={<SignupStep1 onNext={handleStep1Next} />} />
+        <Route path="step/2" element={<SignupStep2 onNext={handleStep2Next} />} />
+        <Route path="step/3" element={<SignupStep3 onNext={handleStep3Next} onBack={handleBack} />} />
+        <Route path="step/4" element={<SignupStep4 onNext={handleStep4Next} onBack={handleBack} />} />
+        <Route path="step/5" element={<SignupStep5 onComplete={handleStep5Complete} onBack={handleBack} />} />
+        <Route index element={<Navigate to="step/1" replace />} />
+      </Routes>
     </div>
   );
 };

@@ -38,7 +38,7 @@ interface SignupStep1Props {
  */
 const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
   const dispatch = useDispatch()
-  const { isLoading, error, step1Completed } = useSelector((state: RootState) => state.signup)
+  const { isLoading, error } = useSelector((state: RootState) => state.signup)
 
   const {
     register,
@@ -48,7 +48,7 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
     resolver: zodResolver(signupSchema),
   })
 
-  // Clear error when component mounts
+  // Clear error when component mounts (for Redux state cleanup)
   React.useEffect(() => {
     if (error) {
       dispatch(clearError())
@@ -85,8 +85,10 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
           onNext(data)
         }
       }
+      // Error handling is now done automatically in the thunk
     } catch (error) {
       console.error("Signup error:", error)
+      // Network error handling is now done automatically in the thunk
     }
   }
 
@@ -166,9 +168,9 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
                 <input
                   {...register("termsAccepted")}
                   type="checkbox"
-                  className="mt-1 h-4 w-4 text-[#46B753] focus:ring-[#46B753] border-gray-300 rounded"
+                  className="custom-checkbox mt-1"
                 />
-                <span>
+                <span className="text-[12px] text-gray-600">
                   Creating an account means you're okay with our{" "}
                   <span className="villgro-green-text cursor-pointer hover:underline">
                     Terms and Conditions
@@ -185,12 +187,7 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
               )}
             </div>
 
-            {/* Error Display */}
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{error}</p>
-              </div>
-            )}
+            {/* Error Display - Now handled by notifications */}
 
             {/* Submit Button */}
             <Button

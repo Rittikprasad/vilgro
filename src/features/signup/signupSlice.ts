@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import api from "../../services/api";
 import { endpoints } from "../../services/endpoints";
+import { ApiResponseHandler } from "../../lib/apiResponseHandler";
 import type {
   SignupState,
   SignupStartRequest,
@@ -41,12 +42,21 @@ export const startSignup = createAsyncThunk<
     localStorage.setItem("accessToken", response.data.tokens.access);
     localStorage.setItem("refreshToken", response.data.tokens.refresh);
 
+    // Show success notification with API message
+    ApiResponseHandler.handleSuccess({ message: response.data.message || "Account created successfully!" });
+
     return response.data;
   } catch (error: any) {
+    // Handle error with centralized error handler
+    ApiResponseHandler.handleError(error, "Signup failed");
+    
+    // Return the actual error response data to preserve field-specific errors
+    const errorData = error.response?.data || {};
     return rejectWithValue({
-      message: error.response?.data?.message || "Signup failed",
+      ...errorData,
+      message: errorData.message || "Signup failed",
       status: error.response?.status || 500,
-      code: error.response?.data?.code,
+      code: errorData.code,
     });
   }
 });

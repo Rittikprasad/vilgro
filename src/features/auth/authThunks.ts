@@ -9,6 +9,7 @@ import type {
 import { authSlice } from "./authSlice";
 import api from "../../services/api";
 import { endpoints } from "../../services/endpoints";
+import { ApiResponseHandler } from "../../lib/apiResponseHandler";
 
 
 export const login = createAsyncThunk<
@@ -27,11 +28,17 @@ export const login = createAsyncThunk<
       credentials
     );
 
+    // Show success notification
+    ApiResponseHandler.handleSuccess({ message: "Login successful!" });
+
     // Dispatch success actions
     dispatch(authSlice.actions.setAuthData(response.data));
 
     return response.data;
   } catch (error: any) {
+    // Handle error with centralized error handler
+    ApiResponseHandler.handleError(error, "Login failed");
+    
     const errorMessage = error.response?.data?.message || "Login failed";
     dispatch(authSlice.actions.setError(errorMessage));
     return rejectWithValue({
@@ -74,6 +81,18 @@ export const fetchUserProfile = createAsyncThunk<
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Failed to fetch user profile";
+      
+      // Handle 404 errors gracefully - user might not have a profile yet
+      if (error.response?.status === 404) {
+        console.warn('User profile not found (404) - user may not have completed profile setup');
+        dispatch(authSlice.actions.setLoading(false));
+        return rejectWithValue({
+          message: "Profile not found - user needs to complete profile setup",
+          status: 404,
+          code: "PROFILE_NOT_FOUND",
+        });
+      }
+
       dispatch(authSlice.actions.setError(errorMessage));
       dispatch(authSlice.actions.setLoading(false));
 

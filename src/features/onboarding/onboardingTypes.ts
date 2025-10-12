@@ -8,6 +8,10 @@ export interface OnboardingProgress {
   data: {
     step2?: Step2Data;
     step3?: Step3Data;
+    // ✅ Support for Step 3 local data
+    focusSector?: string;
+    stage?: string;
+    impactFocus?: string;
   };
   is_complete: boolean;
 }

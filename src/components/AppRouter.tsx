@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserProfile } from '../features/auth/authThunks';
 import { fetchOnboardingProgress } from '../features/onboarding/onboardingSlice';
@@ -10,6 +10,19 @@ import SignupFlow from './signup/SignupFlow';
 import Welcome from './Welcome';
 import Home from './Home';
 import type { RootState } from '../app/store';
+import Assessment from './assessment';
+import { 
+  AdminLogin, 
+  AdminDashboard,
+  SPOsPage,
+  QuestionsPage,
+  BanksPage,
+  ReviewsPage,
+  AdminsPage,
+  ActivityLogPage
+} from '../roles/Admin';
+// TODO: API Integration - Uncomment when authentication is ready
+// import { ProtectedRoute as RoleProtectedRoute } from '../auth/ProtectedRoute';
 
 /**
  * Protected Route Component
@@ -31,17 +44,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
  */
 const OnboardingRoute: React.FC = () => {
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-    const { step } = useParams<{ step?: string }>();
-
-    // If not authenticated, redirect to login
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
-
-    // Use the signup flow for onboarding
-    // Pass the step parameter if available
-    const initialStep = step ? parseInt(step, 10) : undefined;
-    return <SignupFlow initialStep={initialStep} />;
+    if (!isAuthenticated) return <Navigate to="/login" replace />;
+    return <SignupFlow />;
 };
 
 /**
@@ -50,22 +54,44 @@ const OnboardingRoute: React.FC = () => {
  */
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const dispatch = useDispatch();
-    const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+    const { isAuthenticated, user, has_completed_profile } = useSelector((state: RootState) => state.auth);
 
     useEffect(() => {
-        if (isAuthenticated && user && !user.has_completed_profile) {
+        if (isAuthenticated && user && !has_completed_profile) {
             // User is authenticated but hasn't completed profile, fetch onboarding progress
-            console.log('User authenticated but profile incomplete, fetching onboarding progress...');
-            dispatch(fetchOnboardingProgress() as any);
+            // But only if we're not in the signup flow (to avoid API calls during signup)
+            const currentPath = window.location.pathname;
+            if (!currentPath.startsWith('/signup')) {
+                console.log('User authenticated but profile incomplete, fetching onboarding progress...');
+                // Add a small delay to ensure the user profile is fully loaded
+                const timer = setTimeout(() => {
+                    dispatch(fetchOnboardingProgress() as any);
+                }, 200);
+                
+                return () => clearTimeout(timer);
+            }
         }
-    }, [dispatch, isAuthenticated, user]);
+    }, [dispatch, isAuthenticated, user, has_completed_profile]);
 
-    // If user is authenticated, redirect based on profile completion
     if (isAuthenticated) {
-        if (user?.has_completed_profile) {
+        // Check if user is on login page - let login component handle navigation
+        const currentPath = window.location.pathname;
+        if (currentPath === '/login') {
+            return <>{children}</>;
+        }
+        
+        // For other pages, check profile completion status
+        if (has_completed_profile) {
             return <Navigate to="/assessment" replace />;
         } else {
-            return <Navigate to="/signup?step=1" replace />;
+            // Check if user is already in signup flow
+            if (currentPath.startsWith('/signup')) {
+                // User is already in signup flow, don't redirect
+                return <>{children}</>;
+            } else {
+                // User is authenticated but not in signup flow, redirect to step 2
+                return <Navigate to="/signup/step/2" replace />;
+            }
         }
     }
 
@@ -84,8 +110,18 @@ const AppRouter: React.FC = () => {
     useEffect(() => {
         if (accessToken && isAuthenticated) {
             // User has valid token, fetch their profile and onboarding status
-            console.log('App loaded with valid token, fetching user profile...');
-            dispatch(fetchUserProfile() as any);
+            // But only if we're not in the signup flow or login page (to avoid 404 errors for new users)
+            const currentPath = window.location.pathname;
+            if (!currentPath.startsWith('/signup') && currentPath !== '/login') {
+                console.log('App loaded with valid token, fetching user profile...');
+                // Add error handling for profile fetch to prevent 404 errors from breaking the app
+                dispatch(fetchUserProfile() as any).catch((error: any) => {
+                    console.warn('Profile fetch failed (expected for new users):', error);
+                    // Don't break the app flow if profile fetch fails
+                });
+            } else {
+                console.log('In signup flow or login page, skipping profile fetch to avoid 404 errors');
+            }
         }
     }, [dispatch, accessToken, isAuthenticated]);
 
@@ -124,11 +160,87 @@ const AppRouter: React.FC = () => {
                 />
 
                 <Route
-                    path="/signup"
+                    path="/signup/*"
                     element={<SignupFlow />}
                 />
 
-                {/* Protected Routes */}
+                {/* ==================== ADMIN ROUTES ==================== */}
+                {/* NOTE: Authentication is currently bypassed for development */}
+                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                
+                {/* Admin Login - Public route */}
+                <Route
+                    path="/admin/login"
+                    element={<AdminLogin />}
+                />
+
+                {/* Admin Dashboard - Currently unprotected for development */}
+                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                <Route
+                    path="/admin/dashboard"
+                    element={<AdminDashboard />}
+                />
+
+                {/* Admin SPOs Page - Currently unprotected for development */}
+                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                <Route
+                    path="/admin/spos"
+                    element={<SPOsPage />}
+                />
+
+                {/* Admin Questions Page - Currently unprotected for development */}
+                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                <Route
+                    path="/admin/questions"
+                    element={<QuestionsPage />}
+                />
+
+                {/* Admin Banks Page - Currently unprotected for development */}
+                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                <Route
+                    path="/admin/banks"
+                    element={<BanksPage />}
+                />
+
+                {/* Admin Reviews Page - Currently unprotected for development */}
+                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                <Route
+                    path="/admin/reviews"
+                    element={<ReviewsPage />}
+                />
+
+                {/* Admin Admins Page - Currently unprotected for development */}
+                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                <Route
+                    path="/admin/admins"
+                    element={<AdminsPage />}
+                />
+
+                {/* Admin Activity Log Page - Currently unprotected for development */}
+                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                <Route
+                    path="/admin/activity"
+                    element={<ActivityLogPage />}
+                />
+
+                {/* 
+                    TODO: API Integration - Uncomment this block when authentication is ready
+                    This will enable role-based protection for all admin routes
+                    
+                    <Route
+                        path="/admin/*"
+                        element={
+                            <RoleProtectedRoute allowedRoles={["ADMIN"]}>
+                                <Routes>
+                                    <Route path="dashboard" element={<AdminDashboard />} />
+                                    <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+                                </Routes>
+                            </RoleProtectedRoute>
+                        }
+                    />
+                */}
+
+                {/* SPO Protected Routes */}
                 <Route
                     path="/onboarding"
                     element={
@@ -156,17 +268,11 @@ const AppRouter: React.FC = () => {
                     }
                 />
 
-                {/* Future Routes */}
                 <Route
                     path="/assessment"
                     element={
                         <ProtectedRoute>
-                            <div className="min-h-screen flex items-center justify-center">
-                                <div className="text-center">
-                                    <h1 className="text-2xl font-bold text-gray-800 mb-4">Assessment Coming Soon</h1>
-                                    <p className="text-gray-600">The assessment questionnaire will be available here.</p>
-                                </div>
-                            </div>
+                            <Assessment />
                         </ProtectedRoute>
                     }
                 />

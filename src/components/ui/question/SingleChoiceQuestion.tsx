@@ -7,6 +7,7 @@ interface SingleChoiceQuestionProps {
   onChange?: (value: string) => void
   options?: { value: string; label: string }[]
   columns?: 1 | 2
+  disabled?: boolean
 }
 
 /**

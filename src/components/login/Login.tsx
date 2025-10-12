@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -33,7 +33,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 const Login: React.FC = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { isLoading, error } = useSelector((state: RootState) => state.auth)
+  const { isLoading, error, isAuthenticated, has_completed_profile, onboarding } = useSelector((state: RootState) => state.auth)
 
   const {
     register,
@@ -42,6 +42,24 @@ const Login: React.FC = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
+
+  // Handle navigation after successful authentication
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("User authenticated, checking profile completion status...")
+      console.log("has_completed_profile:", has_completed_profile)
+      console.log("onboarding:", onboarding)
+      
+      if (has_completed_profile) {
+        console.log("User has completed profile, navigating to assessment")
+        navigate("/assessment", { replace: true })
+      } else {
+        const currentStep = onboarding?.current_step || 1
+        console.log("User hasn't completed profile, navigating to signup step:", currentStep + 1)
+        navigate(`/signup/step/${currentStep + 1}`, { replace: true })
+      }
+    }
+  }, [isAuthenticated, has_completed_profile, onboarding, navigate])
 
   /**
    * Handle form submission
@@ -72,21 +90,13 @@ const Login: React.FC = () => {
           // Continue with login flow even if onboarding fetch fails
         }
 
-        // Check if user has completed profile
-        if (result.payload.has_completed_profile) {
-          // User has completed profile, go to welcome screen
-          navigate("/assessment")
-        } else {
-          // User hasn't completed profile, redirect to onboarding with query parameter
-          // "Tell us about yourself" is step 1 as expected by backend
-          const currentStep = result.payload.onboarding?.current_step || 1
-          navigate(`/signup?step=${currentStep}`)
-        }
-      } else {
-        console.error("Login failed:", result.payload)
+        // Navigation will be handled by useEffect when authentication state changes
+        console.log("Login completed, navigation will be handled by useEffect")
       }
+      // Error handling is now done automatically in the thunk
     } catch (error) {
       console.error("Login error:", error)
+      // Network error handling is now done automatically in the thunk
     }
   }
 

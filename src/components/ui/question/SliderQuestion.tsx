@@ -4,6 +4,10 @@ interface SliderQuestionProps {
   question: string;
   value: number;
   onChange: (val: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  disabled?: boolean;
 }
 
 const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, value, onChange }) => {

@@ -45,12 +45,48 @@ body {
     color: #46B753;
   }
   
+  /* Custom checkbox styling to match theme */
+  .custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 18px;
+    height: 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 3px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+  
+  .custom-checkbox:checked {
+    background-color: #46B753;
+    border-color: #46B753;
+  }
+  
+  .custom-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  
+  .custom-checkbox:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(70, 183, 83, 0.1);
+  }
+  
   /* Standard label styling for consistent typography */
   .label-text {
     font-family: 'Golos Text', sans-serif;
     font-weight: 400;
     font-style: normal;
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1.5;
   }
 }

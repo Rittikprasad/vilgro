@@ -22,10 +22,10 @@ const step2Schema = z.object({
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
   designation: z.string().email("Please enter a valid email address"),
   companyName: z.string().min(1, "Company name is required"),
-  legalRegistrationType: z.string().min(1, "Please select a legal registration type"),
-  dateOfIncorporation: z.string().optional(),
-  gstNumber: z.string().optional(),
-  cinNumber: z.string().optional(),
+  legalRegistrationType: z.string().optional(), // Made optional
+  dateOfIncorporation: z.string().min(1, "Date of Incorporation is required"), // Made mandatory
+  gstNumber: z.string().min(1, "DPIIT Number is required"), // Made mandatory
+  cinNumber: z.string().min(1, "CIN Number is required"), // Made mandatory
 })
 
 type Step2FormData = z.infer<typeof step2Schema>
@@ -90,10 +90,10 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
       // Call signup completion API
       const signupCompleteData = {
         org_name: data.companyName,
-        registration_type: data.legalRegistrationType,
-        ...(data.dateOfIncorporation && { date_of_incorporation: data.dateOfIncorporation }),
-        ...(data.gstNumber && { gst_number: data.gstNumber }),
-        ...(data.cinNumber && { cin_number: data.cinNumber }),
+        gst_number: data.gstNumber,
+        cin_number: data.cinNumber,
+        date_of_incorporation: data.dateOfIncorporation,
+        ...(data.legalRegistrationType && { registration_type: data.legalRegistrationType }),
       }
 
       console.log("Calling completeSignup API with:", signupCompleteData)
@@ -101,8 +101,8 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
 
       if (completeSignup.fulfilled.match(result)) {
         console.log("Signup completion successful:", result.payload)
-        // Pass the form data to next step
-        onNext(data)
+        // Navigate to next step - don't pass data since step 3 expects different data
+        onNext({} as any) // Pass empty object to trigger navigation
       } else {
         console.error("Signup completion failed:", result.payload)
       }
@@ -227,9 +227,15 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                         {...register("dateOfIncorporation")}
                         type="text"
                         placeholder="Date of Incorporation *"
-                        className="w-full h-11 px-4 py-3 rounded-lg gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]"
+                        className={cn(
+                          "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
+                          errors.dateOfIncorporation ? "border-red-500" : "gradient-border"
+                        )}
                         onFocus={(e) => {
                           e.target.type = 'date';
+                          // Set max date to today (no future dates allowed)
+                          const today = new Date().toISOString().split('T')[0];
+                          e.target.setAttribute('max', today);
                           e.target.showPicker?.();
                         }}
                         onBlur={(e) => {
@@ -239,22 +245,31 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                         }}
                       />
                     </div>
+                    {errors.dateOfIncorporation && (
+                      <p className="text-red-500 text-sm">{errors.dateOfIncorporation.message}</p>
+                    )}
                   </div>
 
-                  {/* GST Number */}
+                  {/* DPIIT Number */}
                   <div className="space-y-1">
                     <Input
                       {...register("gstNumber")}
-                      placeholder="DPIIT Number"
-                      className="w-full h-11 px-4 py-3 rounded-lg gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]"
+                      placeholder="DPIIT Number *"
+                      className={cn(
+                        "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
+                        errors.gstNumber ? "border-red-500" : "gradient-border"
+                      )}
                     />
+                    {errors.gstNumber && (
+                      <p className="text-red-500 text-sm">{errors.gstNumber.message}</p>
+                    )}
                   </div>
                 </div>
 
               {/* Legal Registration Type */}
               <div className="space-y-4">
                 <label className="text-sm font-medium text-gray-700 ">
-                  Legal Registration Type
+                  Legal Registration Type (Optional)
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading registration types...</div>
@@ -274,20 +289,23 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                     ))}
                   </RadioGroup>
                 )}
-                {errors.legalRegistrationType && (
-                  <p className="text-red-500 text-sm">{errors.legalRegistrationType.message}</p>
-                )}
               </div>
 
-              {/* Optional Fields */}
+              {/* Additional Fields */}
               <div className="space-y-4">
                 {/* CIN Number */}
                 <div className="space-y-1">
                     <Input
                       {...register("cinNumber")}
                       placeholder="CIN Number *"
-                      className="w-full h-11 px-4 py-3 rounded-lg gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]"
+                      className={cn(
+                        "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
+                        errors.cinNumber ? "border-red-500" : "gradient-border"
+                      )}
                     />
+                    {errors.cinNumber && (
+                      <p className="text-red-500 text-sm">{errors.cinNumber.message}</p>
+                    )}
                 </div>
               </div>
 

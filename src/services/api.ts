@@ -1,10 +1,8 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { store } from '../app/store';
-import type { AppDispatch } from '../app/store';
 import { authSlice } from '../features/auth/authSlice';
 import { refreshToken } from '../features/auth/authThunks';
-import { endpoints } from './endpoints';
 
 /**
  * Axios instance configuration
@@ -50,8 +48,17 @@ api.interceptors.request.use(
     const state = store.getState() as { auth: { accessToken: string | null } };
     const token = state.auth.accessToken;
     
+    console.log('API Request Interceptor - Token:', token ? 'Present' : 'Missing');
+    console.log('API Request URL:', config.url);
+    
     if (token) {
       config.headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      // Don't warn for login requests as they don't require tokens
+      const isLoginRequest = config.url?.includes('/auth/login/');
+      if (!isLoginRequest) {
+        console.warn('No access token found for API request:', config.url);
+      }
     }
     
     return config;

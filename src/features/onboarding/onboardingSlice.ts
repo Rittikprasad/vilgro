@@ -29,8 +29,26 @@ export const fetchOnboardingProgress = createAsyncThunk<
   OnboardingProgress,
   void,
   { rejectValue: OnboardingErrorResponse }
->("onboarding/fetchProgress", async (_, { rejectWithValue }) => {
+>("onboarding/fetchProgress", async (_, { rejectWithValue, getState }) => {
   try {
+    // Check if we have a token before making the request
+    const state = getState() as { auth: { accessToken: string | null; isAuthenticated: boolean } };
+    console.log("fetchOnboardingProgress - Auth state:", {
+      hasToken: !!state.auth.accessToken,
+      isAuthenticated: state.auth.isAuthenticated,
+      token: state.auth.accessToken ? "Present" : "Missing"
+    });
+    
+    // Don't make the request if we don't have a token
+    if (!state.auth.accessToken) {
+      console.warn("No access token available, skipping onboarding progress fetch");
+      return rejectWithValue({
+        message: "No access token available",
+        status: 401,
+        code: "NO_TOKEN"
+      });
+    }
+    
     console.log(
       "fetchOnboardingProgress API call - URL:",
       endpoints.onboarding.getProgress
@@ -181,6 +199,15 @@ export const onboardingSlice = createSlice({
         state.progress.data = { ...state.progress.data, ...action.payload };
       }
     },
+
+    // ✅ Store local Step 3 data (sector/stage/impact)
+    setStep3Data: (
+      state,
+      action: PayloadAction<{ focusSector: string; stage: string; impactFocus: string }>
+    ) => {
+      if (!state.progress) state.progress = { current_step: 1, data: {}, is_complete: false };
+      state.progress.data = { ...state.progress.data, ...action.payload };
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -253,7 +280,7 @@ export const onboardingSlice = createSlice({
 });
 
 // Export actions
-export const { clearError, resetOnboarding, setLoading, updateProgressData } =
+export const { clearError, resetOnboarding, setLoading, updateProgressData, setStep3Data } =
   onboardingSlice.actions;
 
 // Export reducer

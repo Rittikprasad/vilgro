@@ -10,10 +10,7 @@ import { rootReducer } from './rootReducer.js';
 const persistConfig = {
   key: 'root',
   storage,
-  // Optionally whitelist specific reducers to persist
-  // whitelist: ['auth', 'onboarding'], // Only persist these reducers
-  // Or blacklist reducers to exclude from persistence
-  // blacklist: ['meta'], // Exclude meta reducer from persistence
+  whitelist: ['auth', 'onboarding'], // ✅ Persist auth and onboarding
 };
 
 /**
@@ -31,7 +28,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE', 'persist/PAUSE', 'persist/PURGE', 'persist/REGISTER'],
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
       },
     }),
 });

@@ -51,6 +51,7 @@ interface MultipleChoiceQuestionProps {
   onChange?: (values: string[]) => void
   options?: { value: string; label: string }[]
   columns?: 1 | 2
+  disabled?: boolean
 }
 
 /**
@@ -63,6 +64,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   value = [], 
   onChange,
   columns = 1,
+  disabled = false,
   options = [
     { value: "option1", label: "Option 1" },
     { value: "option2", label: "Option 2" },
@@ -71,19 +73,22 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
     { value: "option5", label: "Option 5" }
   ]
 }) => {
+  // Ensure value is always an array
+  const selectedValues = Array.isArray(value) ? value : [];
+
   /**
    * Handles checkbox selection/deselection
    * Updates the selected values array based on checkbox state
    */
   const handleCheckboxChange = (optionValue: string, checked: boolean) => {
-    if (!onChange) return
+    if (!onChange || disabled) return
 
     if (checked) {
       // Add option to selected values if not already present
-      onChange([...value, optionValue])
+      onChange([...selectedValues, optionValue])
     } else {
       // Remove option from selected values
-      onChange(value.filter(val => val !== optionValue))
+      onChange(selectedValues.filter(val => val !== optionValue))
     }
   }
 
@@ -98,7 +103,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
           <div key={option.value} className="flex items-center space-x-2">
             <Checkbox
               id={option.value}
-              checked={value.includes(option.value)}
+              checked={selectedValues.includes(option.value)}
               onCheckedChange={(checked) => handleCheckboxChange(option.value, checked as boolean)}
             />
             <label 

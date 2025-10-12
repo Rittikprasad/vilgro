@@ -1,18 +1,18 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './Header.module.css';
+import logoImage from '../../assets/logo.png';
+import { Button } from '../ui/Button';
 
-/**
- * Header component with navigation and logo
- * Features glassmorphism effect and responsive navigation using CSS Modules
- */
+
 const Header: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <header className={styles.header}>
       <div className={styles.headerContainer}>
         {/* Logo */}
         <Link to="/" className={styles.logo}>
-          VILLGRO
+          <img src={logoImage} alt="Villgro Logo" className={styles.logoImage} />
         </Link>
 
         {/* Navigation */}
@@ -33,11 +33,9 @@ const Header: React.FC = () => {
 
         {/* CTA Button and Login Link */}
         <div className={styles.headerActions}>  
-          <button className={styles.ctaButton}>
-          <Link to="/login" className={styles.loginLink}>
-            Start Your Assessment
-            </Link>
-          </button>        
+        <Button style={{backgroundColor: 'var(--villgro-dark)', color: 'white'}} size="sm" onClick={() => navigate('/login')}>
+              Start Your Assessment
+            </Button>       
         </div>
       </div>
     </header>

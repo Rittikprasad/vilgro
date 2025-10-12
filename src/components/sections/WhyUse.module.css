@@ -2,80 +2,139 @@
 
 .section {
   padding: 80px 0;
-  background: white;
   position: relative;
   overflow: hidden;
 }
 
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 32px;
-  position: relative;
-  z-index: 10;
+/* Gradient background positioned at bottom right */
+.gradientBackground {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  right: 20px;
+  bottom: -250px;
+  opacity: 0.6;
+  background: radial-gradient(50% 50% at 50% 50%, var(--villgro-green) 0%, var(--villgro-light-green) 100%);
+  filter: blur(100px);
+  border-radius: 50%;
+  z-index: 1;
 }
 
-.sectionTitle {
-  text-align: center;
-  margin-bottom: 64px;
-  /* Positioning to match Figma: left: calc(50% + 31px), top: 2648px */
+.gradientBackground1 {
+  position: absolute;
+  width: 600px;
+  height: 500px;
+  left: -30px;
+  top: 300px;
+  opacity: 0.6;
+  background: radial-gradient(50% 50% at 50% 50%, var(--villgro-yellow) 0%, var(--villgro-light-yellow) 100%);
+  filter: blur(90px);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.container {
+  max-width: min(1400px, 95vw);
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 42px);
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.whyUseSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.whatYouGetSection {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  padding: 5px clamp(16px, 4vw, 52px);
+}
+
+.whatYouGetSection .sectionTitle {
+  text-align: left;
 }
 
 .title {
   font-family: 'Baskervville', serif;
-  font-size: 60px;
+  font-size: clamp(36px, 5vw, 50px);
   font-weight: 600;
-  line-height: 1.029;
-  margin: 0;
   color: var(--villgro-dark);
+}
+
+.whatYouGetSection .title {
+  color: #46B753;
+  font-family: Baskervville;
+  font-style: normal;
+  font-weight: 600;
 }
 
 .titleGreen {
   color: var(--villgro-green);
 }
 
+.titleDark {
+  color: #231F20;
+  font-family: Baskervville;
+  font-style: normal;
+  font-weight: 600;
+}
+
 .contentContainer {
-  display: grid;
-  grid-template-columns: 686px 1fr;
-  gap: 64px;
-  align-items: flex-start;
-  max-width: 1400px;
-  margin: 0 auto;
-  position: relative;
+  display: flex;
+  gap: clamp(32px, 6vw, 64px);
 }
 
 /* Background image section matching Figma Rectangle 34 */
 .imageSection {
-  width: 686px;
-  height: 579px;
-  background-image: url('http://localhost:3845/assets/8d1968265d1ad410e65f970b9a4297bfc89f71f3.png');
-  background-size: 145.76% 115.27%;
-  background-repeat: no-repeat;
-  background-position: 32.14% 50%;
-  border-radius: 15px;
-  box-shadow: 0px 0px 45.5px -1px rgba(0, 0, 0, 0.15);
-  position: relative;
-  /* Positioning to match Figma: left: 234px, top: 2648px */
+  width: 50%;
+  height: clamp(300px, 40vw, 579px);
+  display: flex;
+  justify-content: flex-end;
 }
 
-/* Benefits list on the right side */
+.laptopImage {
+  width: clamp(600px, 8vw, 600px);
+  height: clamp(500px, 8vw, 600px);
+  object-fit: fill;
+  border-radius: 70px;
+}
+
 .benefitsList {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  padding-top: 60px;
-  max-width: 600px;
+  gap: clamp(20px, 3vw, 32px);
+  padding-top: clamp(30px, 5vh, 60px);
+  width: 50%;
+  position: relative;
+}
+
+.benefitsList::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 100px;
+  width: 4px;
+  height: calc(100% - 350px);
+  background: linear-gradient(to bottom, var(--villgro-green) 50%, white 50%);
+  z-index: 1;
 }
 
 .benefitItem {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 26px;
 }
 
 .benefitDot {
-  width: 35px;
-  height: 35px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: var(--villgro-green);
   flex-shrink: 0;
@@ -85,62 +144,140 @@
   color: white;
   font-weight: bold;
   font-size: 16px;
+  position: relative;
+  z-index: 2;
 }
+
 
 .benefitText {
   font-family: 'Golos Text', sans-serif;
-  font-size: clamp(18px, 2.2vw, 30px);
+  font-size: clamp(18px, 2.2vw, 20px);
   font-weight: 400;
+  color: var(--villgro-dark);
+}
+
+/* What You'll Get Section */
+.itemsContainer {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 16px;
+  flex: 1;
+}
+
+.itemDivider {
+  width: 2px;
+  height: 60px;
+  background-color: var(--villgro-dark);
+  opacity: 0.3;
+  flex-shrink: 0;
+}
+
+.itemIcon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.itemIconImage {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+
+.itemTitle {
+  font-family: 'Golos Text', sans-serif;
+  font-size: calc(18px, 2.2vw, 20px);
+  font-weight: 600;
   color: var(--villgro-dark);
   line-height: 1.3;
   margin: 0;
 }
 
-/* Connecting lines positioned as in Figma */
-.connectingLine {
-  position: absolute;
-  left: 1006px;
-  top: 88px;
-  width: 1px;
-  height: 402px;
-  background: linear-gradient(to bottom, transparent 0%, var(--villgro-green) 20%, var(--villgro-green) 80%, transparent 100%);
-  opacity: 0.3;
-}
-
-.connectingLineShort {
-  position: absolute;
-  left: 1006px;
-  top: 88px;
-  width: 1px;
-  height: 153px;
-  background: var(--villgro-green);
-  opacity: 0.6;
-}
-
 /* Responsive Design */
 @media (max-width: 1200px) {
-  .connectingLine,
-  .connectingLineShort {
-    display: none;
+  .contentContainer {
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 40px);
   }
   
   .imageSection {
     width: 100%;
     max-width: 600px;
+    height: clamp(250px, 35vw, 400px);
+    margin: 0 auto;
+  }
+  
+  .benefitsList {
+    padding-top: 0;
+  }
+  
+  .itemsContainer {
+    gap: clamp(24px, 4vw, 40px);
   }
 }
 
 @media (max-width: 768px) {
   .section {
-    padding: 60px 0;
+    padding: clamp(40px, 8vh, 60px) 0;
+  }
+  
+  .container {
+    gap: clamp(30px, 6vh, 60px);
   }
   
   .title {
-    font-size: 42px;
+    font-size: clamp(28px, 6vw, 42px);
     line-height: 1.2;
   }
   
   .imageSection {
-    height: 300px;
+    height: clamp(200px, 30vw, 300px);
+  }
+  
+  .itemsContainer {
+    flex-direction: column;
+    gap: clamp(20px, 3vw, 30px);
+  }
+  
+  .itemDivider {
+    width: 60px;
+    height: 2px;
+  }
+  
+  .itemIcon {
+    width: clamp(50px, 8vw, 60px);
+    height: clamp(50px, 8vw, 60px);
+  }
+  
+  .itemIconImage {
+    width: clamp(50px, 8vw, 60px);
+    height: clamp(50px, 8vw, 60px);
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 clamp(12px, 4vw, 16px);
+  }
+  
+  .contentContainer {
+    gap: clamp(16px, 3vw, 24px);
+  }
+  
+  .imageSection {
+    height: clamp(150px, 25vw, 200px);
   }
 }

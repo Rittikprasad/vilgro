@@ -22,7 +22,6 @@ const Testimonials: React.FC = () => {
           {/* Testimonial 1 */}
           <div className={styles.testimonialCard}>
             <div className={styles.testimonialHeader}>
-              <Quote className={styles.quoteIcon} />
               <h3 className={styles.organizationName}>
                 Organisation 1
               </h3>
@@ -36,7 +35,6 @@ const Testimonials: React.FC = () => {
           {/* Testimonial 2 */}
           <div className={styles.testimonialCard}>
             <div className={styles.testimonialHeader}>
-              <Quote className={styles.quoteIcon} />
               <h3 className={styles.organizationName}>
                 Organisation 2
               </h3>

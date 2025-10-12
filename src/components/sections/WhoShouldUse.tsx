@@ -1,5 +1,7 @@
 import React from 'react';
 import styles from './WhoShouldUse.module.css';
+import BuildingIcon from '../../assets/svg/building.svg';
+import MoneyIcon from '../../assets/svg/money.svg';
 
 /**
  * Who Should Use This Tool section
@@ -13,7 +15,7 @@ const WhoShouldUse: React.FC = () => {
         <div className={styles.sectionTitle}>
           <h2 className={styles.title}>
             <span className={styles.titleWhite}>Who </span>
-            <span className={styles.titleDark}>Should Use This Tool</span>
+            <span className={styles.titleDark}>Should <br/> Use  This Tool</span>
           </h2>
         </div>
 
@@ -21,29 +23,32 @@ const WhoShouldUse: React.FC = () => {
         <div className={styles.audiencesContainer}>
           {/* For-profit Social Enterprises */}
           <div className={styles.audienceItem}>
-            <div className={styles.audienceIcon}>
+            {/* <div className={styles.audienceIcon}> */}
               <img 
-                src="http://localhost:3845/assets/651bba0638e027fe7ff498779a5962ec20d8b228.svg" 
+                src={BuildingIcon} 
                 alt="For-profit social enterprises icon"
+                className={styles.audienceIconImage}
               />
-            </div>
+            {/* </div> */}
             <h3 className={styles.audienceTitle}>
-              For-profit <br />
-              social enterprises
+              For-profit<br/> social enterprises
             </h3>
           </div>
 
+          {/* Divider */}
+          <div className={styles.divider}></div>
+
           {/* Funders */}
           <div className={styles.audienceItem}>
-            <div className={styles.audienceIcon}>
+            {/* <div className={styles.audienceIcon}> */}
               <img 
-                src="http://localhost:3845/assets/91d75a77ec42b9fdd887c2bff7498c5ab25a68c3.svg" 
+                src={MoneyIcon} 
                 alt="Funders icon"
+                className={styles.audienceIconImage}
               />
-            </div>
+            {/* </div> */}
             <h3 className={styles.audienceTitle}>
-              Funders for evaluating <br />
-              for-profit social enterprises
+              Funders for evaluating <br/> for-profit social enterprises
             </h3>
           </div>
         </div>

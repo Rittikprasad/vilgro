@@ -1,13 +1,17 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import { BackgroundGradients } from "../ui/BackgroundGradients"
+import { login, fetchOnboardingProgress } from "../../features/auth/authThunks"
+import { clearError } from "../../features/auth/authSlice"
+import type { RootState } from "../../app/store"
 
 // Validation schema for login form
 const loginSchema = z.object({
@@ -27,13 +31,35 @@ type LoginFormData = z.infer<typeof loginSchema>
  * Features same design as SignupStep1 with login-specific fields
  */
 const Login: React.FC = () => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const { isLoading, error, isAuthenticated, has_completed_profile, onboarding } = useSelector((state: RootState) => state.auth)
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
+
+  // Handle navigation after successful authentication
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("User authenticated, checking profile completion status...")
+      console.log("has_completed_profile:", has_completed_profile)
+      console.log("onboarding:", onboarding)
+      
+      if (has_completed_profile) {
+        console.log("User has completed profile, navigating to assessment")
+        navigate("/assessment", { replace: true })
+      } else {
+        const currentStep = onboarding?.current_step || 1
+        console.log("User hasn't completed profile, navigating to signup step:", currentStep + 1)
+        navigate(`/signup/step/${currentStep + 1}`, { replace: true })
+      }
+    }
+  }, [isAuthenticated, has_completed_profile, onboarding, navigate])
 
   /**
    * Handle form submission
@@ -42,9 +68,35 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       console.log("Login form submitted:", data)
-      // Add your login logic here
+
+      // Clear any previous errors
+      dispatch(clearError())
+
+      // Dispatch login action
+      const result = await dispatch(login(data) as any)
+
+      if (login.fulfilled.match(result)) {
+        console.log("Login successful:", result.payload)
+
+        // Fetch latest onboarding progress to get current step and draft data
+        try {
+          const onboardingResult = await dispatch(fetchOnboardingProgress() as any)
+
+          if (fetchOnboardingProgress.fulfilled.match(onboardingResult)) {
+            console.log("Onboarding progress fetched:", onboardingResult.payload)
+          }
+        } catch (onboardingError) {
+          console.warn("Failed to fetch onboarding progress:", onboardingError)
+          // Continue with login flow even if onboarding fetch fails
+        }
+
+        // Navigation will be handled by useEffect when authentication state changes
+        console.log("Login completed, navigation will be handled by useEffect")
+      }
+      // Error handling is now done automatically in the thunk
     } catch (error) {
       console.error("Login error:", error)
+      // Network error handling is now done automatically in the thunk
     }
   }
 
@@ -86,7 +138,7 @@ const Login: React.FC = () => {
                   <p className="text-red-500 text-sm">{errors.email.message}</p>
                 )}
               </div>
-         
+
               {/* Password Input */}
               <div className="space-y-1">
                 <Input
@@ -103,25 +155,32 @@ const Login: React.FC = () => {
                 )}
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="text-center">
+                  <p className="text-red-500 text-sm">{error}</p>
+                </div>
+              )}
+
               {/* Submit Button */}
               <div className="flex justify-center">
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-[300px] h-12 text-white font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  disabled={isLoading}
+                  className="w-[300px] h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
-                  {isSubmitting ? "Logging in..." : "Login"}
+                  {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </div>
             </form>
 
             {/* Forget Password Link */}
             <div className="text-center mt-6">
-              <Link 
-                to="/forgot-password" 
+              <Link
+                to="/forgot-password"
                 className="text-[14px] text-[#46b753] underline hover:underline cursor-pointer"
               >
-                Forget Password
+                Forgot Password
               </Link>
             </div>
 
@@ -129,8 +188,8 @@ const Login: React.FC = () => {
             <div className="text-center mt-8">
               <span className="text-[14px] text-[#231f20] leading-[1.24]">
                 Don't have an account?{" "}
-                <Link 
-                  to="/signup" 
+                <Link
+                  to="/signup"
                   className="text-[#46b753] underline cursor-pointer hover:underline"
                 >
                   Sign up here

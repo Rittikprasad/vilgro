@@ -126,7 +126,7 @@ const CreateNewPassword: React.FC = () => {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-[312px] h-12 text-white font-normal text-[16px] rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  className="w-[312px] h-12 text-black font-normal text-[16px] rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
                   {isSubmitting ? "Creating..." : "Confirm & Login again"}
                 </Button>

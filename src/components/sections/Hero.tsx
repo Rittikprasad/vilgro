@@ -1,12 +1,16 @@
 import React from 'react';
 import styles from './Hero.module.css';
 import buttonStyles from '../ui/Button.module.css';
+import { Button } from '../ui/Button';
+import heroSectionImage from '../../assets/heroSection.png';
+import heroVideo from '../../assets/video/hero.mp4';
+import Step1Icon from '../../assets/svg/Step1.svg';
+import Step2Icon from '../../assets/svg/Step2.svg';
+import Step3Icon from '../../assets/svg/Step3.svg';
+import { useNavigate } from 'react-router-dom';
 
-/**
- * Hero section with main headline, description and CTA buttons
- * Features the assessment dashboard mockup and glassmorphism effects
- */
 const Hero: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <section className={styles.hero}>
       <div className={styles.container}>
@@ -14,18 +18,19 @@ const Hero: React.FC = () => {
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
             <span className={styles.heroTitleGreen}>Quickly Assess your Funding Readiness</span>
-            <span> and Get Matched with the Right Instrument</span>
+            <span> and </span><br/>
+            <span>Get Matched with the Right Instrument</span>
           </h1>
           
           <p className={styles.heroDescription}>
-            Our free, expert designed tool, evaluates your Organization's readiness for funding and recommends the most suitable financial instrument
+            Our free, expert designed tool, evaluates your Organization's readiness <br/> for funding and recommends the most suitable financial instrument
           </p>
 
           {/* CTA Buttons */}
           <div className={styles.heroButtons}>
-            <button className={buttonStyles.btnSecondary}>
+            <Button variant="gradient" size="lg" onClick={() => navigate('/login')}>
               Start Your Assessment Now
-            </button>
+            </Button>
             
             <button className={buttonStyles.btnLink}>
               Want to learn more before starting?
@@ -33,75 +38,79 @@ const Hero: React.FC = () => {
           </div>
         </div>
 
-        {/* Dashboard Mockup */}
-        <div className={styles.dashboardMockup}>
-          {/* Main Assessment Interface */}
-          <div className={styles.assessmentInterface}>
-            <div className={styles.browserControls}>
-              <div className={`${styles.browserDot} ${styles.browserDotRed}`}></div>
-              <div className={`${styles.browserDot} ${styles.browserDotYellow}`}></div>
-              <div className={`${styles.browserDot} ${styles.browserDotGreen}`}></div>
-            </div>
-            
-            <div className={styles.interfaceContent}>
-              {/* Left Sidebar */}
-              <div className={styles.sidebar}>
-                <div className={styles.sectionTitle}>Impact</div>
-                <div>
-                  <div>Impact</div>
-                  <div>Risk</div>
-                  <div>Return</div>
-                  <div>Sector Maturity</div>
-                  <div>Result</div>
-                </div>
-              </div>
+        <div className={styles.videoWrapper}>
+          <video
+            className={styles.heroVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={heroSectionImage}
+            aria-label="Assessment Interface Demo Video"
+          >
+            <source src={heroVideo} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
 
-              {/* Main Content */}
-              <div className={styles.mainContent}>
-                <div>
-                  <h3 className={styles.questionTitle}>What</h3>
-                  <p className={styles.questionTitle}>
-                    1. What is the level of innovation introduced by the intervention?
-                  </p>
-                </div>
-                
-                <div>
-                  <p className={styles.questionTitle}>
-                    2. What is the impact on the affordability of products for the target group?
-                  </p>
-                  <div>
-                    <div>0%</div>
-                    <div>Progress bar placeholder</div>
+        {/* How It Works Section */}
+        <div className={styles.howItWorksSection}>
+          {/* Section Title */}
+          <div className={styles.sectionTitle}>
+            <h2 className={styles.title}>
+              <span>How It </span>
+              <span className={styles.titleGreen}>Works</span>
+            </h2>
+          </div>
+
+          {/* Steps */}
+          <div className={styles.stepsContainer}>
+            {/* Step 1 */}
+            <div className={styles.stepCard}>
+              <div className={styles.stepContent}>
+                <div className={styles.stepHeader}>
+                  <h3 className={styles.stepNumber}>Step 1</h3>
+                  <div className={styles.stepIcon}>
+                    <img src={Step1Icon} alt="Step 1 Icon" className={styles.stepIconImage} />
                   </div>
                 </div>
+                
+                <p className={styles.stepDescription}>
+                  Answer a carefully curated set of questions (5-7 mins)
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Floating Bar Chart */}
-          <div className={`${styles.floatingChart} ${styles.floatingChartRight}`}>
-            <div className={styles.barChart}>
-              <div className={styles.barItem}>
-                <div className={styles.barLabel}>30%</div>
-                <div className={`${styles.bar} ${styles.bar30}`}></div>
-              </div>
-              <div className={styles.barItem}>
-                <div className={styles.barLabel}>70%</div>
-                <div className={`${styles.bar} ${styles.bar70}`}></div>
-              </div>
-              <div className={styles.barItem}>
-                <div className={styles.barLabel}>100%</div>
-                <div className={`${styles.bar} ${styles.bar100}`}></div>
+            {/* Step 2 */}
+            <div className={styles.stepCard}>
+              <div className={styles.stepContent}>
+                <div className={styles.stepHeader}>
+                  <h3 className={styles.stepNumber}>Step 2</h3>
+                  <div className={styles.stepIcon}>
+                    <img src={Step2Icon} alt="Step 2 Icon" className={styles.stepIconImage} />
+                  </div>
+                </div>
+                
+                <p className={styles.stepDescription}>
+                  Get instant recommendations
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Floating Pie Chart */}
-          <div className={`${styles.floatingChart} ${styles.floatingChartLeft}`}>
-            <div className={styles.pieChart}>
-              <div className={styles.pieSegmentLarge}>90%</div>
-              <div className={styles.pieSegmentMedium}>50%</div>
-              <div className={styles.pieSegmentSmall}>10%</div>
+            {/* Step 3 */}
+            <div className={styles.stepCard}>
+              <div className={styles.stepContent}>
+                <div className={styles.stepHeader}>
+                  <h3 className={styles.stepNumber}>Step 3</h3>
+                  <div className={styles.stepIcon}>
+                    <img src={Step3Icon} alt="Step 3 Icon" className={styles.stepIconImage} />
+                  </div>
+                </div>
+                
+                <p className={styles.stepDescription}>
+                  Receive tailored guidance on next steps
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -1,24 +1,5 @@
 @import "tailwindcss";
 
-/* Tailwind CSS imports */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Import custom fonts from Figma design */
-@import url('https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400;0,600;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Taviraj:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600;700&display=swap');
-
-/* CSS Reset and Base Styles */
-/* * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-} */
-
 html {
   font-family: 'Golos Text', sans-serif;
   scroll-behavior: smooth;
@@ -32,7 +13,7 @@ body {
 /* Villgro Design System Colors */
 :root {
   --villgro-green: #46b753;
-  --villgro-yellow: #e0dc32;
+  --villgro-yellow: #f6f207;
   --villgro-dark: #231f20;
   --villgro-cream: #f3f1ee;
   --villgro-light-green: #55e966;
@@ -62,5 +43,50 @@ body {
   
   .villgro-green-text {
     color: #46B753;
+  }
+  
+  /* Custom checkbox styling to match theme */
+  .custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 18px;
+    height: 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 3px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+  
+  .custom-checkbox:checked {
+    background-color: #46B753;
+    border-color: #46B753;
+  }
+  
+  .custom-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  
+  .custom-checkbox:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(70, 183, 83, 0.1);
+  }
+  
+  /* Standard label styling for consistent typography */
+  .label-text {
+    font-family: 'Golos Text', sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 14px;
+    line-height: 1.5;
   }
 }

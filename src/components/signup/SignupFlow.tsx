@@ -140,7 +140,7 @@ const SignupFlow: React.FC = () => {
     const result = await dispatch(updateStep3(payload) as any);
     if (updateStep3.fulfilled.match(result)) {
       const finish = await dispatch(finishOnboarding() as any);
-      if (finishOnboarding.fulfilled.match(finish)) navigate("/welcome");
+      if (finishOnboarding.fulfilled.match(finish)) navigate("/assessment");
     }
   };
 

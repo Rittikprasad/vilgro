@@ -33,7 +33,7 @@ interface AssessmentState {
 interface AssessmentQuestion {
   code: string;
   text: string;
-  type: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'SLIDER' | 'RATING' | 'MULTI_SLIDER';
+  type: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'SLIDER' | 'RATING' | 'MULTI_SLIDER';
   required: boolean;
   options?: Array<{ label: string; value: string; points: string }>;
   dimensions?: Array<{ code: string; label: string; min: number; max: number }>;

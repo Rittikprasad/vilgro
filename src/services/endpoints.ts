@@ -44,6 +44,12 @@ export const endpoints = {
     finish: `${BASE_URL}/onboarding/finish`,
   },
 
+  // Admin endpoints
+  admin: {
+    sections: `${BASE_URL}/admin/sections/`,
+    questionsBySection: (sectionCode: string) => `${BASE_URL}/admin/questions/by-section/?section=${sectionCode}`,
+  },
+
   // Add more endpoint categories as needed
   // Example:
   // posts: {

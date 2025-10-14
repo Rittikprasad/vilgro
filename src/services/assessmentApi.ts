@@ -13,6 +13,7 @@ export interface AssessmentSection {
 export interface AssessmentProgress {
   answered: number;
   required: number;
+  percent: number;
   by_section: Record<string, { answered: number; required: number }>;
 }
 
@@ -43,7 +44,7 @@ export interface QuestionAnswer {
 export interface AssessmentQuestion {
   code: string;
   text: string;
-  type: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'SLIDER' | 'RATING' | 'MULTI_SLIDER';
+  type: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'SLIDER' | 'RATING' | 'MULTI_SLIDER';
   required: boolean;
   options?: QuestionOption[];
   dimensions?: QuestionDimension[];
@@ -58,6 +59,7 @@ export interface SectionsResponse {
   progress: {
     answered: number;
     required: number;
+    percent: number;
   };
 }
 

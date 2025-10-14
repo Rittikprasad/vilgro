@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardHeader, CardContent, CardFooter } from '../../../../components/ui/Card';
 import type { QuestionCategory } from './SectorCategories';
 import QuestionListTable from './QuestionListTable';
 import EditQuestionsPage from './EditQuestionsPage';
 import type { QuestionItem } from './QuestionListTable';
+import { fetchAdminSections } from '../../../../features/question-builder/questionBuilderSlice';
+import type { RootState } from '../../../../app/store';
+import type { AdminSection } from '../../../../features/question-builder/types';
 
 // Types for the question sub-categories (Impact, Risk, Return, Others)
 export interface QuestionSubCategory {
@@ -30,46 +34,43 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
   category, 
   onBackToList 
 }) => {
+  const dispatch = useDispatch();
+  const { sections, isLoading, error } = useSelector((state: RootState) => state.questionBuilder);
+  
   const [showQuestionList, setShowQuestionList] = useState<boolean>(false);
   const [showEditQuestions, setShowEditQuestions] = useState<boolean>(false);
   const [selectedSubCategory, setSelectedSubCategory] = useState<QuestionSubCategory | null>(null);
   const [questionsToEdit, setQuestionsToEdit] = useState<QuestionItem[]>([]);
 
-  // Generate sub-categories data based on the selected category
-  const subCategories: QuestionSubCategory[] = [
-    {
-      id: 'impact',
-      title: 'Impact',
-      weightage: 40,
-      totalQuestions: 16,
-      activeQuestions: 16,
-      inactiveQuestions: 0,
-    },
-    {
-      id: 'risk',
-      title: 'Risk',
-      weightage: 30,
-      totalQuestions: 16,
-      activeQuestions: 16,
-      inactiveQuestions: 0,
-    },
-    {
-      id: 'return',
-      title: 'Return',
-      weightage: 20,
-      totalQuestions: 16,
-      activeQuestions: 16,
-      inactiveQuestions: 0,
-    },
-    {
-      id: 'others',
-      title: 'Others',
-      weightage: 10,
-      totalQuestions: 16,
-      activeQuestions: 16,
-      inactiveQuestions: 0,
-    },
-  ];
+  // Fetch admin sections on component mount
+  useEffect(() => {
+    dispatch(fetchAdminSections() as any);
+  }, [dispatch]);
+
+  // Helper function to assign weightage based on section code
+  const getWeightageForSection = (code: string): number => {
+    switch (code) {
+      case 'IMPACT': return 40;
+      case 'RISK': return 30;
+      case 'RETURN': return 20;
+      case 'SECTOR_MATURITY': return 10;
+      case 'FEEDBACK': return 5;
+      default: return 10;
+    }
+  };
+
+  // Convert API sections to sub-categories with dummy data
+  console.log("CategoryDetails - sections from state:", sections);
+  console.log("CategoryDetails - sections length:", sections?.length);
+  
+  const subCategories: QuestionSubCategory[] = (sections || []).map((section: AdminSection) => ({
+    id: section.code.toLowerCase(),
+    title: section.title,
+    weightage: getWeightageForSection(section.code),
+    totalQuestions: 16, // Dummy data - will come from API later
+    activeQuestions: 16, // Dummy data - will come from API later
+    inactiveQuestions: 0, // Dummy data - will come from API later
+  }));
 
   // Handle sub-category selection
   const handleViewQuestions = (subCategory: QuestionSubCategory) => {
@@ -110,11 +111,16 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
 
   // Show QuestionListTable if a sub-category is selected
   if (showQuestionList && selectedSubCategory) {
+    // Find the section code from the sections data
+    const sectionData = (sections || []).find(section => section.title === selectedSubCategory.title);
+    const sectionCode = sectionData?.code || '';
+    
     return (
       <QuestionListTable 
         onBackToCategoryDetails={handleBackToSubCategories}
         categoryTitle={selectedSubCategory.title}
         onEditQuestions={handleEditQuestions}
+        sectionCode={sectionCode}
       />
     );
   }
@@ -148,9 +154,31 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
         </div>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading sections...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="text-center py-8">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button
+            variant="outline"
+            onClick={() => dispatch(fetchAdminSections() as any)}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Question Sub-Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {subCategories.map((subCategory) => (
+      {!isLoading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {subCategories.map((subCategory) => (
           <Card key={subCategory.id} className="hover:shadow-md transition-shadow duration-200">
             <CardHeader>
               <h3 
@@ -225,8 +253,16 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
               </Button>
             </CardFooter>
           </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* No sections available */}
+      {!isLoading && !error && subCategories.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-600">No sections available</p>
+        </div>
+      )}
     </div>
   );
 };

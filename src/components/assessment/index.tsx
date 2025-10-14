@@ -22,6 +22,10 @@ interface AssessmentStep {
   label: string;
   isActive: boolean;
   isCompleted: boolean;
+  progress?: {
+    answered: number;
+    required: number;
+  };
 }
 
 const Assessment: React.FC = () => {
@@ -43,27 +47,8 @@ const Assessment: React.FC = () => {
     } = useSelector((state: RootState) => state.assessment);
 
     const [cooldownMessage, setCooldownMessage] = useState<string>("");
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const initializationRef = useRef(false);
-
-    // Helper to collect all answers for the current section
-    const collectCurrentSectionAnswers = useCallback(() => {
-        if (!questions || questions.length === 0) return [];
-        
-        return questions
-            .map(question => {
-                // Use localAnswer if exists, otherwise use saved answer
-                const value = localAnswers[question.code] || question.answer;
-                
-                // Only include if answer exists
-                if (!value) return null;
-                
-                return {
-                    question: question.code,
-                    data: value
-                };
-            })
-            .filter(Boolean) as Array<{ question: string; data: any }>;
-    }, [questions, localAnswers]);
 
     // Initialize assessment on mount - only run once
     useEffect(() => {
@@ -95,10 +80,11 @@ const Assessment: React.FC = () => {
                         
                         if (getSections.fulfilled.match(sectionsResult)) {
                             // Load first section questions if no current section
-                            if (sectionsResult.payload.sections.length && !currentSection) {
+                                if (sectionsResult.payload.sections.length && !currentSection) {
                                 const firstSection = sectionsResult.payload.sections[0].code;
                                 console.log('Loading questions for section:', firstSection);
                                 dispatch(setCurrentSection(firstSection));
+                                setCurrentQuestionIndex(0);
                                 await dispatch(getQuestions({ assessmentId: assessment.id, section: firstSection }) as any);
                             }
                         }
@@ -129,6 +115,7 @@ const Assessment: React.FC = () => {
                                     const firstSection = sectionsResult.payload.sections[0].code;
                                     console.log('Loading questions for first section:', firstSection);
                                     dispatch(setCurrentSection(firstSection));
+                                    setCurrentQuestionIndex(0);
                                     await dispatch(getQuestions({ assessmentId: assessment.id, section: firstSection }) as any);
                                 }
                             }
@@ -153,32 +140,49 @@ const Assessment: React.FC = () => {
         id: section.code.toLowerCase(),
         label: section.title,
         isActive: section.code === currentSection,
-        isCompleted: section.progress.answered === section.progress.required
+        isCompleted: section.progress.required > 0 && section.progress.answered === section.progress.required,
+        progress: section.progress
     })) || [];
 
     // Calculate total progress
-    const totalAnswered = sections?.progress.answered || 0;
-    const totalRequired = sections?.progress.required || 0;
+    const progressPercent = sections?.progress.percent || 0;
 
-    // Check if we're on the first section
+    // Check if we're on the first section and first question
     const isFirstSection = sections?.sections.findIndex(s => s.code === currentSection) === 0;
+    const isFirstQuestion = currentQuestionIndex === 0;
+    
+    // Check if we're on the last section and last question
+    const isLastSection = sections?.sections.findIndex(s => s.code === currentSection) === (sections?.sections.length || 0) - 1;
+    const isLastQuestion = currentQuestionIndex === (questions?.length || 0) - 1;
 
     // Handle step navigation
     const handleStepClick = useCallback(async (stepId: string) => {
-        if (!currentAssessment || currentAssessment.status !== 'DRAFT') return;
+        if (!currentAssessment || currentAssessment.status !== 'DRAFT' || !questions) return;
 
         const sectionCode = stepId.toUpperCase();
         
-        // Save all answers from current section before switching
-        const answers = collectCurrentSectionAnswers();
-        if (answers.length > 0) {
-            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers }) as any);
+        // Save current question's answer before switching sections (if answered)
+        const currentQuestion = questions[currentQuestionIndex];
+        const currentAnswer = localAnswers[currentQuestion.code];
+        
+        if (currentAnswer) {
+            const answer = {
+                question: currentQuestion.code,
+                data: currentAnswer
+            };
+            
+            // Save the answer and update progress
+            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers: [answer] }) as any);
+            
+            // Refresh sections to get updated progress
+            await dispatch(getSections(currentAssessment.id) as any);
         }
 
         // Switch to new section
         dispatch(setCurrentSection(sectionCode));
+        setCurrentQuestionIndex(0); // Reset to first question
         await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: sectionCode }) as any);
-    }, [currentAssessment, dispatch, collectCurrentSectionAnswers]);
+    }, [currentAssessment, currentQuestionIndex, questions, localAnswers, dispatch]);
 
     // Handle answer changes - only update local state, save happens when navigating
     const handleAnswerChange = useCallback((questionCode: string, value: any) => {
@@ -190,14 +194,32 @@ const Assessment: React.FC = () => {
 
     // Handle navigation
     const handleBack = useCallback(async () => {
-        if (!currentAssessment || !sections) return;
+        if (!currentAssessment || !sections || !questions) return;
 
-        // Save all answers from current section before going back
-        const answers = collectCurrentSectionAnswers();
-        if (answers.length > 0) {
-            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers }) as any);
+        // Save current question's answer before going back (if answered)
+        const currentQuestion = questions[currentQuestionIndex];
+        const currentAnswer = localAnswers[currentQuestion.code];
+        
+        if (currentAnswer) {
+            const answer = {
+                question: currentQuestion.code,
+                data: currentAnswer
+            };
+            
+            // Save the answer and update progress
+            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers: [answer] }) as any);
+            
+            // Refresh sections to get updated progress
+            await dispatch(getSections(currentAssessment.id) as any);
         }
 
+        // If not on first question, go to previous question in current section
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(currentQuestionIndex - 1);
+            return;
+        }
+
+        // We're on first question of current section
         // Find current section index
         const currentIndex = sections.sections.findIndex(s => s.code === currentSection);
         
@@ -205,19 +227,42 @@ const Assessment: React.FC = () => {
         if (currentIndex > 0) {
             const prevSection = sections.sections[currentIndex - 1];
             dispatch(setCurrentSection(prevSection.code));
-            await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: prevSection.code }) as any);
+            const result = await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: prevSection.code }) as any);
+            
+            // Set to last question of previous section
+            if (getQuestions.fulfilled.match(result) && result.payload.questions) {
+                setCurrentQuestionIndex(result.payload.questions.length - 1);
+            }
         }
-    }, [currentAssessment, sections, currentSection, dispatch, collectCurrentSectionAnswers]);
+    }, [currentAssessment, sections, currentSection, currentQuestionIndex, questions, localAnswers, dispatch]);
 
     const handleNext = useCallback(async () => {
-        if (!currentAssessment || !sections) return;
+        if (!currentAssessment || !sections || !questions) return;
 
-        // Save all answers from current section
-        const answers = collectCurrentSectionAnswers();
-        if (answers.length > 0) {
-            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers }) as any);
+        // Save current question's answer before proceeding
+        const currentQuestion = questions[currentQuestionIndex];
+        const currentAnswer = localAnswers[currentQuestion.code];
+        
+        if (currentAnswer) {
+            const answer = {
+                question: currentQuestion.code,
+                data: currentAnswer
+            };
+            
+            // Save the answer and update progress
+            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers: [answer] }) as any);
+            
+            // Refresh sections to get updated progress
+            await dispatch(getSections(currentAssessment.id) as any);
         }
 
+        // If not on last question of current section, go to next question
+        if (currentQuestionIndex < questions.length - 1) {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
+            return;
+        }
+
+        // We're on the last question of current section
         // Find current section index
         const currentIndex = sections.sections.findIndex(s => s.code === currentSection);
         
@@ -225,6 +270,7 @@ const Assessment: React.FC = () => {
             // Move to next section
             const nextSection = sections.sections[currentIndex + 1];
             dispatch(setCurrentSection(nextSection.code));
+            setCurrentQuestionIndex(0); // Reset to first question
             await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: nextSection.code }) as any);
         } else {
             // Last section - submit assessment
@@ -232,8 +278,8 @@ const Assessment: React.FC = () => {
                 const result = await dispatch(submitAssessment(currentAssessment.id) as any);
                 
                 if (submitAssessment.fulfilled.match(result)) {
-                    // Success - redirect to results
-                    navigate('/assessment/results');
+                    // Success - redirect to success page
+                    navigate('/assessment/success');
                 } else if (submitAssessment.rejected.match(result)) {
                     // Handle missing answers error
                     console.error('Submission failed:', result.payload);
@@ -242,7 +288,7 @@ const Assessment: React.FC = () => {
                 console.error('Failed to submit assessment:', error);
             }
         }
-    }, [currentAssessment, sections, currentSection, dispatch, collectCurrentSectionAnswers, navigate]);
+    }, [currentAssessment, sections, currentSection, currentQuestionIndex, questions, localAnswers, dispatch, navigate]);
 
     // Show cooldown screen
     if (cooldownMessage) {
@@ -325,13 +371,12 @@ const Assessment: React.FC = () => {
                 steps={steps}
                 currentStep={currentSection?.toLowerCase() || ""}
                 onStepClick={handleStepClick}
-                totalQuestions={totalRequired}
-                answeredQuestions={totalAnswered}
+                progressPercent={progressPercent}
                 onBack={handleBack}
                 onNext={handleNext}
-                showBackButton={!isFirstSection}
+                showBackButton={!(isFirstSection && isFirstQuestion)}
                 showNextButton={true}
-                nextButtonText={currentSection === sections?.sections[sections.sections.length - 1]?.code ? "Submit" : "Next"}
+                nextButtonText={isLastSection && isLastQuestion ? "Get Result" : "Next"}
                 nextButtonDisabled={isSubmitting}
             >
                 <div className="text-center py-8">
@@ -350,25 +395,24 @@ const Assessment: React.FC = () => {
                 steps={steps}
                 currentStep={currentSection?.toLowerCase() || ""}
                 onStepClick={handleStepClick}
-                totalQuestions={totalRequired}
-                answeredQuestions={totalAnswered}
+                progressPercent={progressPercent}
                 onBack={handleBack}
                 onNext={handleNext}
-                showBackButton={!isFirstSection}
+                showBackButton={!(isFirstSection && isFirstQuestion)}
                 showNextButton={true}
-                nextButtonText={currentSection === sections?.sections[sections.sections.length - 1]?.code ? "Submit" : "Next"}
+                nextButtonText={isLastSection && isLastQuestion ? "Get Result" : "Next"}
                 nextButtonDisabled={isSubmitting}
             >
-                {/* Questions */}
-                {questions?.map((question) => (
+                {/* Current Question Only */}
+                {questions && questions[currentQuestionIndex] && (
                     <QuestionRenderer
-                        key={question.code}
-                        question={question}
-                        value={localAnswers[question.code] || question.answer}
-                        onChange={(value) => handleAnswerChange(question.code, value)}
+                        key={questions[currentQuestionIndex].code}
+                        question={questions[currentQuestionIndex]}
+                        value={localAnswers[questions[currentQuestionIndex].code] || questions[currentQuestionIndex].answer}
+                        onChange={(value) => handleAnswerChange(questions[currentQuestionIndex].code, value)}
                         disabled={isSubmitting}
                     />
-                ))}
+                )}
 
                 {/* Submit Error */}
                 {submitError && (

@@ -2,7 +2,7 @@
   "name": "vilgro-frontend",
   "version": "1.0.0",
   "private": true,
-  "homepage": "/",
+  "homepage": "*",
   "type": "module",
   "scripts": {
     "build": "rsbuild build",

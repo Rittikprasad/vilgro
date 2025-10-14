@@ -3,16 +3,15 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Link, useNavigate } from "react-router-dom"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
+import { useEffect } from "react"
 import { Input } from "../../../components/ui/Input"
 import { Button } from "../../../components/ui/Button"
 import { cn } from "../../../lib/utils"
 import logo from "../../../assets/logo.png"
 import { BackgroundGradients } from "../../../components/ui/BackgroundGradients"
-// TODO: API Integration - Uncomment when ready
-// import { useDispatch } from "react-redux"
-// import { login } from "../../../features/auth/authThunks"
-// import { clearError } from "../../../features/auth/authSlice"
+import { login } from "../../../features/auth/authThunks"
+import { clearError } from "../../../features/auth/authSlice"
 import type { RootState } from "../../../app/store"
 
 // Validation schema for admin login form
@@ -34,9 +33,9 @@ type AdminLoginFormData = z.infer<typeof adminLoginSchema>
  * Admin credentials are pre-created by backend
  */
 const AdminLogin: React.FC = () => {
-  // const dispatch = useDispatch() // TODO: API Integration - Uncomment when ready
+  const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { isLoading, error } = useSelector((state: RootState) => state.auth)
+  const { isLoading, error, isAuthenticated, user } = useSelector((state: RootState) => state.auth)
 
   const {
     register,
@@ -47,13 +46,12 @@ const AdminLogin: React.FC = () => {
   })
 
   // Handle navigation after successful authentication
-  // TODO: API Integration - Uncomment when ready
-  // useEffect(() => {
-  //   if (isAuthenticated && user?.role === "ADMIN") {
-  //     console.log("Admin authenticated, navigating to admin dashboard")
-  //     navigate("/admin/dashboard", { replace: true })
-  //   }
-  // }, [isAuthenticated, user, navigate])
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log("User authenticated, navigating to admin dashboard")
+      navigate("/admin/dashboard", { replace: true })
+    }
+  }, [isAuthenticated, user, navigate])
 
   /**
    * Handle form submission
@@ -63,30 +61,27 @@ const AdminLogin: React.FC = () => {
     try {
       console.log("Admin login form submitted:", data)
 
-      // TODO: API Integration - Uncomment when ready
       // Clear any previous errors
-      // dispatch(clearError())
+      dispatch(clearError())
 
       // Dispatch login action
-      // const result = await dispatch(login(data) as any)
+      const result = await dispatch(login(data) as any)
 
-      // if (login.fulfilled.match(result)) {
-      //   console.log("Admin login successful:", result.payload)
+      if (login.fulfilled.match(result)) {
+        console.log("Admin login successful:", result.payload)
 
-      //   // Verify user role is ADMIN
-      //   if (result.payload?.user?.role !== "ADMIN") {
-      //     console.error("Non-admin user attempted to login via admin portal")
-      //     // Handle non-admin login attempt
-      //     // You can show an error message here
-      //   }
+        // For now, accept any role (will be ADMIN later)
+        // if (result.payload?.user?.role !== "ADMIN") {
+        //   console.error("Non-admin user attempted to login via admin portal")
+        //   // Handle non-admin login attempt
+        //   // You can show an error message here
+        // }
 
-      //   // Navigation will be handled by useEffect when authentication state changes
-      //   console.log("Login completed, navigation will be handled by useEffect")
-      // }
-
-      // Temporary: Direct navigation to dashboard for UI development
-      console.log("Navigating to admin dashboard...")
-      navigate("/admin/dashboard", { replace: true })
+        // Navigation will be handled by useEffect when authentication state changes
+        console.log("Login completed, navigation will be handled by useEffect")
+      } else if (login.rejected.match(result)) {
+        console.error("Login failed:", result.payload)
+      }
     } catch (error) {
       console.error("Admin login error:", error)
     }

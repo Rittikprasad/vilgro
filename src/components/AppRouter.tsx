@@ -11,6 +11,7 @@ import Welcome from './Welcome';
 import Home from './Home';
 import type { RootState } from '../app/store';
 import Assessment from './assessment';
+import SubmissionSuccess from './assessment/SubmissionSuccess';
 import { 
   AdminLogin, 
   AdminDashboard,
@@ -273,6 +274,15 @@ const AppRouter: React.FC = () => {
                     element={
                         <ProtectedRoute>
                             <Assessment />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/assessment/success"
+                    element={
+                        <ProtectedRoute>
+                            <SubmissionSuccess />
                         </ProtectedRoute>
                     }
                 />

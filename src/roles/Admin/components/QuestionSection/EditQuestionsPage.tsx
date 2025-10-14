@@ -210,6 +210,52 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   onSave={handleSaveQuestion}
                   onCancel={handleCancelEdit}
                 />
+              ) : question.type === 'Rating Scale' ? (
+                // Star Rating Editor - Coming Soon
+                <Card className="p-6">
+                  <CardContent className="p-0">
+                    <div className="text-center py-8">
+                      <p className="text-gray-600 mb-4">Star Rating Editor coming soon!</p>
+                      <div className="flex justify-center space-x-3">
+                        <Button
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="gradient"
+                          onClick={handleCancelEdit}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : question.type === 'Smiley face' ? (
+                // Visual Rating Editor - Coming Soon
+                <Card className="p-6">
+                  <CardContent className="p-0">
+                    <div className="text-center py-8">
+                      <p className="text-gray-600 mb-4">Visual Rating Editor coming soon!</p>
+                      <div className="flex justify-center space-x-3">
+                        <Button
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="gradient"
+                          onClick={handleCancelEdit}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ) : (
                 // For other question types, show placeholder for now
                 <Card className="p-6">

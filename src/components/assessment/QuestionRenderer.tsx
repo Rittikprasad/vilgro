@@ -168,7 +168,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
     default:
       return (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-2xl">
           <p className="text-yellow-800">
             Unsupported question type: {question.type}
           </p>

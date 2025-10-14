@@ -18,7 +18,7 @@ const SliderQuestionEditor: React.FC<SliderQuestionEditorProps> = ({
   const [minValue, setMinValue] = useState(question.options?.min || 0);
   const [maxValue, setMaxValue] = useState(question.options?.max || 100);
   const [stepValue, setStepValue] = useState(question.options?.step || 1);
-  const [unit, setUnit] = useState(question.options?.unit || '%');
+  const [pointsPerUnit, setPointsPerUnit] = useState(question.options?.pointsPerUnit || 1);
   const [weightage, setWeightage] = useState(question.weight);
   const [isActive, setIsActive] = useState(question.status === 'Active');
 
@@ -32,8 +32,7 @@ const SliderQuestionEditor: React.FC<SliderQuestionEditorProps> = ({
         min: minValue,
         max: maxValue,
         step: stepValue,
-        unit: unit,
-        label: question.options?.label || ''
+        pointsPerUnit: pointsPerUnit
       }
     };
     onSave(updatedQuestion);
@@ -133,7 +132,7 @@ const SliderQuestionEditor: React.FC<SliderQuestionEditorProps> = ({
                 />
               </div>
 
-              {/* Unit */}
+              {/* Points Per Unit */}
               <div>
                 <label 
                   className="block text-sm font-medium text-gray-600 mb-2"
@@ -144,14 +143,14 @@ const SliderQuestionEditor: React.FC<SliderQuestionEditorProps> = ({
                     fontSize: '12px'
                   }}
                 >
-                  Unit (%, people, etc.)
+                  Points Per Unit
                 </label>
                 <input
-                  type="text"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
+                  type="number"
+                  value={pointsPerUnit}
+                  onChange={(e) => setPointsPerUnit(parseInt(e.target.value) || 1)}
                   className="w-full p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
-                  placeholder="%, people, etc."
+                  min="1"
                 />
               </div>
             </div>

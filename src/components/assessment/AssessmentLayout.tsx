@@ -16,8 +16,7 @@ interface AssessmentLayoutProps {
   onStepClick?: (stepId: string) => void;
 
   // Progress bar props
-  totalQuestions: number;
-  answeredQuestions: number;
+  progressPercent: number;
 
   // Content
   children: React.ReactNode;
@@ -38,8 +37,7 @@ const AssessmentLayout: React.FC<AssessmentLayoutProps> = ({
   onStepClick,
 
   // Progress bar props
-  totalQuestions,
-  answeredQuestions,
+  progressPercent,
 
   // Content
   children,
@@ -52,10 +50,9 @@ const AssessmentLayout: React.FC<AssessmentLayoutProps> = ({
   nextButtonText = "Next",
   nextButtonDisabled = false,
 }) => {
-  const progressPercentage = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
 
   return (
-    <div className="pt-30 p-6">
+    <div className="pt-30 p-6 bg-[#F8F6F0]">
       <div className="max-w-7xl mx-auto flex gap-6">
         {/* Sidebar Card */}
         <div className="w-64 flex-shrink-0">
@@ -74,13 +71,13 @@ const AssessmentLayout: React.FC<AssessmentLayoutProps> = ({
               <div className="flex justify-between items-center mb-2">
                 <div className="text-sm font-medium text-gray-700">Progress</div>
                 <div className="text-sm font-medium text-gray-700">
-                  {answeredQuestions}/{totalQuestions} questions answered
+                  {Math.round(progressPercent)}%
                 </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${progressPercentage}%` }}
+                  style={{ width: `${progressPercent}%` }}
                 ></div>
               </div>
             </div>
@@ -92,7 +89,7 @@ const AssessmentLayout: React.FC<AssessmentLayoutProps> = ({
 
             {/* Navigation Buttons */}
             {(showBackButton || showNextButton) && (
-              <div className="flex justify-end items-end gap-3 h-[400px]">
+              <div className="flex justify-end items-end gap-3 h-[37%]">
                 {/* Back Button */}
                 {showBackButton && onBack && (
                   <Button

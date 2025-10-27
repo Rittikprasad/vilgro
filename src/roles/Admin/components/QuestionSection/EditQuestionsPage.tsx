@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
+import ConfirmationModal from '../../../../components/ui/ConfirmationModal';
 import type { QuestionItem } from './QuestionListTable';
 import type { RootState } from '../../../../app/store';
 import { getQuestionTypes, createQuestion, clearError } from '../../../../features/assessment/assessmentSlice';
-import { updateAdminQuestion } from '../../../../features/question-builder/questionBuilderSlice';
+import { updateAdminQuestion, deleteAdminQuestion } from '../../../../features/question-builder/questionBuilderSlice';
 import QuestionTypeDropdown from './QuestionTypeDropdown';
 import CreateQuestionModal from './CreateQuestionModal';
 import type { QuestionType, CreateQuestionPayload } from '../../../../services/adminApi';
@@ -53,6 +54,8 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
   const [selectedQuestionType, setSelectedQuestionType] = useState<QuestionType | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
 
   // Fetch question types on component mount
   useEffect(() => {
@@ -232,6 +235,40 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
     setEditingQuestionId(null);
   };
 
+  // Handle opening delete modal
+  const handleOpenDeleteModal = (questionId: number) => {
+    setQuestionToDelete(questionId);
+    setShowDeleteModal(true);
+  };
+
+  // Handle closing delete modal
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setQuestionToDelete(null);
+  };
+
+  // Handle confirming delete
+  const handleConfirmDelete = async () => {
+    if (!questionToDelete) return;
+
+    try {
+      await dispatch(deleteAdminQuestion(questionToDelete) as any);
+      
+      // Remove the question from the local list
+      setQuestionsList(questionsList.filter(q => q.id !== questionToDelete));
+      
+      // Exit edit mode if the deleted question was being edited
+      if (editingQuestionId === questionToDelete) {
+        setEditingQuestionId(null);
+      }
+    } catch (error) {
+      console.error('Error deleting question:', error);
+    } finally {
+      setShowDeleteModal(false);
+      setQuestionToDelete(null);
+    }
+  };
+
   // Handle question type selection from dropdown
   const handleQuestionTypeSelect = (questionType: QuestionType) => {
     setSelectedQuestionType(questionType);
@@ -239,8 +276,84 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
   };
 
   // Handle creating a new question
-  const handleCreateQuestion = (payload: any) => {
-    dispatch(createQuestion(payload) as any);
+  const handleCreateQuestion = async (payload: any) => {
+    try {
+      const result = await dispatch(createQuestion(payload) as any);
+      
+      // Check if creation was successful
+      if (result.type.endsWith('fulfilled')) {
+        // Extract the created question data from the result
+        const createdQuestion = result.payload;
+        
+        // Convert API response to QuestionItem format
+        if (createdQuestion) {
+          const newQuestion: QuestionItem = {
+            id: parseInt(createdQuestion.id) || Date.now(),
+            order: createdQuestion.order || Math.max(...questionsList.map(q => q.order), 0) + 1,
+            question: createdQuestion.text,
+            type: convertApiTypeToDisplayType(createdQuestion.type),
+            weight: parseFloat(createdQuestion.weight) || 1,
+            status: 'Active',
+            options: convertApiOptionsToQuestionOptions(createdQuestion)
+          };
+          
+          // Add the new question to the local list
+          setQuestionsList([...questionsList, newQuestion]);
+        }
+        
+        // Close modal on success
+        setIsCreateModalOpen(false);
+        setSelectedQuestionType(null);
+      }
+    } catch (error) {
+      console.error('Error creating question:', error);
+    }
+  };
+
+  // Helper function to convert API question type to display type
+  const convertApiTypeToDisplayType = (apiType: string): string => {
+    switch (apiType) {
+      case 'SINGLE_CHOICE': return 'Multi-select';
+      case 'MULTI_CHOICE': return 'Multi-select';
+      case 'SLIDER': return 'Slider';
+      case 'MULTI_SLIDER': return 'Multi-Slider';
+      case 'RATING': return 'RATING';
+      default: return apiType;
+    }
+  };
+
+  // Helper function to convert API options to question options
+  const convertApiOptionsToQuestionOptions = (question: any): any => {
+    if (question.options && question.options.length > 0) {
+      return {
+        type: question.type === 'SINGLE_CHOICE' ? 'single-choice' : 'multiple-choice',
+        choices: question.options.map((opt: any) => opt.label)
+      };
+    } else if (question.dimensions && question.dimensions.length > 0) {
+      if (question.type === 'MULTI_SLIDER') {
+        return {
+          dimensions: question.dimensions.map((dim: any) => ({
+            code: dim.code,
+            label: dim.label,
+            min_value: dim.min_value,
+            max_value: dim.max_value,
+            points_per_unit: dim.points_per_unit,
+            weight: dim.weight
+          }))
+        };
+      } else {
+        const dim = question.dimensions[0];
+        return {
+          min: dim.min_value,
+          max: dim.max_value,
+          step: 1,
+          pointsPerUnit: parseFloat(dim.points_per_unit),
+          dimensionCode: dim.code,
+          dimensionLabel: dim.label
+        };
+      }
+    }
+    return {};
   };
 
   // Handle successful question creation
@@ -433,7 +546,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span>Back to Questions List</span>
+            <span>Back</span>
           </Button>
           <h1 
             className="text-gray-800"
@@ -475,6 +588,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   question={question}
                   onSave={handleSaveQuestion}
                   onCancel={handleCancelEdit}
+                  onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
                 />
               ) : question.type === 'Multi-select' && question.options?.type === 'multiple-choice' ? (
@@ -482,6 +596,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   question={question}
                   onSave={handleSaveQuestion}
                   onCancel={handleCancelEdit}
+                  onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
                 />
               ) : question.type === 'Checkbox' ? (
@@ -489,6 +604,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   question={question}
                   onSave={handleSaveQuestion}
                   onCancel={handleCancelEdit}
+                  onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
                 />
               ) : question.type === 'Slider' || question.type === 'Linear Scale' ? (
@@ -496,6 +612,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   question={question}
                   onSave={handleSaveQuestion}
                   onCancel={handleCancelEdit}
+                  onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
                 />
               ) : question.type === 'Multi-Slider' ? (
@@ -503,6 +620,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   question={question}
                   onSave={handleSaveQuestion}
                   onCancel={handleCancelEdit}
+                  onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
                 />
               ) : question.type === 'RATING' ? (
@@ -510,6 +628,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   question={question}
                   onSave={handleSaveQuestion}
                   onCancel={handleCancelEdit}
+                  onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
                 />
               ) : question.type === 'Smiley face' ? (
@@ -617,6 +736,17 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        title="Are you Sure?"
+        message="This question will be deleted permanently."
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCloseDeleteModal}
+      />
 
       {/* Create Question Modal */}
       <CreateQuestionModal

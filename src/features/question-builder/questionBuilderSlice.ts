@@ -103,6 +103,29 @@ export const updateAdminQuestion = createAsyncThunk<
   }
 );
 
+// Async thunk to delete a question
+export const deleteAdminQuestion = createAsyncThunk<
+  number | string,
+  number | string,
+  { rejectValue: { message: string; status: number } }
+>(
+  "questionBuilder/deleteAdminQuestion",
+  async (id, { rejectWithValue }) => {
+    try {
+      await adminApi.deleteQuestion(id);
+      ApiResponseHandler.handleSuccess({ message: "Question deleted successfully!" });
+      return id;
+    } catch (error: any) {
+      ApiResponseHandler.handleError(error, "Failed to delete question");
+      const errorMessage = error.response?.data?.message || "Failed to delete question";
+      return rejectWithValue({
+        message: errorMessage,
+        status: error.response?.status || 500,
+      });
+    }
+  }
+);
+
 export const questionBuilderSlice = createSlice({
   name: "questionBuilder",
   initialState: getInitialState(),
@@ -163,6 +186,21 @@ export const questionBuilderSlice = createSlice({
       .addCase(updateAdminQuestion.rejected, (state, action) => {
         state.questionsLoading = false;
         state.questionsError = action.payload?.message || "Failed to update question";
+      })
+      // Delete question reducers
+      .addCase(deleteAdminQuestion.pending, (state) => {
+        state.questionsLoading = true;
+        state.questionsError = null;
+      })
+      .addCase(deleteAdminQuestion.fulfilled, (state, action) => {
+        state.questionsLoading = false;
+        // Remove the deleted question from the state
+        state.questions = state.questions.filter(q => q.id !== action.payload);
+        state.questionsError = null;
+      })
+      .addCase(deleteAdminQuestion.rejected, (state, action) => {
+        state.questionsLoading = false;
+        state.questionsError = action.payload?.message || "Failed to delete question";
       });
   },
 });
@@ -180,4 +218,5 @@ export const questionBuilderActionCreator = {
   fetchAdminSections,
   fetchQuestionsBySection,
   updateAdminQuestion,
+  deleteAdminQuestion,
 };

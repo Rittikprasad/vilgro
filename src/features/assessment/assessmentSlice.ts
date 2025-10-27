@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { assessmentApi, type AssessmentStartResponse, type SectionsResponse, type QuestionsResponse, type SaveAnswersResponse, type SubmitResponse, type AssessmentResult, type MissingAnswersError } from '../../services/assessmentApi';
 import { adminApi, type QuestionType, type CreateQuestionPayload, type CreateQuestionResponse, type CreateQuestionErrorResponse } from '../../services/adminApi';
+import { ApiResponseHandler } from '../../lib/apiResponseHandler';
 
 // State interface
 interface AssessmentState {
@@ -364,11 +365,15 @@ const assessmentSlice = createSlice({
       .addCase(createQuestion.fulfilled, (state) => {
         state.isCreatingQuestion = false;
         state.createQuestionError = null;
+        // Show success notification
+        ApiResponseHandler.handleSuccess({ message: "Question created successfully!" });
         // Note: The new question will be added to the questions list by refetching
       })
       .addCase(createQuestion.rejected, (state, action) => {
         state.isCreatingQuestion = false;
         state.createQuestionError = action.payload?.message || 'Failed to create question';
+        // Show error notification
+        ApiResponseHandler.handleError(action.payload || { message: 'Failed to create question' }, 'Failed to create question');
       });
   },
 });

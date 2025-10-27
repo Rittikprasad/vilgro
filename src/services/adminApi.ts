@@ -78,4 +78,11 @@ export const adminApi = {
     const response = await api.patch(endpoints.admin.updateQuestion(id), payload);
     return response.data;
   },
+
+  /**
+   * Delete a question by ID
+   */
+  deleteQuestion: async (id: number | string): Promise<void> => {
+    await api.delete(endpoints.admin.deleteQuestion(id));
+  },
 };

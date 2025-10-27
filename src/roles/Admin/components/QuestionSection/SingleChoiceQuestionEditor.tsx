@@ -13,12 +13,16 @@ interface SingleChoiceQuestionEditorProps {
   question: QuestionItem;
   onSave: (updatedQuestion: QuestionItem) => void;
   onCancel: () => void;
+  onDelete?: (questionId: number) => void;
+  isLoading?: boolean;
 }
 
 const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
   question,
   onSave,
-  onCancel
+  onCancel,
+  onDelete,
+  isLoading = false
 }) => {
   const [questionText, setQuestionText] = useState(question.question);
   const [options, setOptions] = useState<QuestionOption[]>(
@@ -29,6 +33,7 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
     })) || []
   );
   const [weightage, setWeightage] = useState(question.weight);
+  const [order, setOrder] = useState(question.order);
   const [isActive, setIsActive] = useState(question.status === 'Active');
 
   const handleAddOption = () => {
@@ -61,6 +66,7 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
       ...question,
       question: questionText,
       weight: weightage,
+      order: order,
       status: isActive ? 'Active' : 'Inactive',
       options: {
         type: 'single-choice',
@@ -149,6 +155,28 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
         {/* Bottom Controls */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
+            {/* Order */}
+            <div className="flex items-center space-x-2">
+              <label 
+                className="text-sm font-medium text-gray-700"
+                style={{
+                  fontFamily: 'Golos Text',
+                  fontWeight: 400,
+                  fontStyle: 'normal',
+                  fontSize: '14px'
+                }}
+              >
+                Order:
+              </label>
+              <input
+                type="number"
+                value={order}
+                onChange={(e) => setOrder(parseInt(e.target.value) || 1)}
+                className="w-16 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none text-center"
+                min="1"
+              />
+            </div>
+
             {/* Weightage */}
             <div className="flex items-center space-x-2">
               <label 
@@ -214,7 +242,14 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
             </div>
 
             {/* Delete Question */}
-            <button className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded">
+            <button 
+              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete?.(question.id);
+              }}
+              disabled={!onDelete || isLoading}
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -233,8 +268,9 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
           <Button
             variant="gradient"
             onClick={handleSave}
+            disabled={isLoading}
           >
-            Save Changes
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </CardContent>

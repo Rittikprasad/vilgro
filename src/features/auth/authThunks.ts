@@ -126,20 +126,24 @@ export const refreshToken = createAsyncThunk<
 
     // Make API call to refresh token
     const response = await api.post(endpoints.auth.refresh, {
-      refreshToken: refreshTokenValue,
+      refresh: refreshTokenValue,
     });
 
-    // Update tokens
+    // API returns { access, refresh }, not { accessToken, refreshToken }
+    const newAccessToken = response.data.access;
+    const newRefreshToken = response.data.refresh;
+
+    // Update tokens in Redux store
     dispatch(
       authSlice.actions.setTokens({
-        accessToken: response.data.accessToken,
-        refreshToken: response.data.refreshToken,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
       })
     );
 
     return {
-      accessToken: response.data.accessToken,
-      refreshToken: response.data.refreshToken,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     };
   } catch (error: any) {
     // If refresh fails, logout user

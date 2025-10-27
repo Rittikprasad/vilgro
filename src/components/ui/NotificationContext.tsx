@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import Notification from './Notification';
 import { setNotificationCallback } from '../../services/notificationService';
 

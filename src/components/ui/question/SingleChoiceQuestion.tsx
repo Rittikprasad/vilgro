@@ -3,6 +3,7 @@ import { RadioGroup, RadioGroupItem } from '../RadioGroup'
 
 interface SingleChoiceQuestionProps {
   question: string
+  questionNumber?: number
   value?: string
   onChange?: (value: string) => void
   options?: { value: string; label: string }[]
@@ -15,7 +16,8 @@ interface SingleChoiceQuestionProps {
  * Displays radio button options in configurable column layout (1 or 2 columns)
  */
 const SingleChoiceQuestion: React.FC<SingleChoiceQuestionProps> = ({ 
-  question, 
+  question,
+  questionNumber,
   value, 
   onChange,
   columns = 1,
@@ -30,7 +32,9 @@ const SingleChoiceQuestion: React.FC<SingleChoiceQuestionProps> = ({
   return (
     <div className="w-full space-y-4">
       {/* Question */}
-      <p className="text-green-600 font-medium">{question}</p>
+      <p className="text-green-600 font-medium">
+        {questionNumber !== undefined && `${questionNumber}. `}{question}
+      </p>
       
       {/* Configurable column grid for options */}
       <RadioGroup 
@@ -43,7 +47,7 @@ const SingleChoiceQuestion: React.FC<SingleChoiceQuestionProps> = ({
             <RadioGroupItem value={option.value} id={option.value} />
             <label 
               htmlFor={option.value}
-              className="label-text peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              className="label-text text-base font-golos font-normal peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               {option.label}
             </label>

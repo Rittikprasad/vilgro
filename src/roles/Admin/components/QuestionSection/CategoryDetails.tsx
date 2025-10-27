@@ -100,11 +100,16 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
 
   // Show EditQuestionsPage if editing questions
   if (showEditQuestions && questionsToEdit.length > 0 && selectedSubCategory) {
+    // Find the section data to get the section ID
+    const sectionData = (sections || []).find(section => section.title === selectedSubCategory.title);
+    const sectionId = sectionData?.id ? `${sectionData.id}` : '';
+    
     return (
       <EditQuestionsPage 
         questions={questionsToEdit}
         categoryTitle={selectedSubCategory.title}
         onBackToQuestionList={handleBackToQuestionList}
+        sectionId={sectionId}
       />
     );
   }
@@ -137,7 +142,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          <span>Back to Categories</span>
+          <span>Back</span>
         </Button>
         <div>
           <h1 

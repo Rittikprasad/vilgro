@@ -218,9 +218,6 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
       {/* Right Side - White background */}
       <div className="flex-1 relative hidden lg:block bg-white">
         {/* Logo positioned in top right corner */}
-        <div className="absolute top-6 right-6 z-20">
-          <img src={logo} alt="logo" className="object-contain w-30" />
-        </div>
       </div>
 
       {/* Mobile Background - Optional */}

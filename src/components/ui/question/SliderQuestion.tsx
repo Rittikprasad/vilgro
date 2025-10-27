@@ -2,6 +2,7 @@ import React from "react";
 
 interface SliderQuestionProps {
   question: string;
+  questionNumber?: number;
   value: number;
   onChange: (val: number) => void;
   min?: number;
@@ -10,17 +11,32 @@ interface SliderQuestionProps {
   disabled?: boolean;
 }
 
-const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, value, onChange }) => {
-  const ticks = Array.from({ length: 9 }, (_, i) => (i + 1) * 10); // 10 → 90 (excluding 0 and 100)
-  const allLabels = Array.from({ length: 11 }, (_, i) => i * 10); // 0 → 100 (for labels)
+const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, questionNumber, min = 0, max = 100, step = 1, value, onChange }) => {
+  console.log(question, min, max, step, "lololollolo");
+  
+  // Calculate the range and percentage for display
+  const range = max - min;
+  const percentage = ((value - min) / range) * 100;
+  
+  // Generate ticks based on actual min/max range
+  const tickCount = 9; // Number of tick marks
+  const tickStep = range / (tickCount + 1);
+  const ticks = Array.from({ length: tickCount }, (_, i) => min + (i + 1) * tickStep);
+  
+  // Generate labels for display
+  const labelCount = 11; // Number of labels
+  const labelStep = range / (labelCount - 1);
+  const labels = Array.from({ length: labelCount }, (_, i) => min + i * labelStep);
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-3 pl-3 pr-3">
       {/* Question */}
-      <p className="text-green-600 font-medium">{question}</p>
+      <p className="text-green-600 font-medium">
+        {questionNumber !== undefined && `${questionNumber}. `}{question}
+      </p>
 
       {/* Value Display */}
-      <div className="text-2xl font-bold">{value}%</div>
+      <div className="text-2xl font-bold">{value}</div>
 
       {/* Slider with custom ticks */}
       <div className="relative w-full">
@@ -30,24 +46,27 @@ const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, value, onChan
         {/* Track fill */}
         <div
           className="absolute top-1/2 left-0 h-4 bg-green-500 rounded-full -translate-y-1/2"
-          style={{ width: `${value}%` }}
+          style={{ width: `${percentage}%` }}
         />
 
         {/* Tick marks */}
-        {ticks.map((tick) => (
-          <div
-            key={tick}
-            className="absolute top-1/2 w-px h-4 bg-black -translate-y-1/2"
-            style={{ left: `${tick}%` }}
-          />
-        ))}
+        {ticks.map((tick) => {
+          const tickPercentage = ((tick - min) / range) * 100;
+          return (
+            <div
+              key={tick}
+              className="absolute top-1/2 w-px h-4 bg-black -translate-y-1/2"
+              style={{ left: `${tickPercentage}%` }}
+            />
+          );
+        })}
 
         {/* Input slider (transparent, only thumb visible) */}
         <input
           type="range"
-          min={0}
-          max={100}
-          step={5}
+          min={min}
+          max={max}
+          step={step}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="
@@ -65,15 +84,18 @@ const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, value, onChan
 
       {/* Labels aligned with all positions */}
       <div className="relative w-full">
-        {allLabels.map((label) => (
-          <span
-            key={label}
-            className="absolute text-xs text-gray-500 -translate-x-1/2"
-            style={{ left: `${label}%` }}
-          >
-            {label}%
-          </span>
-        ))}
+        {labels.map((label) => {
+          const labelPercentage = ((label - min) / range) * 100;
+          return (
+            <span
+              key={label}
+              className="absolute text-xs text-gray-500 -translate-x-1/2"
+              style={{ left: `${labelPercentage}%` }}
+            >
+              {label}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

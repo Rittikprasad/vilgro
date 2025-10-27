@@ -32,6 +32,7 @@ interface AssessmentQuestion {
 
 interface QuestionRendererProps {
   question: AssessmentQuestion;
+  questionNumber?: number;
   value: any;
   onChange: (value: any) => void;
   disabled?: boolean;
@@ -39,6 +40,7 @@ interface QuestionRendererProps {
 
 const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   question,
+  questionNumber,
   value,
   onChange,
   disabled = false,
@@ -97,6 +99,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       return (
         <SingleChoiceQuestion
           question={question.text}
+          questionNumber={questionNumber}
           value={currentValue as string}
           onChange={handleSingleChoiceChange}
           options={convertOptions(question.options)}
@@ -108,6 +111,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       return (
         <MultipleChoiceQuestion
           question={question.text}
+          questionNumber={questionNumber}
           value={currentValue as string[]}
           onChange={handleMultipleChoiceChange}
           options={convertOptions(question.options)}
@@ -119,6 +123,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       return (
         <SliderQuestion
           question={question.text}
+          questionNumber={questionNumber}
           value={currentValue as number}
           onChange={handleSliderChange}
           min={question.min || 0}
@@ -132,6 +137,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       return (
         <StarRatingQuestion
           question={question.text}
+          questionNumber={questionNumber}
           value={currentValue as number}
           onChange={handleRatingChange}
           maxStars={question.max || 5}
@@ -143,7 +149,9 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       // For multi-slider, we'll create individual sliders for each dimension
       return (
         <div className="space-y-6">
-          <h3 className="text-green-600 font-medium">{question.text}</h3>
+          <h3 className="text-green-600 font-medium">
+            {questionNumber !== undefined && `${questionNumber}. `}{question.text}
+          </h3>
           {question.dimensions?.map((dimension) => (
             <div key={dimension.code} className="space-y-2">
               <label className="text-sm font-medium text-gray-700">

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { assessmentApi, type AssessmentStartResponse, type SectionsResponse, type QuestionsResponse, type SaveAnswersResponse, type SubmitResponse, type AssessmentResult, type MissingAnswersError } from '../../services/assessmentApi';
+import { adminApi, type QuestionType, type CreateQuestionPayload, type CreateQuestionResponse, type CreateQuestionErrorResponse } from '../../services/adminApi';
 
 // State interface
 interface AssessmentState {
@@ -24,6 +25,15 @@ interface AssessmentState {
   
   // Results
   results: AssessmentResult | null;
+  
+  // Admin functionality
+  questionTypes: QuestionType[];
+  questionTypesLoading: boolean;
+  questionTypesError: string | null;
+  
+  // Create question
+  isCreatingQuestion: boolean;
+  createQuestionError: string | null;
   
   // Loading states
   isLoading: boolean;
@@ -53,6 +63,11 @@ const initialState: AssessmentState = {
   isSubmitting: false,
   submitError: null,
   results: null,
+  questionTypes: [],
+  questionTypesLoading: false,
+  questionTypesError: null,
+  isCreatingQuestion: false,
+  createQuestionError: null,
   isLoading: false,
   error: null,
 };
@@ -158,6 +173,36 @@ export const getResults = createAsyncThunk<
   }
 });
 
+// Admin async thunks
+export const getQuestionTypes = createAsyncThunk<
+  QuestionType[],
+  void,
+  { rejectValue: string }
+>('assessment/getQuestionTypes', async (_, { rejectWithValue }) => {
+  try {
+    return await adminApi.getQuestionTypes();
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to get question types');
+  }
+});
+
+export const createQuestion = createAsyncThunk<
+  CreateQuestionResponse,
+  CreateQuestionPayload,
+  { rejectValue: CreateQuestionErrorResponse }
+>('assessment/createQuestion', async (payload, { rejectWithValue }) => {
+  try {
+    return await adminApi.createQuestion(payload);
+  } catch (error: any) {
+    if (error.response?.status === 400) {
+      return rejectWithValue(error.response.data as CreateQuestionErrorResponse);
+    }
+    return rejectWithValue({
+      message: error.response?.data?.message || 'Failed to create question'
+    });
+  }
+});
+
 // Slice
 const assessmentSlice = createSlice({
   name: 'assessment',
@@ -167,6 +212,8 @@ const assessmentSlice = createSlice({
     clearError: (state) => {
       state.error = null;
       state.submitError = null;
+      state.questionTypesError = null;
+      state.createQuestionError = null;
     },
 
     // Set current section
@@ -257,8 +304,18 @@ const assessmentSlice = createSlice({
         if (state.sections) {
           state.sections.progress = action.payload.progress;
         }
+        
+        // Update questions array with saved answers to keep both sources in sync
+        const savedAnswers = action.meta.arg.answers || [];
+        savedAnswers.forEach((answer: any) => {
+          const question = state.questions?.find(q => q.code === answer.question);
+          if (question) {
+            question.answer = answer.data;
+          }
+        });
+        
         // Clear saved answers from localAnswers as they're now persisted
-        const savedQuestionCodes = action.meta.arg.answers?.map((a: any) => a.question) || [];
+        const savedQuestionCodes = savedAnswers.map((a: any) => a.question);
         savedQuestionCodes.forEach((code: string) => {
           delete state.localAnswers[code];
         });
@@ -282,6 +339,36 @@ const assessmentSlice = createSlice({
       // Get results
       .addCase(getResults.fulfilled, (state, action) => {
         state.results = action.payload;
+      })
+
+      // Get question types
+      .addCase(getQuestionTypes.pending, (state) => {
+        state.questionTypesLoading = true;
+        state.questionTypesError = null;
+      })
+      .addCase(getQuestionTypes.fulfilled, (state, action) => {
+        state.questionTypesLoading = false;
+        state.questionTypes = action.payload;
+        state.questionTypesError = null;
+      })
+      .addCase(getQuestionTypes.rejected, (state, action) => {
+        state.questionTypesLoading = false;
+        state.questionTypesError = action.payload || 'Failed to get question types';
+      })
+
+      // Create question
+      .addCase(createQuestion.pending, (state) => {
+        state.isCreatingQuestion = true;
+        state.createQuestionError = null;
+      })
+      .addCase(createQuestion.fulfilled, (state) => {
+        state.isCreatingQuestion = false;
+        state.createQuestionError = null;
+        // Note: The new question will be added to the questions list by refetching
+      })
+      .addCase(createQuestion.rejected, (state, action) => {
+        state.isCreatingQuestion = false;
+        state.createQuestionError = action.payload?.message || 'Failed to create question';
       });
   },
 });

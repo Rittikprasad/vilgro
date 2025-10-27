@@ -3,60 +3,49 @@ import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
 import type { QuestionItem } from './QuestionListTable';
 
-interface QuestionOption {
-  id: string;
-  text: string;
-  score: number;
-}
-
-interface SingleChoiceQuestionEditorProps {
+interface StarRatingQuestionEditorProps {
   question: QuestionItem;
   onSave: (updatedQuestion: QuestionItem) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
-const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
+const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
   question,
   onSave,
   onCancel,
   isLoading = false
 }) => {
   const [questionText, setQuestionText] = useState(question.question);
-  const [options, setOptions] = useState<QuestionOption[]>(
-    question.options?.choices?.map((choice: string, index: number) => ({
-      id: `option_${index}`,
-      text: choice,
-      score: 4 - index // Default scores: 4, 3, 2, 1
-    })) || []
-  );
+  const [maxStars, setMaxStars] = useState(question.options?.maxStars || 5);
+  const [labels, setLabels] = useState<string[]>(question.options?.labels || ['1', '2', '3', '4', '5']);
   const [weightage, setWeightage] = useState(question.weight);
   const [order, setOrder] = useState(question.order);
   const [isActive, setIsActive] = useState(question.status === 'Active');
 
-  const handleAddOption = () => {
-    const newOption: QuestionOption = {
-      id: `option_${Date.now()}`,
-      text: '',
-      score: 1
-    };
-    setOptions([...options, newOption]);
+  // Update labels when maxStars changes
+  const handleMaxStarsChange = (newMaxStars: number) => {
+    setMaxStars(newMaxStars);
+    
+    // Adjust labels array to match new maxStars
+    const newLabels = [...labels];
+    if (newMaxStars > labels.length) {
+      // Add new labels
+      for (let i = labels.length; i < newMaxStars; i++) {
+        newLabels.push(`${i + 1}`);
+      }
+    } else if (newMaxStars < labels.length) {
+      // Remove excess labels
+      newLabels.splice(newMaxStars);
+    }
+    setLabels(newLabels);
   };
 
-  const handleDeleteOption = (optionId: string) => {
-    setOptions(options.filter(option => option.id !== optionId));
-  };
-
-  const handleOptionTextChange = (optionId: string, text: string) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { ...option, text } : option
-    ));
-  };
-
-  const handleOptionScoreChange = (optionId: string, score: number) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { ...option, score } : option
-    ));
+  // Update individual label
+  const handleLabelChange = (index: number, value: string) => {
+    const newLabels = [...labels];
+    newLabels[index] = value;
+    setLabels(newLabels);
   };
 
   const handleSave = () => {
@@ -67,8 +56,8 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
       order: order,
       status: isActive ? 'Active' : 'Inactive',
       options: {
-        type: 'single-choice',
-        choices: options.map(option => option.text)
+        maxStars: maxStars,
+        labels: labels.slice(0, maxStars) // Ensure labels match maxStars
       }
     };
     onSave(updatedQuestion);
@@ -79,72 +68,122 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
       <CardContent className="p-0">
         {/* Question Text Input */}
         <div className="mb-6">
-          <input
-            type="text"
+          <label 
+            className="block text-sm font-medium text-gray-700 mb-2"
+            style={{
+              fontFamily: 'Golos Text',
+              fontWeight: 400,
+              fontStyle: 'normal',
+              fontSize: '14px'
+            }}
+          >
+            Question Text *
+          </label>
+          <textarea
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
+            rows={3}
             className="w-full p-3 border-b-2 border-gray-200 focus:border-green-500 focus:outline-none bg-gray-50 rounded-t-lg"
             placeholder="Enter question text..."
           />
         </div>
 
-        {/* Options */}
+        {/* Star Rating Configuration */}
         <div className="space-y-4 mb-6">
-          {options.map((option, index) => (
-            <div key={option.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-              {/* Radio button indicator */}
-              <div className="w-4 h-4 border-2 border-gray-300 rounded-full flex-shrink-0"></div>
-              
-              {/* Option text input */}
-              <input
-                type="text"
-                value={option.text}
-                onChange={(e) => handleOptionTextChange(option.id, e.target.value)}
-                className="flex-1 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
-                placeholder={`Option ${index + 1}...`}
-              />
-              
-              {/* Delete option button */}
-              <button
-                onClick={() => handleDeleteOption(option.id)}
-                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              
-              {/* Add Score button and input */}
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h4 
+              className="text-sm font-medium text-gray-700 mb-4"
+              style={{
+                fontFamily: 'Golos Text',
+                fontWeight: 500,
+                fontStyle: 'normal',
+                fontSize: '14px'
+              }}
+            >
+              Star Rating Configuration
+            </h4>
+            
+            <div className="space-y-4">
+              {/* Maximum Stars */}
+              <div>
+                <label 
+                  className="block text-sm font-medium text-gray-600 mb-2"
+                  style={{
+                    fontFamily: 'Golos Text',
+                    fontWeight: 400,
+                    fontStyle: 'normal',
+                    fontSize: '12px'
+                  }}
                 >
-                  Add Score
-                </Button>
+                  Maximum Stars
+                </label>
                 <input
                   type="number"
-                  value={option.score}
-                  onChange={(e) => handleOptionScoreChange(option.id, parseInt(e.target.value) || 0)}
-                  className="w-16 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none text-center"
-                  min="0"
+                  value={maxStars}
+                  onChange={(e) => handleMaxStarsChange(parseInt(e.target.value) || 5)}
+                  className="w-20 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none text-center"
+                  min="1"
                   max="10"
                 />
               </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Add Option */}
-        <div className="mb-6">
-          <button
-            onClick={handleAddOption}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 p-3 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 w-full"
-          >
-            <div className="w-4 h-4 border-2 border-gray-300 rounded-full flex-shrink-0"></div>
-            <span>Add another option</span>
-          </button>
+              {/* Star Labels */}
+              <div>
+                <label 
+                  className="block text-sm font-medium text-gray-600 mb-2"
+                  style={{
+                    fontFamily: 'Golos Text',
+                    fontWeight: 400,
+                    fontStyle: 'normal',
+                    fontSize: '12px'
+                  }}
+                >
+                  Star Labels
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: maxStars }, (_, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500 w-8">⭐ {index + 1}:</span>
+                      <input
+                        type="text"
+                        value={labels[index] || `${index + 1}`}
+                        onChange={(e) => handleLabelChange(index, e.target.value)}
+                        className="flex-1 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
+                        placeholder={`Label ${index + 1}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div>
+                <label 
+                  className="block text-sm font-medium text-gray-600 mb-2"
+                  style={{
+                    fontFamily: 'Golos Text',
+                    fontWeight: 400,
+                    fontStyle: 'normal',
+                    fontSize: '12px'
+                  }}
+                >
+                  Preview
+                </label>
+                <div className="p-4 border border-gray-200 rounded-lg bg-white">
+                  <div className="flex items-center space-x-2">
+                    {Array.from({ length: maxStars }, (_, index) => (
+                      <div key={index} className="flex flex-col items-center">
+                        <span className="text-yellow-400 text-lg">⭐</span>
+                        <span className="text-xs text-gray-500 mt-1">
+                          {labels[index] || `${index + 1}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Divider */}
@@ -253,6 +292,7 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
           <Button
             variant="outline"
             onClick={onCancel}
+            disabled={isLoading}
           >
             Cancel
           </Button>
@@ -269,4 +309,4 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
   );
 };
 
-export default SingleChoiceQuestionEditor;
+export default StarRatingQuestionEditor;

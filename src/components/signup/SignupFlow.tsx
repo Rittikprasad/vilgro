@@ -157,7 +157,7 @@ const SignupFlow: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Show tracker only on Step 2–5 and when authenticated */}
-      {currentStep > 1 && isAuthenticated && <ProgressTracker currentStep={currentStep - 1} totalSteps={3} />}
+      {/* {currentStep > 1 && isAuthenticated && <ProgressTracker currentStep={currentStep - 1} totalSteps={3} />} */}
 
       <Routes>
         <Route path="step/1" element={<SignupStep1 onNext={handleStep1Next} />} />

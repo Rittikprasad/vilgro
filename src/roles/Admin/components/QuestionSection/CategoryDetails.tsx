@@ -100,11 +100,16 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
 
   // Show EditQuestionsPage if editing questions
   if (showEditQuestions && questionsToEdit.length > 0 && selectedSubCategory) {
+    // Find the section data to get the section ID
+    const sectionData = (sections || []).find(section => section.title === selectedSubCategory.title);
+    const sectionId = sectionData?.id || '';
+    
     return (
       <EditQuestionsPage 
         questions={questionsToEdit}
         categoryTitle={selectedSubCategory.title}
         onBackToQuestionList={handleBackToQuestionList}
+        sectionId={sectionId}
       />
     );
   }

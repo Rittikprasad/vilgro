@@ -47,6 +47,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
 
 interface MultipleChoiceQuestionProps {
   question: string
+  questionNumber?: number
   value?: string[]
   onChange?: (values: string[]) => void
   options?: { value: string; label: string }[]
@@ -60,7 +61,8 @@ interface MultipleChoiceQuestionProps {
  * Allows multiple selections with square checkboxes and tick indicators
  */
 const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({ 
-  question, 
+  question,
+  questionNumber,
   value = [], 
   onChange,
   columns = 1,
@@ -95,7 +97,9 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   return (
     <div className="w-full space-y-4">
       {/* Question */}
-      <p className="text-green-600 font-medium">{question}</p>
+      <p className="text-green-600 font-medium">
+        {questionNumber !== undefined && `${questionNumber}. `}{question}
+      </p>
       
       {/* Configurable column grid for options */}
       <div className={`grid gap-3 ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
@@ -108,7 +112,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
             />
             <label 
               htmlFor={option.value}
-              className="label-text peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              className="label-text text-base font-golos font-normal peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               {option.label}
             </label>

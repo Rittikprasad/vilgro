@@ -13,12 +13,14 @@ interface MultipleChoiceQuestionEditorProps {
   question: QuestionItem;
   onSave: (updatedQuestion: QuestionItem) => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> = ({
   question,
   onSave,
-  onCancel
+  onCancel,
+  isLoading = false
 }) => {
   const [questionText, setQuestionText] = useState(question.question);
   const [options, setOptions] = useState<QuestionOption[]>(
@@ -29,6 +31,7 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
     })) || []
   );
   const [weightage, setWeightage] = useState(question.weight);
+  const [order, setOrder] = useState(question.order);
   const [isActive, setIsActive] = useState(question.status === 'Active');
 
   const handleAddOption = () => {
@@ -61,6 +64,7 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
       ...question,
       question: questionText,
       weight: weightage,
+      order: order,
       status: isActive ? 'Active' : 'Inactive',
       options: {
         type: 'multiple-choice',
@@ -154,6 +158,28 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
         {/* Bottom Controls */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
+            {/* Order */}
+            <div className="flex items-center space-x-2">
+              <label 
+                className="text-sm font-medium text-gray-700"
+                style={{
+                  fontFamily: 'Golos Text',
+                  fontWeight: 400,
+                  fontStyle: 'normal',
+                  fontSize: '14px'
+                }}
+              >
+                Order:
+              </label>
+              <input
+                type="number"
+                value={order}
+                onChange={(e) => setOrder(parseInt(e.target.value) || 1)}
+                className="w-16 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none text-center"
+                min="1"
+              />
+            </div>
+
             {/* Weightage */}
             <div className="flex items-center space-x-2">
               <label 
@@ -238,8 +264,9 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
           <Button
             variant="gradient"
             onClick={handleSave}
+            disabled={isLoading}
           >
-            Save Changes
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </CardContent>

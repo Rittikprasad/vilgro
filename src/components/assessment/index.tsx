@@ -408,6 +408,7 @@ const Assessment: React.FC = () => {
                     <QuestionRenderer
                         key={questions[currentQuestionIndex].code}
                         question={questions[currentQuestionIndex]}
+                        questionNumber={currentQuestionIndex + 1}
                         value={localAnswers[questions[currentQuestionIndex].code] || questions[currentQuestionIndex].answer}
                         onChange={(value) => handleAnswerChange(questions[currentQuestionIndex].code, value)}
                         disabled={isSubmitting}

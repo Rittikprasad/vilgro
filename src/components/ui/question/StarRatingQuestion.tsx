@@ -4,6 +4,7 @@ import { cn } from "../../../lib/utils"
 
 interface StarRatingQuestionProps {
   question: string
+  questionNumber?: number
   value?: number // Number of stars selected (0-4)
   onChange?: (value: number) => void
   maxStars?: number
@@ -17,7 +18,8 @@ interface StarRatingQuestionProps {
  * Traditional star rating system (1-5 stars)
  */
 const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({ 
-  question, 
+  question,
+  questionNumber,
   value = 0, 
   onChange,
   maxStars = 5,
@@ -34,13 +36,15 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
     }
   }
 
-  // Show labels only if they exist and match the number of stars
-  const showLabels = labels.length === maxStars;
+  // Show labels if they exist (even if not matching exact count)
+  const showLabels = labels && labels.length > 0;
 
   return (
     <div className="w-full space-y-4">
       {/* Question */}
-      <p className="text-green-600 font-medium">{question}</p>
+      <p className="text-green-600 font-medium">
+        {questionNumber !== undefined && `${questionNumber}. `}{question}
+      </p>
       
       {/* Star rating scale - horizontal layout */}
       <div className="flex items-center gap-4">
@@ -72,12 +76,12 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
         })}
       </div>
 
-      {/* Optional labels below stars - only show if labels are provided */}
+      {/* Optional labels below stars - show if labels are provided */}
       {showLabels && (
         <div className="flex items-start gap-2">
-          {labels.map((label, index) => (
+          {Array.from({ length: maxStars }, (_, index) => (
             <div key={index} className="flex-1 text-xs text-gray-600 text-center">
-              {label}
+              {labels[index] || `${index + 1}`}
             </div>
           ))}
         </div>

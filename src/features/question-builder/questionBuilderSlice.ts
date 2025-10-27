@@ -1,11 +1,11 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { endpoints } from "../../services/endpoints";
 import api from "../../services/api";
+import { adminApi, type CreateQuestionPayload } from "../../services/adminApi";
 import { ApiResponseHandler } from "../../lib/apiResponseHandler";
 import type {
   AdminSection,
-  AdminSectionsResponse,
   IInitialQuestionBuilderState,
   AdminQuestion,
 } from "./types";
@@ -37,9 +37,6 @@ export const fetchAdminSections = createAsyncThunk<
 
       console.log("Admin sections API response:", response.data);
 
-      // Show success notification
-      ApiResponseHandler.handleSuccess({ message: "Sections loaded successfully!" });
-
       return response.data;
     } catch (error: any) {
       // Handle error with centralized error handler
@@ -69,15 +66,35 @@ export const fetchQuestionsBySection = createAsyncThunk<
 
       console.log("Questions API response:", response.data);
 
-      // Show success notification
-      ApiResponseHandler.handleSuccess({ message: "Questions loaded successfully!" });
-
       return response.data;
     } catch (error: any) {
       // Handle error with centralized error handler
       ApiResponseHandler.handleError(error, "Failed to fetch questions");
       
       const errorMessage = error.response?.data?.message || "Failed to fetch questions";
+      return rejectWithValue({
+        message: errorMessage,
+        status: error.response?.status || 500,
+      });
+    }
+  }
+);
+
+// Async thunk to update a question (partial/full)
+export const updateAdminQuestion = createAsyncThunk<
+  AdminQuestion,
+  { id: number | string; data: Partial<CreateQuestionPayload> },
+  { rejectValue: { message: string; status: number } }
+>(
+  "questionBuilder/updateAdminQuestion",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const updated = await adminApi.updateQuestion(id, data);
+      // The API type may differ; cast to AdminQuestion for store usage
+      return updated as unknown as AdminQuestion;
+    } catch (error: any) {
+      ApiResponseHandler.handleError(error, "Failed to update question");
+      const errorMessage = error.response?.data?.message || "Failed to update question";
       return rejectWithValue({
         message: errorMessage,
         status: error.response?.status || 500,
@@ -130,6 +147,22 @@ export const questionBuilderSlice = createSlice({
       .addCase(fetchQuestionsBySection.rejected, (state, action) => {
         state.questionsLoading = false;
         state.questionsError = action.payload?.message || "Failed to fetch questions";
+      })
+      // Update question reducers
+      .addCase(updateAdminQuestion.pending, (state) => {
+        state.questionsLoading = true;
+        state.questionsError = null;
+      })
+      .addCase(updateAdminQuestion.fulfilled, (state, action) => {
+        state.questionsLoading = false;
+        const updated = action.payload;
+        state.questions = state.questions.map((q) =>
+          q.id === updated.id ? { ...q, ...updated } : q
+        );
+      })
+      .addCase(updateAdminQuestion.rejected, (state, action) => {
+        state.questionsLoading = false;
+        state.questionsError = action.payload?.message || "Failed to update question";
       });
   },
 });
@@ -146,4 +179,5 @@ export default questionBuilderSlice.reducer;
 export const questionBuilderActionCreator = {
   fetchAdminSections,
   fetchQuestionsBySection,
+  updateAdminQuestion,
 };

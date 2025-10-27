@@ -65,11 +65,11 @@ const AssessmentLayout: React.FC<AssessmentLayoutProps> = ({
 
         {/* Main Content Card */}
         <div className="flex-1 h-[80vh]">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 h-full">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 h-full flex flex-col">
             {/* Progress Bar */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-2">
-                <div className="text-sm font-medium text-gray-700">Progress</div>
+                <div className="text-[25px] font-bold text-[#46B753]">Progress</div>
                 <div className="text-sm font-medium text-gray-700">
                   {Math.round(progressPercent)}%
                 </div>
@@ -83,13 +83,13 @@ const AssessmentLayout: React.FC<AssessmentLayoutProps> = ({
             </div>
 
             {/* Questions Content */}
-            <div className="space-y-8">
+            <div className="flex-1 space-y-8 overflow-y-auto mb-6 pt-6 border-t border-gray-100">
               {children}
             </div>
 
-            {/* Navigation Buttons */}
+            {/* Navigation Buttons - Fixed at bottom */}
             {(showBackButton || showNextButton) && (
-              <div className="flex justify-end items-end gap-3 h-[37%]">
+              <div className="flex justify-end items-center gap-3 pt-6 border-t border-gray-100">
                 {/* Back Button */}
                 {showBackButton && onBack && (
                   <Button

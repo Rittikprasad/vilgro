@@ -340,11 +340,6 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
          {/* White gradient overlay extending from left */}
          <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent z-10"></div>
 
-        {/* Logo positioned in top right corner over the image */}
-        <div className="absolute top-6 right-6 z-20">
-          <img src={logo} alt="logo" className="object-contain w-30" />
-        </div>
-
         <div className="relative z-10 h-full flex items-center justify-center">
 
         </div>

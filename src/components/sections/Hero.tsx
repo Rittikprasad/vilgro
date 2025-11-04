@@ -28,7 +28,7 @@ const Hero: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className={styles.heroButtons}>
-            <Button variant="gradient" size="lg" onClick={() => navigate('/login')}>
+            <Button variant="gradient" size="lg" onClick={() => navigate('/signup')}>
               Start Your Assessment Now
             </Button>
             
@@ -54,7 +54,7 @@ const Hero: React.FC = () => {
         </div>
 
         {/* How It Works Section */}
-        <div className={styles.howItWorksSection}>
+        <div id="how-it-works" className={styles.howItWorksSection}>
           {/* Section Title */}
           <div className={styles.sectionTitle}>
             <h2 className={styles.title}>

@@ -1,9 +1,10 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Link, useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
+import { Eye, EyeOff } from "lucide-react"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
@@ -34,6 +35,7 @@ const Login: React.FC = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { isLoading, error, isAuthenticated, has_completed_profile, onboarding } = useSelector((state: RootState) => state.auth)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -141,15 +143,29 @@ const Login: React.FC = () => {
 
               {/* Password Input */}
               <div className="space-y-1">
-                <Input
-                  {...register("password")}
-                  type="password"
-                  placeholder="Password"
-                  className={cn(
-                    "w-full h-12 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
-                    errors.password ? "border-red-500" : "gradient-border"
-                  )}
-                />
+                <div className="relative">
+                  <Input
+                    {...register("password")}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    className={cn(
+                      "w-full h-12 px-4 py-3 pr-12 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                      errors.password ? "border-red-500" : "gradient-border"
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#46b753] transition-colors cursor-pointer"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="text-red-500 text-sm">{errors.password.message}</p>
                 )}
@@ -178,7 +194,7 @@ const Login: React.FC = () => {
             <div className="text-center mt-6">
               <Link
                 to="/forgot-password"
-                className="text-[14px] villgro-green-text underline hover:underline cursor-pointer font-golos font-[300] text-[14px]"
+                className="text-[14px] villgro-green-text underline hover:underline cursor-pointer font-golos font-[300]"
               >
                 Forgot Password
               </Link>

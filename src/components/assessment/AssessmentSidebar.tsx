@@ -38,8 +38,8 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
               {index < steps.length - 1 && (
                 <div className="absolute left-3.5 top-10 w-1 h-16 bg-gray-200">
                   <div 
-                    className="w-1 bg-green-600 transition-all duration-300"
-                    style={{ height: `${(progressPercentage / 100) * 48}px` }}
+                    className="w-1 bg-[#46B753] transition-all duration-300"
+                    style={{ height: `${(progressPercentage / 100) * 65}px` }}
                   ></div>
                 </div>
               )}

@@ -104,7 +104,24 @@ const SubmissionSuccess: React.FC = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Overall Score Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Overall Score: {overallScore.toFixed(2)}</h2>
+              <div className="flex justify-between items-center mb-6">
+              <h2 className="text-[23px] font-[600] font-golos text-gray-800 mb-6">Overall Score: {overallScore.toFixed(2)}</h2>
+              <div className="flex space-x-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/assessment')}
+                    className="border-green-500 text-green-600 hover:bg-green-50"
+                  >
+                    Go back to the dashboard
+                  </Button>
+                  <Button
+                    variant="gradient"
+                    onClick={() => {/* TODO: Implement download functionality */}}
+                  >
+                    Download Result
+                  </Button>
+                </div>
+                </div>
               
               {/* Eligibility Message */}
               <div className="flex items-start space-x-4 mb-8">
@@ -120,32 +137,18 @@ const SubmissionSuccess: React.FC = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="text-lg text-gray-700">
-                    Based on your responses, we believe <span className={`${isEligible ? 'text-green-600' : 'text-red-600'} font-semibold`}>
+                  <p className="text-[15px] font-[400] text-gray-700">
+                    Based on your responses,<br/> we believe <span className={`${isEligible ? 'text-green-600' : 'text-red-600'} font-semibold`}>
                       you are {isEligible ? 'eligible' : 'not eligible'}
                     </span> for philanthropic funding.
                   </p>
                 </div>
-                <div className="flex space-x-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate('/dashboard')}
-                    className="border-green-500 text-green-600 hover:bg-green-50"
-                  >
-                    Go back to the dashboard
-                  </Button>
-                  <Button
-                    variant="gradient"
-                    onClick={() => {/* TODO: Implement download functionality */}}
-                  >
-                    Download Result
-                  </Button>
-                </div>
+                
               </div>
 
               {/* Instrument Recommendation */}
               <div className="mb-8">
-                <p className="text-gray-700 mb-2">
+                <p className="text-gray-700 mb-2 text-[14px] font-[300]">
                   The instrument most appropriate for your current stage and profile is
                 </p>
                 <p className="text-xl font-semibold text-green-600">
@@ -283,7 +286,7 @@ const SubmissionSuccess: React.FC = () => {
             {/* Next Steps Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-4">Next Steps</h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 text-[14px] font-[300]">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
               </p>
               <div className="space-y-3">

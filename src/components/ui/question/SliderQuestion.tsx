@@ -31,12 +31,12 @@ const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, questionNumbe
   return (
     <div className="w-full space-y-7 pl-3 pr-3">
       {/* Question */}
-      <p className="text-green-600 font-golos font-medium text-xl">
+      <p className="text-[#46B753] font-golos font-medium text-[18px] font-[500]">
         {questionNumber !== undefined && `${questionNumber}. `}{question}
       </p>
 
       {/* Value Display */}
-      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-[25px] font-[600] font-golos">{value}</div>
 
       {/* Slider with custom ticks */}
       <div className="relative w-full">

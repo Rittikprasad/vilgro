@@ -1,5 +1,10 @@
-import React from "react"
-import LayoutWrapper from "../layout/LayoutWrapper"
+import React from "react";
+import LayoutWrapper from "../layout/LayoutWrapper";
+import DashboardHeader from "./Dashboard/DashboardHeader";
+import StatsCards from "./Dashboard/StatsCards";
+import AssessmentFunnel from "./Dashboard/AssessmentFunnel";
+import SectorDistribution from "./Dashboard/SectorDistribution";
+import RecentActivity from "./Dashboard/RecentActivity";
 
 /**
  * Admin Dashboard Component
@@ -12,58 +17,56 @@ import LayoutWrapper from "../layout/LayoutWrapper"
  * - Add admin features (user management, analytics, etc.)
  */
 const AdminDashboard: React.FC = () => {
+  // Dummy data for stats cards
+  const statsData = [
+    { title: "Total SPOs registered", value: "3000", gradient: true },
+    { title: "New SPOs", value: "27" },
+    { title: "Completion Rate", value: "67%" },
+    { title: "Loan Request Submission", value: "9" },
+  ];
+
+  // Dummy data for assessment funnel
+  const funnelData = [
+    { label: "Registered", count: 27, percentage: 100 },
+    { label: "Completed Basic information about the information", count: 25, percentage: 92.6 },
+    { label: "Completed Impact", count: 20, percentage: 74.1 },
+    { label: "Completed Risk", count: 20, percentage: 74.1 },
+    { label: "Completed Return", count: 15, percentage: 55.6 },
+  ];
+
+  // Dummy data for sector distribution
+  const sectorData = [
+    { name: "Agriculture", percentage: 20, count: 8, color: "#FFC107" },
+    { name: "Waste management / Recycling", percentage: 15, count: 6, color: "#66B2FF" },
+    { name: "Health", percentage: 25, count: 10, color: "#FF9800" },
+    { name: "Livelihood creation", percentage: 15, count: 6, color: "#9C27B0" },
+    { name: "Others", percentage: 25, count: 10, color: "#4CAF50" },
+  ];
+
+  // Dummy data for recent activity
+  const activityData = [
+    { message: "New bank user registered: HDFC Bank", timeAgo: "2 hours ago" },
+    { message: "New bank user registered: HDFC Bank", timeAgo: "2 hours ago" },
+    { message: "New bank user registered: HDFC Bank", timeAgo: "2 hours ago" },
+  ];
+
   return (
     <LayoutWrapper>
       <div className="space-y-6">
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Good Morning, John Doe</h1>
-            <p className="text-gray-600 mt-1">Filter: last 7 days</p>
-          </div>
-        </div>
+        <DashboardHeader userName="John Doe" filterText="last 7 days" />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Total SPOs registered</h3>
-            <p className="text-2xl font-bold text-gray-900">1,234</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">New SPOs</h3>
-            <p className="text-2xl font-bold text-gray-900">56</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Completion Rate</h3>
-            <p className="text-2xl font-bold text-gray-900">78%</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Loan Request Submission</h3>
-            <p className="text-2xl font-bold text-gray-900">89</p>
-          </div>
-        </div>
+        <StatsCards data={statsData} />
 
-        {/* Content Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Assessment Completion Funnel</h3>
-            <p className="text-gray-600">Chart placeholder - Assessment completion data will be displayed here</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Sector Distribution</h3>
-            <p className="text-gray-600">Chart placeholder - Sector distribution data will be displayed here</p>
-          </div>
+          <AssessmentFunnel data={funnelData} />
+          <SectorDistribution data={sectorData} />
         </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
-          <p className="text-gray-600">Activity log placeholder - Recent activities will be displayed here</p>
-        </div>
+        <RecentActivity activities={activityData} />
       </div>
     </LayoutWrapper>
-  )
-}
+  );
+};
 
-export default AdminDashboard
+export default AdminDashboard;
 

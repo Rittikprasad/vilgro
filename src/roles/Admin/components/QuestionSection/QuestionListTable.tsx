@@ -16,6 +16,13 @@ export interface QuestionItem {
   weight: number;
   status: string;
   options?: any; // Options for different question types
+  conditions?: Array<{
+    logic: {
+      q: string;
+      op: string;
+      val: string;
+    };
+  }>;
 }
 
 interface QuestionListTableProps {
@@ -44,9 +51,11 @@ const convertQuestionType = (apiType: string): string => {
     case 'SINGLE_CHOICE': return 'Multi-select';
     case 'MULTI_SLIDER': return 'Multi-Slider';
     case 'MULTI_CHOICE': return 'Multi-select';
+    case 'RATING': return 'RATING';
     case 'STAR_RATING': return 'RATING';
     case 'VISUAL_RATING': return 'Smiley face';
     case 'SLIDER': return 'Slider';
+    case 'NPS': return 'NPS';
     default: return apiType;
   }
 };
@@ -54,6 +63,22 @@ const convertQuestionType = (apiType: string): string => {
 // Helper function to convert question options based on type
 const convertQuestionOptions = (question: AdminQuestion): any => {
   if (question.options && question.options.length > 0) {
+    // For RATING questions, return labels and maxStars
+    if (question.type === 'RATING') {
+      return {
+        maxStars: question.options.length,
+        labels: question.options.map(option => option.label)
+      };
+    }
+    
+    // For NPS questions, return labels and maxStars (fixed to 5)
+    if (question.type === 'NPS') {
+      return {
+        maxStars: question.options.length || 5,
+        labels: question.options.map(option => option.label)
+      };
+    }
+    
     // For choice-based questions
     return {
       type: question.type === 'SINGLE_CHOICE' ? 'single-choice' : 'multiple-choice',

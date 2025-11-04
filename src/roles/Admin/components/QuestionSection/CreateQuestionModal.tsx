@@ -9,6 +9,7 @@ import SingleChoiceQuestionEditor from './SingleChoiceQuestionEditor';
 import MultipleChoiceQuestionEditor from './MultipleChoiceQuestionEditor';
 import SliderQuestionEditor from './SliderQuestionEditor';
 import StarRatingQuestionEditor from './StarRatingQuestionEditor';
+import NPSQuestionEditor from './NPSQuestionEditor';
 
 interface CreateQuestionModalProps {
   isOpen: boolean;
@@ -103,6 +104,11 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
           maxStars: 5,
           labels: ['1', '2', '3', '4', '5']
         };
+      case 'NPS':
+        return {
+          maxStars: 5, // Fixed to 5 for NPS
+          labels: ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely', 'Extremely likely']
+        };
       default:
         return {};
     }
@@ -142,11 +148,32 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
         { code: 'dimension2', label: 'Dimension 2', min_value: 0, max_value: 100, points_per_unit: 1, weight: 1 }
       ];
     } else if (updatedQuestion.type === 'RATING') {
+      console.log('CreateQuestionModal - Handling RATING question');
+      console.log('CreateQuestionModal - updatedQuestion options:', updatedQuestion.options);
+      console.log('CreateQuestionModal - labels:', updatedQuestion.options?.labels);
+      console.log('CreateQuestionModal - maxStars:', updatedQuestion.options?.maxStars);
+      
       payload.options = Array.from({ length: updatedQuestion.options?.maxStars || 5 }, (_, i) => ({
         label: updatedQuestion.options?.labels?.[i] || `${i + 1}`,
         value: (i + 1).toString(),
         points: '1'
       }));
+      
+      console.log('CreateQuestionModal - RATING options payload:', payload.options);
+    } else if (updatedQuestion.type === 'NPS') {
+      console.log('CreateQuestionModal - Handling NPS question');
+      console.log('CreateQuestionModal - updatedQuestion options:', updatedQuestion.options);
+      console.log('CreateQuestionModal - labels:', updatedQuestion.options?.labels);
+      console.log('CreateQuestionModal - maxStars:', updatedQuestion.options?.maxStars);
+      
+      // NPS is fixed to 5 options like star ratings
+      payload.options = Array.from({ length: updatedQuestion.options?.maxStars || 5 }, (_, i) => ({
+        label: updatedQuestion.options?.labels?.[i] || ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely', 'Extremely likely'][i],
+        value: i.toString(),
+        points: '1'
+      }));
+      
+      console.log('CreateQuestionModal - NPS options payload:', payload.options);
     }
 
     console.log('CreateQuestionModal - Final payload:', payload);
@@ -209,6 +236,15 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
       case 'RATING':
         return (
           <StarRatingQuestionEditor
+            question={questionItem}
+            onSave={handleSave}
+            onCancel={handleCancel}
+          />
+        );
+      case 'NPS':
+        // NPS uses NPSQuestionEditor with fixed 5 options and emojis
+        return (
+          <NPSQuestionEditor
             question={questionItem}
             onSave={handleSave}
             onCancel={handleCancel}

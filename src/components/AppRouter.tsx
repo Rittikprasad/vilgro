@@ -279,7 +279,7 @@ const AppRouter: React.FC = () => {
                 />
 
                 <Route
-                    path="/assessment/success"
+                    path="/assessment/:assessmentId/success"
                     element={
                         <ProtectedRoute>
                             <SubmissionSuccess />

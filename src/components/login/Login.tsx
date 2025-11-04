@@ -111,13 +111,13 @@ const Login: React.FC = () => {
           <div className="w-full max-w-md">
             {/* Logo Section */}
             <div className="flex justify-center items-center mb-8">
-              <img src={logo} alt="logo" className="object-contain w-[173.238px] h-[71.721px]" />
+              <img src={logo} alt="logo" className="object-contain md:w-36 w-24" />
             </div>
 
             {/* Form Title */}
             <div className="text-center mb-8">
-              <h1 className="text-[30px] font-semibold text-[#231f20] leading-[1.24] font-['Baskervville']">
-                Log in into <span className="text-[#46b753]">account</span>
+              <h1 className="text-2xl font-[500] text-gray-800 font-['Baskervville']">
+                Log in into <span className="villgro-green-text font-['Baskervville']">account</span>
               </h1>
             </div>
 
@@ -130,8 +130,8 @@ const Login: React.FC = () => {
                   type="email"
                   placeholder="Email ID"
                   className={cn(
-                    "w-[512px] h-12 px-4 py-3 rounded-lg bg-white border border-[#46b753] focus:outline-none focus:ring-0 focus:border-[#46b753] text-[16px] placeholder:text-[#a8a8a8]",
-                    errors.email && "border-red-500"
+                    "w-full h-12 px-4 py-3 rounded-lg bg-white ",
+                    errors.email ? "border-red-500" : "gradient-border"
                   )}
                 />
                 {errors.email && (
@@ -146,8 +146,8 @@ const Login: React.FC = () => {
                   type="password"
                   placeholder="Password"
                   className={cn(
-                    "w-[512px] h-12 px-4 py-3 rounded-lg bg-white border border-[#46b753] focus:outline-none focus:ring-0 focus:border-[#46b753] text-[16px] placeholder:text-[#a8a8a8]",
-                    errors.password && "border-red-500"
+                    "w-full h-12 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                    errors.password ? "border-red-500" : "gradient-border"
                   )}
                 />
                 {errors.password && (
@@ -178,7 +178,7 @@ const Login: React.FC = () => {
             <div className="text-center mt-6">
               <Link
                 to="/forgot-password"
-                className="text-[14px] text-[#46b753] underline hover:underline cursor-pointer"
+                className="text-[14px] villgro-green-text underline hover:underline cursor-pointer font-golos font-[300] text-[14px]"
               >
                 Forgot Password
               </Link>
@@ -186,11 +186,11 @@ const Login: React.FC = () => {
 
             {/* Sign up Link */}
             <div className="text-center mt-8">
-              <span className="text-[14px] text-[#231f20] leading-[1.24]">
+              <span className="text-gray-600 font-golos font-[300] text-[14px]">
                 Don't have an account?{" "}
                 <Link
                   to="/signup"
-                  className="text-[#46b753] underline cursor-pointer hover:underline"
+                  className="villgro-green-text cursor-pointer underline font-medium font-golos text-[14px] font-[300]"
                 >
                   Sign up here
                 </Link>

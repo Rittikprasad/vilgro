@@ -278,8 +278,8 @@ const Assessment: React.FC = () => {
                 const result = await dispatch(submitAssessment(currentAssessment.id) as any);
                 
                 if (submitAssessment.fulfilled.match(result)) {
-                    // Success - redirect to success page
-                    navigate('/assessment/success');
+                    // Success - redirect to success page with assessmentId
+                    navigate(`/assessment/${currentAssessment.id}/success`);
                 } else if (submitAssessment.rejected.match(result)) {
                     // Handle missing answers error
                     console.error('Submission failed:', result.payload);

@@ -9,25 +9,24 @@ interface VisualRatingOption {
 
 interface VisualRatingQuestionProps {
   question: string
+  questionNumber?: number
   value?: string
   onChange?: (value: string) => void
   options?: VisualRatingOption[]
 }
 
-/**
- * Visual Rating Question component
- * Displays emoji-based rating options in horizontal layout with gradient borders
- * Single selection with visual feedback on hover and selection
- */
+
 const VisualRatingQuestion: React.FC<VisualRatingQuestionProps> = ({ 
-  question, 
+  question,
+  questionNumber,
   value, 
   onChange,
   options = [
-    { value: "limited", emoji: "😞", label: "Limited potential for financial returns" },
-    { value: "moderate", emoji: "😐", label: "Moderate potential for financial returns" },
-    { value: "strong", emoji: "😊", label: "Strong potential for financial returns" },
-    { value: "excellent", emoji: "😄", label: "Excellent potential for financial returns" }
+    { value: "0", emoji: "😞", label: "Not at all likely" },
+    { value: "1", emoji: "😐", label: "Slightly likely" },
+    { value: "2", emoji: "😊", label: "Somewhat likely" },
+    { value: "3", emoji: "😄", label: "Very likely" },
+    { value: "4", emoji: "🥳", label: "Extremely likely" }
   ]
 }) => {
   /**
@@ -39,12 +38,14 @@ const VisualRatingQuestion: React.FC<VisualRatingQuestionProps> = ({
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-7">
       {/* Question */}
-      <p className="text-green-600 font-medium">{question}</p>
+      <p className="text-green-600 font-golos font-medium text-xl">
+        {questionNumber !== undefined && `${questionNumber}. `}{question}
+      </p>
       
       {/* Horizontal options layout */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-5 gap-3 p-2">
         {options.map((option) => (
           <div
             key={option.value}
@@ -54,10 +55,10 @@ const VisualRatingQuestion: React.FC<VisualRatingQuestionProps> = ({
               (!value || value === option.value) && "hover:scale-105",
               // Gradient border background
               value === option.value 
-                ? "bg-gradient-to-b from-[#46B753] to-[#E0DC32]" // Selected: normal gradient
+                ? "bg-gradient-to-b from-[#46B753] to-[#E0DC32]"
                 : value 
-                  ? "bg-gradient-to-b from-gray-300 to-gray-400" // Unselected: grey gradient
-                  : "bg-gradient-to-b from-[#46B753] to-[#E0DC32]", // No selection: normal gradient
+                  ? "bg-gradient-to-b from-gray-300 to-gray-400"
+                  : "bg-gradient-to-b from-[#46B753] to-[#E0DC32]",
               // Hover shadow only when no selection made
               !value && "hover:shadow-md"
             )}
@@ -77,15 +78,28 @@ const VisualRatingQuestion: React.FC<VisualRatingQuestionProps> = ({
             </div>
             
               {/* Label text - grey out when unselected */}
-              <span className={cn(
-                "label-text text-center leading-tight transition-all duration-200",
-                // Ensure selected option has normal text color, grey out only unselected options
-                value === option.value 
-                  ? "text-gray-900" // Selected: normal dark text
-                  : value 
-                    ? "text-gray-400" // Unselected when another is selected: grey text
-                    : "text-gray-900" // No selection: normal dark text
-              )}>
+              <span 
+                className={cn(
+                  "label-text text-center leading-tight transition-all duration-200 text-xs break-words",
+                  // Ensure selected option has normal text color, grey out only unselected options
+                  value === option.value 
+                    ? "text-gray-900"
+                    : value 
+                      ? "text-gray-400"
+                      : "text-gray-900"
+                )}
+                style={{
+                  fontFamily: 'Golos Text',
+                  fontWeight: 400,
+                  fontStyle: 'normal',
+                  fontSize: '12px',
+                  wordWrap: 'break-word',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  display: 'block',
+                  maxWidth: '100%'
+                }}
+              >
                 {option.label}
               </span>
             </button>

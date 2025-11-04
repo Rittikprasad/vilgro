@@ -8,6 +8,7 @@ import type {
   AdminSection,
   IInitialQuestionBuilderState,
   AdminQuestion,
+  QuestionCode,
 } from "./types";
 
 // Initial state
@@ -15,10 +16,13 @@ const getInitialState = (): IInitialQuestionBuilderState => {
   return {
     sections: [],
     questions: [],
+    questionCodes: [],
     isLoading: false,
     questionsLoading: false,
+    questionCodesLoading: false,
     error: null,
     questionsError: null,
+    questionCodesError: null,
   };
 };
 
@@ -126,6 +130,30 @@ export const deleteAdminQuestion = createAsyncThunk<
   }
 );
 
+// Async thunk to fetch question codes by section
+export const fetchQuestionCodesBySection = createAsyncThunk<
+  QuestionCode[],
+  string,
+  { rejectValue: { message: string; status: number } }
+>(
+  "questionBuilder/fetchQuestionCodesBySection",
+  async (sectionCode, { rejectWithValue }) => {
+    try {
+      const response = await api.get<QuestionCode[]>(
+        endpoints.admin.questionCodes(sectionCode)
+      );
+      return response.data;
+    } catch (error: any) {
+      ApiResponseHandler.handleError(error, "Failed to fetch question codes");
+      const errorMessage = error.response?.data?.message || "Failed to fetch question codes";
+      return rejectWithValue({
+        message: errorMessage,
+        status: error.response?.status || 500,
+      });
+    }
+  }
+);
+
 export const questionBuilderSlice = createSlice({
   name: "questionBuilder",
   initialState: getInitialState(),
@@ -201,6 +229,20 @@ export const questionBuilderSlice = createSlice({
       .addCase(deleteAdminQuestion.rejected, (state, action) => {
         state.questionsLoading = false;
         state.questionsError = action.payload?.message || "Failed to delete question";
+      })
+      // Question codes reducers
+      .addCase(fetchQuestionCodesBySection.pending, (state) => {
+        state.questionCodesLoading = true;
+        state.questionCodesError = null;
+      })
+      .addCase(fetchQuestionCodesBySection.fulfilled, (state, action) => {
+        state.questionCodesLoading = false;
+        state.questionCodes = action.payload;
+        state.questionCodesError = null;
+      })
+      .addCase(fetchQuestionCodesBySection.rejected, (state, action) => {
+        state.questionCodesLoading = false;
+        state.questionCodesError = action.payload?.message || "Failed to fetch question codes";
       });
   },
 });
@@ -212,11 +254,14 @@ export const {
   clearState,
 } = questionBuilderSlice.actions;
 
+export const clearQuestionCodes = questionBuilderSlice.actions;
+
 export default questionBuilderSlice.reducer;
 
 export const questionBuilderActionCreator = {
   fetchAdminSections,
   fetchQuestionsBySection,
+  fetchQuestionCodesBySection,
   updateAdminQuestion,
   deleteAdminQuestion,
 };

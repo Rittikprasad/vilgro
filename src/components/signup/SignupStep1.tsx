@@ -107,8 +107,8 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
 
           {/* Form Title */}
           <div className="text-center space-y-1">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              Create an <span className="villgro-green-text">account</span>
+            <h1 className="text-2xl font-[500] text-gray-800 font-['Baskervville']">
+              Create an <span className="villgro-green-text font-['Baskervville']">account</span>
             </h1>
           </div>
 
@@ -170,16 +170,8 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
                   type="checkbox"
                   className="custom-checkbox mt-1"
                 />
-                <span className="text-[12px] text-gray-600">
-                  Creating an account means you're okay with our{" "}
-                  <span className="villgro-green-text cursor-pointer hover:underline">
-                    Terms and Conditions
-                  </span>{" "}
-                  and our default{" "}
-                  <span className="villgro-green-text cursor-pointer hover:underline">
-                    Notification Settings
-                  </span>
-                  .
+                <span className="text-[12px] font-[300] text-gray-900 font-golos">
+                  By checking this box, I consent to the collection and use of my personal data by Villgro for future engagement nd communications.
                 </span>
               </label>
               {errors.termsAccepted && (
@@ -201,13 +193,13 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
 
           {/* Login Link */}
           <div className="text-center">
-            <span className="text-gray-600">
+            <span className="text-gray-600 font-golos font-[300] text-[14px]">
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="villgro-green-text cursor-pointer hover:underline font-medium"
+                className="villgro-green-text cursor-pointer underline font-medium font-golos"
               >
-                Login here!
+                Login here
               </Link>
             </span>
           </div>

@@ -92,10 +92,43 @@ export interface MissingAnswersError {
 }
 
 export interface AssessmentResult {
-  id: string;
-  scores: Record<string, number>;
+  id: number;
+  status: string;
+  started_at: string;
   submitted_at: string;
-  cooldown_until?: string;
+  cooldown_until: string;
+  progress: {
+    percent: number;
+    answered: number;
+    required: number;
+    by_section: Record<string, { answered: number; required: number }>;
+    last_section: string;
+  };
+  scores: {
+    sections: {
+      RISK: number;
+      IMPACT: number;
+      RETURN: number;
+      SECTOR_MATURITY: number;
+    };
+    overall: number;
+  };
+  graph: {
+    scores: {
+      overall: number;
+      sections: {
+        RISK: number;
+        IMPACT: number;
+        RETURN: number;
+        SECTOR_MATURITY: number;
+      };
+    };
+    plot: {
+      x: string;
+      y: string;
+      z: string;
+    };
+  };
 }
 
 export interface AssessmentHistory {

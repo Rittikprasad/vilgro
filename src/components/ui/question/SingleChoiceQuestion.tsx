@@ -30,9 +30,9 @@ const SingleChoiceQuestion: React.FC<SingleChoiceQuestionProps> = ({
   ]
 }) => {
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-7">
       {/* Question */}
-      <p className="text-green-600 font-medium">
+      <p className="text-green-600 font-golos font-medium text-xl">
         {questionNumber !== undefined && `${questionNumber}. `}{question}
       </p>
       

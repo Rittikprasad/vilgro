@@ -12,12 +12,19 @@ export interface CreateQuestionPayload {
   section: string;
   code: string;
   text: string;
-  type: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'SLIDER' | 'MULTI_SLIDER' | 'RATING';
+  type: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'SLIDER' | 'MULTI_SLIDER' | 'RATING' | 'NPS';
   required: boolean;
   order: number;
   weight: string;
   options?: Array<{ label: string; value: string; points: string }>;
   dimensions?: Array<{ code: string; label: string; min_value: number; max_value: number; points_per_unit: number; weight: number }>;
+  conditions?: Array<{
+    logic: {
+      q: string;
+      op: string;
+      val: string;
+    };
+  }>;
 }
 
 export interface CreateQuestionResponse {

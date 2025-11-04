@@ -29,9 +29,9 @@ const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, questionNumbe
   const labels = Array.from({ length: labelCount }, (_, i) => min + i * labelStep);
 
   return (
-    <div className="w-full space-y-3 pl-3 pr-3">
+    <div className="w-full space-y-7 pl-3 pr-3">
       {/* Question */}
-      <p className="text-green-600 font-medium">
+      <p className="text-green-600 font-golos font-medium text-xl">
         {questionNumber !== undefined && `${questionNumber}. `}{question}
       </p>
 

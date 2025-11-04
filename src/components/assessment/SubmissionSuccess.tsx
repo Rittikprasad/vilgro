@@ -1,16 +1,96 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '../ui/Button';
 import Navbar from '../ui/Navbar';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { getResults } from '../../features/assessment/assessmentSlice';
+import type { RootState } from '../../app/store';
 
 const SubmissionSuccess: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { assessmentId } = useParams<{ assessmentId: string }>();
+  
+  // Get results from Redux store
+  const assessmentResult = useSelector((state: RootState) => state.assessment.results);
+  const isLoading = useSelector((state: RootState) => state.assessment.isLoading);
+  const error = useSelector((state: RootState) => state.assessment.error);
+  
+  // Fetch results when component mounts
+  useEffect(() => {
+    if (assessmentId) {
+      dispatch(getResults(assessmentId) as any);
+    }
+  }, [assessmentId, dispatch]);
 
-  // Sample data for the scatter plot - 3 variables: Risk, Impact, Return
-  const chartData = [
-    { risk: 22, impact: 67, return: 67 }
-  ];
+  // Show loading state while fetching
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading results...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button
+              variant="outline"
+              onClick={() => assessmentId && dispatch(getResults(assessmentId) as any)}
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Prepare chart data from assessment result
+  const chartData = assessmentResult 
+    ? [{
+        risk: assessmentResult.graph.scores.sections.RISK,
+        impact: assessmentResult.graph.scores.sections.IMPACT,
+        return: assessmentResult.graph.scores.sections.RETURN,
+      }]
+    : [{ risk: 0, impact: 0, return: 0 }];
+
+  // Get overall score
+  const overallScore = assessmentResult?.scores.overall || 0;
+
+  // Determine eligibility based on overall score (threshold can be adjusted)
+  const isEligible = overallScore >= 10;
+
+  // Generate instrument recommendation based on scores
+  const getInstrumentRecommendation = () => {
+    if (!assessmentResult) return "Commercial Debt with Impact Linked Financing";
+    
+    const { RISK, IMPACT, RETURN } = assessmentResult.graph.scores.sections;
+    
+    // Simple logic for instrument recommendation
+    if (RISK < 10 && IMPACT > 50 && RETURN < 30) {
+      return "Grant Funding";
+    } else if (RISK < 30 && RETURN > 50) {
+      return "Commercial Debt with Impact Linked Financing";
+    } else if (RETURN > 70) {
+      return "Equity Investment";
+    } else {
+      return "Mezzanine Financing";
+    }
+  };
 
   return (
     <>
@@ -24,18 +104,26 @@ const SubmissionSuccess: React.FC = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Overall Score Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Overall Score</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Overall Score: {overallScore.toFixed(2)}</h2>
               
               {/* Eligibility Message */}
               <div className="flex items-start space-x-4 mb-8">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
+                <div className={`w-8 h-8 ${isEligible ? 'bg-green-100' : 'bg-red-100'} rounded-full flex items-center justify-center flex-shrink-0`}>
+                  {isEligible ? (
+                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  )}
                 </div>
                 <div className="flex-1">
                   <p className="text-lg text-gray-700">
-                    Based on your responses, we believe <span className="text-green-600 font-semibold">you are eligible</span> for philanthropic funding.
+                    Based on your responses, we believe <span className={`${isEligible ? 'text-green-600' : 'text-red-600'} font-semibold`}>
+                      you are {isEligible ? 'eligible' : 'not eligible'}
+                    </span> for philanthropic funding.
                   </p>
                 </div>
                 <div className="flex space-x-3">
@@ -61,7 +149,7 @@ const SubmissionSuccess: React.FC = () => {
                   The instrument most appropriate for your current stage and profile is
                 </p>
                 <p className="text-xl font-semibold text-green-600">
-                  Commercial Debt with Impact Linked Financing
+                  {getInstrumentRecommendation()}
                 </p>
               </div>
 
@@ -139,7 +227,7 @@ const SubmissionSuccess: React.FC = () => {
                         r={8}
                       />
                       
-                      {/* Horizontal reference lines connecting Impact and Return values */}
+                      {/* Horizontal reference lines at 25, 50, 75 */}
                       <ReferenceLine 
                         yAxisId="left"
                         y={75} 
@@ -156,6 +244,27 @@ const SubmissionSuccess: React.FC = () => {
                       />
                       <ReferenceLine 
                         yAxisId="left"
+                        y={25} 
+                        stroke="#d1d5db" 
+                        strokeDasharray="3 3" 
+                        strokeWidth={1}
+                      />
+                      <ReferenceLine 
+                        yAxisId="right"
+                        y={75} 
+                        stroke="#d1d5db" 
+                        strokeDasharray="3 3" 
+                        strokeWidth={1}
+                      />
+                      <ReferenceLine 
+                        yAxisId="right"
+                        y={50} 
+                        stroke="#d1d5db" 
+                        strokeDasharray="3 3" 
+                        strokeWidth={1}
+                      />
+                      <ReferenceLine 
+                        yAxisId="right"
                         y={25} 
                         stroke="#d1d5db" 
                         strokeDasharray="3 3" 

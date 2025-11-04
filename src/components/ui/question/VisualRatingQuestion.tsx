@@ -40,7 +40,7 @@ const VisualRatingQuestion: React.FC<VisualRatingQuestionProps> = ({
   return (
     <div className="w-full space-y-7">
       {/* Question */}
-      <p className="text-green-600 font-golos font-medium text-xl">
+      <p className="text-[#46B753] font-golos font-medium text-[18px] font-[500]">
         {questionNumber !== undefined && `${questionNumber}. `}{question}
       </p>
       

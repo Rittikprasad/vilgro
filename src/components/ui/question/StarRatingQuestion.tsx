@@ -1,6 +1,29 @@
 import React from 'react'
-import { Star } from "lucide-react"
 import { cn } from "../../../lib/utils"
+
+/**
+ * Custom Star SVG component with sharp, pointed edges
+ */
+const SharpStar: React.FC<{ className?: string; filled?: boolean }> = ({ className, filled = false }) => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth={filled ? "1.5" : "0.75"}
+      strokeLinecap="butt"
+      strokeLinejoin="miter"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ shapeRendering: "geometricPrecision" }}
+    >
+      <path
+        d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  )
+}
 
 interface StarRatingQuestionProps {
   question: string
@@ -47,12 +70,12 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
   return (
     <div className="w-full space-y-7">
       {/* Question */}
-      <p className="text-green-600 font-golos font-medium text-xl">
+      <p className="text-[#46B753] font-golos font-medium text-[18px] font-[500]">
         {questionNumber !== undefined && `${questionNumber}. `}{question}
       </p>
       
       {/* Star rating scale - horizontal layout with matching width containers for alignment */}
-      <div className="flex items-center gap-12">
+      <div className="flex items-center gap-18">
         {Array.from({ length: maxStars }, (_, index) => {
           const starNumber = index + 1
           const isFilled = starNumber <= value
@@ -68,13 +91,14 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
                 disabled && "opacity-50 cursor-not-allowed"
               )}
             >
-              <Star
+              <SharpStar
                 className={cn(
                   "h-10 w-10 transition-all duration-200",
                   isFilled 
-                    ? "fill-yellow-400 text-yellow-400" 
-                    : "fill-none text-gray-500 stroke-1"
+                    ? "text-yellow-400" 
+                    : "text-gray-500"
                 )}
+                filled={isFilled}
               />
             </button>
           )
@@ -83,16 +107,16 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
 
       {/* Optional labels below stars - show if labels are provided */}
       {showLabels && (
-        <div className="flex items-start gap-12">
+        <div className="flex items-start gap-18">
           {Array.from({ length: maxStars }, (_, index) => (
             <div 
               key={index} 
               className="text-xs text-gray-600 text-center flex-shrink-0 break-words"
               style={{
                 fontFamily: 'Golos Text',
-                fontWeight: 400,
+                fontWeight: 300,
                 fontStyle: 'normal',
-                fontSize: '12px',
+                fontSize: '16px',
                 width: '2.5rem', // Match star width (40px = 2.5rem)
                 wordWrap: 'break-word',
                 wordBreak: 'break-word',

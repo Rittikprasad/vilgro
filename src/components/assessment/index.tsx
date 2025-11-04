@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AssessmentLayout from "./AssessmentLayout";
 import QuestionRenderer from "./QuestionRenderer";
+import AssessmentDashboard from "./AssessmentDashboard";
 import Navbar from "../ui/Navbar";
 import { 
   startAssessment, 
@@ -290,24 +291,12 @@ const Assessment: React.FC = () => {
         }
     }, [currentAssessment, sections, currentSection, currentQuestionIndex, questions, localAnswers, dispatch, navigate]);
 
-    // Show cooldown screen
+    // Show dashboard when cooldown is active (user has already submitted assessment)
     if (cooldownMessage) {
         return (
             <>
                 <Navbar />
-                <div className="pt-20 p-6">
-                    <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                        <div className="text-yellow-600 text-6xl mb-4">⏰</div>
-                        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Assessment Cooldown</h2>
-                        <p className="text-gray-600 mb-6">{cooldownMessage}</p>
-                        <button
-                            onClick={() => navigate('/')}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                        >
-                            Go Home
-                        </button>
-                    </div>
-                </div>
+                <AssessmentDashboard />
             </>
         );
     }

@@ -1,8 +1,9 @@
-import React from "react"
+import React, { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useNavigate } from "react-router-dom"
+import { Eye, EyeOff } from "lucide-react"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
@@ -35,6 +36,9 @@ type CreateNewPasswordFormData = z.infer<typeof createNewPasswordSchema>
  */
 const CreateNewPassword: React.FC = () => {
   const navigate = useNavigate()
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  
   const {
     register,
     handleSubmit,
@@ -68,7 +72,7 @@ const CreateNewPassword: React.FC = () => {
           <div className="w-full max-w-md">
             {/* Logo Section */}
             <div className="flex justify-center items-center mb-8">
-              <img src={logo} alt="logo" className="object-contain w-[173.238px] h-[71.721px]" />
+              <img src={logo} alt="logo" className="object-contain md:w-36 w-24" />
             </div>
 
             {/* Form */}
@@ -78,10 +82,10 @@ const CreateNewPassword: React.FC = () => {
                 <Input
                   {...register("email")}
                   type="email"
-                  placeholder="123@organization.com"
+                  placeholder="Enter Email ID"
                   className={cn(
-                    "w-[512px] h-12 px-4 py-3 rounded-lg bg-white border border-[#46b753] focus:outline-none focus:ring-0 focus:border-[#46b753] text-[16px] placeholder:text-[#a8a8a8]",
-                    errors.email && "border-red-500"
+                    "w-full h-12 px-4 py-3 rounded-lg bg-white",
+                    errors.email ? "border-red-500" : "gradient-border"
                   )}
                 />
                 {errors.email && (
@@ -91,15 +95,29 @@ const CreateNewPassword: React.FC = () => {
 
               {/* New Password Input */}
               <div className="space-y-1">
-                <Input
-                  {...register("newPassword")}
-                  type="password"
-                  placeholder="Create new password"
-                  className={cn(
-                    "w-[512px] h-12 px-4 py-3 rounded-lg bg-white border border-[#46b753] focus:outline-none focus:ring-0 focus:border-[#46b753] text-[16px] placeholder:text-[#a8a8a8]",
-                    errors.newPassword && "border-red-500"
-                  )}
-                />
+                <div className="relative">
+                  <Input
+                    {...register("newPassword")}
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="Create new Password"
+                    className={cn(
+                      "w-full h-12 px-4 py-3 pr-12 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                      errors.newPassword ? "border-red-500" : "gradient-border"
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#46b753] transition-colors cursor-pointer"
+                    aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
                 {errors.newPassword && (
                   <p className="text-red-500 text-sm">{errors.newPassword.message}</p>
                 )}
@@ -107,26 +125,40 @@ const CreateNewPassword: React.FC = () => {
 
               {/* Confirm Password Input */}
               <div className="space-y-1">
-                <Input
-                  {...register("confirmPassword")}
-                  type="password"
-                  placeholder="Confirm new password"
-                  className={cn(
-                    "w-[512px] h-12 px-4 py-3 rounded-lg bg-white border border-[#46b753] focus:outline-none focus:ring-0 focus:border-[#46b753] text-[16px] placeholder:text-[#a8a8a8]",
-                    errors.confirmPassword && "border-red-500"
-                  )}
-                />
+                <div className="relative">
+                  <Input
+                    {...register("confirmPassword")}
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm new Password"
+                    className={cn(
+                      "w-full h-12 px-4 py-3 pr-12 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                      errors.confirmPassword ? "border-red-500" : "gradient-border"
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#46b753] transition-colors cursor-pointer"
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
                 )}
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-center w-[512px]">
+              <div className="flex justify-center">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-[312px] h-12 text-black font-normal text-[16px] rounded-lg gradient-bg hover:opacity-90 transition-opacity"
+                  className="w-[300px] h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
                   {isSubmitting ? "Creating..." : "Confirm & Login again"}
                 </Button>

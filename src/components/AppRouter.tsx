@@ -12,6 +12,9 @@ import Home from './Home';
 import type { RootState } from '../app/store';
 import Assessment from './assessment';
 import SubmissionSuccess from './assessment/SubmissionSuccess';
+import EnterEmail from './forgot-password/EnterEmail';
+import EnterCode from './forgot-password/EnterCode';
+import CreateNewPassword from './forgot-password/CreateNewPassword';
 import { 
   AdminLogin, 
   AdminDashboard,
@@ -158,6 +161,20 @@ const AppRouter: React.FC = () => {
                             <Login />
                         </AuthRoute>
                     }
+                />
+
+                {/* Forgot Password Flow */}
+                <Route
+                    path="/forgot-password"
+                    element={<EnterEmail />}
+                />
+                <Route
+                    path="/forgot-password/enter-code"
+                    element={<EnterCode />}
+                />
+                <Route
+                    path="/forgot-password/create-new-password"
+                    element={<CreateNewPassword />}
                 />
 
                 <Route

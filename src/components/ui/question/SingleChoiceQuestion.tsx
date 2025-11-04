@@ -32,7 +32,7 @@ const SingleChoiceQuestion: React.FC<SingleChoiceQuestionProps> = ({
   return (
     <div className="w-full space-y-7">
       {/* Question */}
-      <p className="text-green-600 font-golos font-medium text-xl">
+      <p className="text-[#46B753] font-golos font-medium text-[18px] font-[500]">
         {questionNumber !== undefined && `${questionNumber}. `}{question}
       </p>
       
@@ -47,7 +47,7 @@ const SingleChoiceQuestion: React.FC<SingleChoiceQuestionProps> = ({
             <RadioGroupItem value={option.value} id={option.value} />
             <label 
               htmlFor={option.value}
-              className="label-text text-base font-golos font-normal peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              className="text-base font-golos !font-[300] !text-[14px] peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               {option.label}
             </label>

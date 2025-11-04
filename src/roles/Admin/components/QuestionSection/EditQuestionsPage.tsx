@@ -21,6 +21,7 @@ import SingleChoiceQuestionEditor from './SingleChoiceQuestionEditor';
 import MultipleChoiceQuestionEditor from './MultipleChoiceQuestionEditor';
 import SliderQuestionEditor from './SliderQuestionEditor';
 import StarRatingQuestionEditor from './StarRatingQuestionEditor';
+import NPSQuestionEditor from './NPSQuestionEditor';
 
 interface EditQuestionsPageProps {
   questions: QuestionItem[];
@@ -50,19 +51,40 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
   } = useSelector((state: RootState) => state.assessment);
 
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
-  const [questionsList, setQuestionsList] = useState<QuestionItem[]>(questions);
+  
+  // Helper to fix RATING questions that were incorrectly converted
+  const fixRatingQuestions = (qList: QuestionItem[]): QuestionItem[] => {
+    return qList.map(q => {
+      // If it's a RATING question but has the wrong options format
+      if (q.type === 'RATING' && q.options?.type === 'multiple-choice' && Array.isArray(q.options.choices)) {
+        return {
+          ...q,
+          options: {
+            maxStars: q.options.choices.length,
+            labels: q.options.choices
+          }
+        };
+      }
+      return q;
+    });
+  };
+  
+  const [questionsList, setQuestionsList] = useState<QuestionItem[]>(fixRatingQuestions(questions));
+
+  // Update questionsList when questions prop changes (e.g., after refetch)
+  useEffect(() => {
+    setQuestionsList(fixRatingQuestions(questions));
+  }, [questions]);
   const [selectedQuestionType, setSelectedQuestionType] = useState<QuestionType | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
 
-  // Fetch question types on component mount
+  // Fetch question types on component mount - always fetch to get latest from backend
   useEffect(() => {
-    if (questionTypes.length === 0) {
-      dispatch(getQuestionTypes() as any);
-    }
-  }, [dispatch, questionTypes.length]);
+    dispatch(getQuestionTypes() as any);
+  }, [dispatch]);
 
   // Clear errors when component unmounts
   useEffect(() => {
@@ -140,6 +162,11 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
           points: '1'
         })) || [];
       }
+    }
+
+    // Add conditions if they exist
+    if (question.conditions && question.conditions.length > 0) {
+      payload.conditions = question.conditions;
     }
 
     console.log('EditQuestionsPage - Final payload:', payload);
@@ -287,6 +314,10 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         
         // Convert API response to QuestionItem format
         if (createdQuestion) {
+          console.log('Created question from API:', createdQuestion);
+          const options = convertApiOptionsToQuestionOptions(createdQuestion);
+          console.log('Converted options:', options);
+          
           const newQuestion: QuestionItem = {
             id: parseInt(createdQuestion.id) || Date.now(),
             order: createdQuestion.order || Math.max(...questionsList.map(q => q.order), 0) + 1,
@@ -294,8 +325,10 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
             type: convertApiTypeToDisplayType(createdQuestion.type),
             weight: parseFloat(createdQuestion.weight) || 1,
             status: 'Active',
-            options: convertApiOptionsToQuestionOptions(createdQuestion)
+            options: options
           };
+          
+          console.log('New question to add:', newQuestion);
           
           // Add the new question to the local list
           setQuestionsList([...questionsList, newQuestion]);
@@ -318,13 +351,40 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
       case 'SLIDER': return 'Slider';
       case 'MULTI_SLIDER': return 'Multi-Slider';
       case 'RATING': return 'RATING';
+      case 'NPS': return 'NPS';
       default: return apiType;
     }
   };
 
   // Helper function to convert API options to question options
   const convertApiOptionsToQuestionOptions = (question: any): any => {
+    console.log('convertApiOptionsToQuestionOptions - question:', question);
+    console.log('convertApiOptionsToQuestionOptions - question.type:', question.type);
+    
     if (question.options && question.options.length > 0) {
+      console.log('convertApiOptionsToQuestionOptions - options found:', question.options);
+      
+      // For RATING questions, return labels and maxStars
+      if (question.type === 'RATING') {
+        const converted = {
+          maxStars: question.options.length,
+          labels: question.options.map((opt: any) => opt.label)
+        };
+        console.log('convertApiOptionsToQuestionOptions - RATING converted to:', converted);
+        return converted;
+      }
+      
+      // For NPS questions, return labels and maxStars (fixed to 5)
+      if (question.type === 'NPS') {
+        const converted = {
+          maxStars: question.options.length || 5,
+          labels: question.options.map((opt: any) => opt.label)
+        };
+        console.log('convertApiOptionsToQuestionOptions - NPS converted to:', converted);
+        return converted;
+      }
+      
+      // For SINGLE_CHOICE and MULTI_CHOICE, return choices
       return {
         type: question.type === 'SINGLE_CHOICE' ? 'single-choice' : 'multiple-choice',
         choices: question.options.map((opt: any) => opt.label)
@@ -353,6 +413,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         };
       }
     }
+    console.log('convertApiOptionsToQuestionOptions - no options, returning empty object');
     return {};
   };
 
@@ -489,11 +550,31 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         }
 
       case 'RATING':
+        console.log('Rendering RATING question:', question);
+        console.log('RATING question options:', question.options);
+        console.log('RATING labels:', question.options?.labels);
         return (
           <StarRatingQuestion
             {...commonProps}
             maxStars={question.options?.maxStars || 5}
             labels={question.options?.labels || []}
+          />
+        );
+
+      case 'NPS':
+        // Convert options to VisualRatingOptions format with fixed 5 options  
+        const npsLabels = question.options?.labels || ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely', 'Extremely likely'];
+        const npsOptions = [
+          { value: "0", emoji: "😞", label: npsLabels[0] || "Not at all likely" },
+          { value: "1", emoji: "😐", label: npsLabels[1] || "Slightly likely" },
+          { value: "2", emoji: "😊", label: npsLabels[2] || "Somewhat likely" },
+          { value: "3", emoji: "😄", label: npsLabels[3] || "Very likely" },
+          { value: "4", emoji: "🥳", label: npsLabels[4] || "Extremely likely" }
+        ];
+        return (
+          <VisualRatingQuestion
+            {...commonProps}
+            options={npsOptions}
           />
         );
 
@@ -625,6 +706,14 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                 />
               ) : question.type === 'RATING' ? (
                 <StarRatingQuestionEditor
+                  question={question}
+                  onSave={handleSaveQuestion}
+                  onCancel={handleCancelEdit}
+                  onDelete={handleOpenDeleteModal}
+                  isLoading={isUpdating}
+                />
+              ) : question.type === 'NPS' ? (
+                <NPSQuestionEditor
                   question={question}
                   onSave={handleSaveQuestion}
                   onCancel={handleCancelEdit}

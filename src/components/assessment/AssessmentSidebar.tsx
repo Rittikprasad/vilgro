@@ -25,7 +25,7 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 h-[80vh] overflow-y-auto sticky top-24">
       {/* Progress Steps */}
-      <div className="space-y-4">
+      <div className="space-y-12">
         {steps.map((step, index) => {
           // Calculate progress percentage for the connecting line
           const progressPercentage = step.progress 
@@ -36,7 +36,7 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
             <div key={step.id} className="relative">
               {/* Connecting Line */}
               {index < steps.length - 1 && (
-                <div className="absolute left-3.5 top-10 w-1 h-12 bg-gray-200">
+                <div className="absolute left-3.5 top-10 w-1 h-16 bg-gray-200">
                   <div 
                     className="w-1 bg-green-600 transition-all duration-300"
                     style={{ height: `${(progressPercentage / 100) * 48}px` }}

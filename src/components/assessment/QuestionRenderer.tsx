@@ -3,6 +3,7 @@ import SingleChoiceQuestion from '../ui/question/SingleChoiceQuestion';
 import MultipleChoiceQuestion from '../ui/question/MultipleChoiceQuestion';
 import SliderQuestion from '../ui/question/SliderQuestion';
 import StarRatingQuestion from '../ui/question/StarRatingQuestion';
+import VisualRatingQuestion from '../ui/question/VisualRatingQuestion';
 
 interface QuestionOption {
   label: string;
@@ -17,10 +18,16 @@ interface QuestionDimension {
   max: number;
 }
 
+interface VisualRatingOption {
+  value: string;
+  emoji: string;
+  label: string;
+}
+
 interface AssessmentQuestion {
   code: string;
   text: string;
-  type: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'SLIDER' | 'RATING' | 'MULTI_SLIDER';
+  type: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'SLIDER' | 'RATING' | 'MULTI_SLIDER' | 'NPS';
   required: boolean;
   options?: QuestionOption[];
   dimensions?: QuestionDimension[];
@@ -28,6 +35,7 @@ interface AssessmentQuestion {
   max?: number;
   step?: number;
   answer?: any;
+  visualRatingOptions?: VisualRatingOption[];
 }
 
 interface QuestionRendererProps {
@@ -79,6 +87,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     
     switch (question.type) {
       case 'SINGLE_CHOICE':
+      case 'NPS':
         return value.value || '';
       case 'MULTI_CHOICE':
         return value.values || [];
@@ -134,14 +143,49 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       );
 
     case 'RATING':
+      // Extract labels from options array
+      const ratingLabels = question.options?.map(opt => opt.label) || [];
+      const maxStars = question.options?.length || question.max || 5;
+      
       return (
         <StarRatingQuestion
           question={question.text}
           questionNumber={questionNumber}
           value={currentValue as number}
           onChange={handleRatingChange}
-          maxStars={question.max || 5}
+          maxStars={maxStars}
+          labels={ratingLabels}
           disabled={disabled}
+        />
+      );
+
+    case 'NPS':
+      // Helper to get NPS emoji based on index
+      const getNPSEmoji = (index: number): string => {
+        const emojis = ["😞", "😐", "😊", "😄", "🥳"];
+        return emojis[index] || "😐";
+      };
+      
+      // Convert options to VisualRatingOptions format with fixed 5 options
+      const npsOptions = question.visualRatingOptions || (question.options?.map((opt, index) => ({
+        value: opt.value,
+        emoji: getNPSEmoji(index),
+        label: opt.label
+      }))) || [
+        { value: "0", emoji: "😞", label: "Not at all likely" },
+        { value: "1", emoji: "😐", label: "Slightly likely" },
+        { value: "2", emoji: "😊", label: "Somewhat likely" },
+        { value: "3", emoji: "😄", label: "Very likely" },
+        { value: "4", emoji: "🥳", label: "Extremely likely" }
+      ];
+      
+      return (
+        <VisualRatingQuestion
+          question={question.text}
+          questionNumber={questionNumber}
+          value={currentValue as string}
+          onChange={(val) => onChange({ value: val })}
+          options={npsOptions}
         />
       );
 

@@ -49,6 +49,7 @@ export const endpoints = {
     sections: `${BASE_URL}/admin/sections/`,
     questionsBySection: (sectionCode: string) => `${BASE_URL}/admin/questions/by-section/?section=${sectionCode}`,
     questionTypes: `${BASE_URL}/admin/meta/question-types/`,
+    questionCodes: (sectionCode: string) => `${BASE_URL}/admin/meta/question-codes/?section=${sectionCode}`,
     createQuestion: `${BASE_URL}/admin/questions/`,
     updateQuestion: (id: number | string) => `${BASE_URL}/admin/questions/${id}/`,
     deleteQuestion: (id: number | string) => `${BASE_URL}/admin/questions/${id}/`,

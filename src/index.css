@@ -50,19 +50,21 @@ body {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    width: 18px;
-    height: 16px;
-    border: 2px solid #d1d5db;
+    width: 25px;
+    height: 18px;
     border-radius: 3px;
-    background-color: white;
+    border: 1px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%) border-box;
     cursor: pointer;
     position: relative;
     transition: all 0.2s ease;
+    display: block;
   }
   
   .custom-checkbox:checked {
-    background-color: #46B753;
-    border-color: #46B753;
+    background: linear-gradient(#46B753, #46B753) padding-box,
+                linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%) border-box;
   }
   
   .custom-checkbox:checked::after {

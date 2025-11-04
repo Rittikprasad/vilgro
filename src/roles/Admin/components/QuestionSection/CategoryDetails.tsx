@@ -47,29 +47,17 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
     dispatch(fetchAdminSections() as any);
   }, [dispatch]);
 
-  // Helper function to assign weightage based on section code
-  const getWeightageForSection = (code: string): number => {
-    switch (code) {
-      case 'IMPACT': return 40;
-      case 'RISK': return 30;
-      case 'RETURN': return 20;
-      case 'SECTOR_MATURITY': return 10;
-      case 'FEEDBACK': return 5;
-      default: return 10;
-    }
-  };
-
-  // Convert API sections to sub-categories with dummy data
+  // Convert API sections to sub-categories using actual API data
   console.log("CategoryDetails - sections from state:", sections);
   console.log("CategoryDetails - sections length:", sections?.length);
   
   const subCategories: QuestionSubCategory[] = (sections || []).map((section: AdminSection) => ({
     id: section.code.toLowerCase(),
     title: section.title,
-    weightage: getWeightageForSection(section.code),
-    totalQuestions: 16, // Dummy data - will come from API later
-    activeQuestions: 16, // Dummy data - will come from API later
-    inactiveQuestions: 0, // Dummy data - will come from API later
+    weightage: section.weightage || 0,
+    totalQuestions: section.total_questions || 0,
+    activeQuestions: section.active_questions || 0,
+    inactiveQuestions: section.inactive_questions || 0,
   }));
 
   // Handle sub-category selection

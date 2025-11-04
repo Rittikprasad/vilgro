@@ -9,6 +9,10 @@ export interface AdminSection {
   code: string;
   title: string;
   order: number;
+  weightage: number;
+  total_questions: number;
+  active_questions: number;
+  inactive_questions: number;
 }
 
 // Question Option interface
@@ -66,10 +70,20 @@ export interface AdminSectionsResponse {
 export interface IInitialQuestionBuilderState {
   sections: AdminSection[];
   questions: AdminQuestion[];
+  questionCodes: QuestionCode[];
   isLoading: boolean;
   questionsLoading: boolean;
+  questionCodesLoading: boolean;
   error: string | null;
   questionsError: string | null;
+  questionCodesError: string | null;
+}
+
+// Question Code interface for conditional branching
+export interface QuestionCode {
+  code: string;
+  text: string;
+  type: string;
 }
 
 // Question Builder Tab enum

@@ -4,7 +4,7 @@ import { Card, CardContent } from '../../../../components/ui/Card';
 import type { QuestionItem } from './QuestionListTable';
 import ACBIcon from '../../../../assets/svg/ACB.svg';
 
-interface StarRatingQuestionEditorProps {
+interface NPSQuestionEditorProps {
   question: QuestionItem;
   onSave: (updatedQuestion: QuestionItem) => void;
   onCancel: () => void;
@@ -12,7 +12,7 @@ interface StarRatingQuestionEditorProps {
   isLoading?: boolean;
 }
 
-const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
+const NPSQuestionEditor: React.FC<NPSQuestionEditorProps> = ({
   question,
   onSave,
   onCancel,
@@ -20,29 +20,15 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
   isLoading = false
 }) => {
   const [questionText, setQuestionText] = useState(question.question);
-  const [maxStars, setMaxStars] = useState(question.options?.maxStars || 5);
-  const [labels, setLabels] = useState<string[]>(question.options?.labels || ['1', '2', '3', '4', '5']);
+  // Fixed to 5 options for NPS
+  const emojis = ['😞', '😐', '😊', '😄', '🥳'];
+  const defaultLabels = ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely', 'Extremely likely'];
+  const [labels, setLabels] = useState<string[]>(
+    question.options?.labels || defaultLabels
+  );
   const [weightage, setWeightage] = useState(question.weight);
   const [order, setOrder] = useState(question.order);
   const [isActive, setIsActive] = useState(question.status === 'Active');
-
-  // Update labels when maxStars changes
-  const handleMaxStarsChange = (newMaxStars: number) => {
-    setMaxStars(newMaxStars);
-    
-    // Adjust labels array to match new maxStars
-    const newLabels = [...labels];
-    if (newMaxStars > labels.length) {
-      // Add new labels
-      for (let i = labels.length; i < newMaxStars; i++) {
-        newLabels.push(`${i + 1}`);
-      }
-    } else if (newMaxStars < labels.length) {
-      // Remove excess labels
-      newLabels.splice(newMaxStars);
-    }
-    setLabels(newLabels);
-  };
 
   // Update individual label
   const handleLabelChange = (index: number, value: string) => {
@@ -59,8 +45,8 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
       order: order,
       status: isActive ? 'Active' : 'Inactive',
       options: {
-        maxStars: maxStars,
-        labels: labels.slice(0, maxStars) // Ensure labels match maxStars
+        maxStars: 5, // Fixed to 5 for NPS
+        labels: labels.slice(0, 5) // Ensure exactly 5 labels
       }
     };
     onSave(updatedQuestion);
@@ -91,7 +77,7 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
           />
         </div>
 
-        {/* Star Rating Configuration */}
+        {/* NPS Configuration */}
         <div className="space-y-4 mb-6">
           <div className="p-4 bg-gray-50 rounded-lg">
             <h4 
@@ -103,11 +89,11 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
                 fontSize: '14px'
               }}
             >
-              Star Rating Configuration
+              NPS Rating Configuration
             </h4>
             
             <div className="space-y-4">
-              {/* Maximum Stars */}
+              {/* Emoji Labels */}
               <div>
                 <label 
                   className="block text-sm font-medium text-gray-600 mb-2"
@@ -118,41 +104,18 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
                     fontSize: '12px'
                   }}
                 >
-                  Maximum Stars
-                </label>
-                <input
-                  type="number"
-                  value={maxStars}
-                  onChange={(e) => handleMaxStarsChange(parseInt(e.target.value) || 5)}
-                  className="w-20 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none text-center"
-                  min="1"
-                  max="10"
-                />
-              </div>
-
-              {/* Star Labels */}
-              <div>
-                <label 
-                  className="block text-sm font-medium text-gray-600 mb-2"
-                  style={{
-                    fontFamily: 'Golos Text',
-                    fontWeight: 400,
-                    fontStyle: 'normal',
-                    fontSize: '12px'
-                  }}
-                >
-                  Star Labels
+                  Emoji Labels
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {Array.from({ length: maxStars }, (_, index) => (
+                  {emojis.map((emoji, index) => (
                     <div key={index} className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500 w-8">⭐ {index + 1}:</span>
+                      <span className="text-lg w-8">{emoji}</span>
                       <input
                         type="text"
-                        value={labels[index] || `${index + 1}`}
+                        value={labels[index] || defaultLabels[index]}
                         onChange={(e) => handleLabelChange(index, e.target.value)}
                         className="flex-1 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
-                        placeholder={`Label ${index + 1}`}
+                        placeholder={defaultLabels[index]}
                       />
                     </div>
                   ))}
@@ -298,4 +261,5 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
   );
 };
 
-export default StarRatingQuestionEditor;
+export default NPSQuestionEditor;
+

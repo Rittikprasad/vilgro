@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
 import type { QuestionItem } from './QuestionListTable';
+import type { RootState } from '../../../../app/store';
+import { fetchQuestionCodesBySection } from '../../../../features/question-builder/questionBuilderSlice';
+import ACBIcon from '../../../../assets/svg/ACB.svg';
 
 interface QuestionOption {
   id: string;
   text: string;
   score: number;
+  conditionalBranching?: {
+    goTo: string; // "Question" or "Return"
+    questionId?: string | number;
+    score?: number;
+  };
 }
 
 interface SingleChoiceQuestionEditorProps {
@@ -24,25 +33,88 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
   onDelete,
   isLoading = false
 }) => {
+  // Get sections and questionCodes from Redux store
+  const { sections, questionCodes, questionCodesLoading } = useSelector((state: RootState) => state.questionBuilder);
+  const dispatch = useDispatch();
+  
   const [questionText, setQuestionText] = useState(question.question);
   const [options, setOptions] = useState<QuestionOption[]>(
     question.options?.choices?.map((choice: string, index: number) => ({
       id: `option_${index}`,
       text: choice,
-      score: 4 - index // Default scores: 4, 3, 2, 1
+      score: 4 - index, // Default scores: 4, 3, 2, 1
+      conditionalBranching: {
+        goTo: "Return",
+        questionId: undefined,
+        score: 0
+      }
     })) || []
   );
   const [weightage, setWeightage] = useState(question.weight);
   const [order, setOrder] = useState(question.order);
   const [isActive, setIsActive] = useState(question.status === 'Active');
+  const [showConditionalBranching, setShowConditionalBranching] = useState(false);
 
   const handleAddOption = () => {
     const newOption: QuestionOption = {
       id: `option_${Date.now()}`,
       text: '',
-      score: 1
+      score: 1,
+      conditionalBranching: {
+        goTo: "Return",
+        questionId: undefined,
+        score: 0
+      }
     };
     setOptions([...options, newOption]);
+  };
+
+  const handleConditionalBranchingToggle = () => {
+    setShowConditionalBranching(!showConditionalBranching);
+  };
+
+  const handleGoToChange = (optionId: string, goTo: string) => {
+    setOptions(options.map(option => 
+      option.id === optionId ? { 
+        ...option, 
+        conditionalBranching: { 
+          goTo,
+          questionId: option.conditionalBranching?.questionId,
+          score: option.conditionalBranching?.score || 0
+        }
+      } : option
+    ));
+    
+    // Fetch question codes when section is selected
+    if (goTo) {
+      dispatch(fetchQuestionCodesBySection(goTo) as any);
+    }
+  };
+
+  const handleQuestionChange = (optionId: string, questionId: string | number) => {
+    setOptions(options.map(option => 
+      option.id === optionId ? { 
+        ...option, 
+        conditionalBranching: { 
+          goTo: option.conditionalBranching?.goTo || "Return",
+          questionId,
+          score: option.conditionalBranching?.score || 0
+        }
+      } : option
+    ));
+  };
+
+  const handleConditionalScoreChange = (optionId: string, score: number) => {
+    setOptions(options.map(option => 
+      option.id === optionId ? { 
+        ...option, 
+        conditionalBranching: { 
+          goTo: option.conditionalBranching?.goTo || "Return",
+          questionId: option.conditionalBranching?.questionId,
+          score 
+        }
+      } : option
+    ));
   };
 
   const handleDeleteOption = (optionId: string) => {
@@ -62,6 +134,21 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
   };
 
   const handleSave = () => {
+    // Build conditions array from conditional branching selections
+    // Convert option text to value format (lowercase with underscores)
+    const conditions = options
+      .filter(option => 
+        option.conditionalBranching?.questionId && 
+        option.conditionalBranching?.goTo !== "Return"
+      )
+      .map(option => ({
+        logic: {
+          q: String(option.conditionalBranching?.questionId || ""),
+          op: "",
+          val: option.text.toLowerCase().replace(/\s+/g, '_') // Convert label to value format
+        }
+      }));
+
     const updatedQuestion: QuestionItem = {
       ...question,
       question: questionText,
@@ -71,7 +158,8 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
       options: {
         type: 'single-choice',
         choices: options.map(option => option.text)
-      }
+      },
+      conditions: conditions.length > 0 ? conditions : undefined
     };
     onSave(updatedQuestion);
   };
@@ -105,6 +193,40 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
                 className="flex-1 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
                 placeholder={`Option ${index + 1}...`}
               />
+              
+              {/* Conditional Branching Controls */}
+              {showConditionalBranching && (
+                <>
+                  <span className="text-sm text-gray-700">Go to</span>
+                  <select
+                    value={option.conditionalBranching?.goTo || ""}
+                    onChange={(e) => handleGoToChange(option.id, e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded focus:border-green-500 focus:outline-none text-sm"
+                  >
+                    <option value="">Select Section</option>
+                    {sections.map((section) => (
+                      <option key={section.id} value={section.code}>
+                        {section.code}
+                      </option>
+                    ))}
+                  </select>
+
+                  <span className="text-sm text-gray-700">Question</span>
+                  <select
+                    value={option.conditionalBranching?.questionId || ""}
+                    onChange={(e) => handleQuestionChange(option.id, e.target.value as any)}
+                    className="px-3 py-2 border border-gray-300 rounded focus:border-green-500 focus:outline-none text-sm"
+                    disabled={questionCodesLoading}
+                  >
+                    <option value="">Select Question</option>
+                    {questionCodes.map((question) => (
+                      <option key={question.code} value={question.code}>
+                        {question.code}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
               
               {/* Delete option button */}
               <button
@@ -201,16 +323,23 @@ const SingleChoiceQuestionEditor: React.FC<SingleChoiceQuestionEditorProps> = ({
             </div>
 
             {/* Conditional Branching */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center space-x-1"
+            <button
+              className="flex items-center space-x-2 text-green-500 hover:text-green-600 transition-colors"
+              onClick={handleConditionalBranchingToggle}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              <span>Add Conditional Branching</span>
-            </Button>
+              <img src={ACBIcon} alt="Conditional Branching" className="w-4 h-4" />
+              <span 
+                className="text-sm font-medium underline"
+                style={{
+                  fontFamily: 'Golos Text',
+                  fontWeight: 400,
+                  fontStyle: 'normal',
+                  fontSize: '14px'
+                }}
+              >
+                {showConditionalBranching ? 'Hide Conditional Branching' : 'Add Conditional Branching'}
+              </span>
+            </button>
           </div>
 
           <div className="flex items-center space-x-4">

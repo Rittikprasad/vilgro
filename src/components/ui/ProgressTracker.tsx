@@ -25,14 +25,26 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
         
         return (
           <React.Fragment key={stepNumber}>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center relative z-10">
               <div
                 className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-colors",
-                  isActive && "bg-[#46B753] border-[#46B753] text-white",
-                  isCompleted && "bg-[#46B753] border-[#46B753] text-white",
-                  !isActive && !isCompleted && "bg-white border-gray-300 text-gray-500"
+                  "w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-colors",
+                  "bg-white border-transparent",
+                  isActive && "text-[#46B753]",
+                  isCompleted && "text-[#46B753]",
+                  !isActive && !isCompleted && "text-gray-500"
                 )}
+                style={
+                  isActive || isCompleted
+                    ? {
+                        background: "linear-gradient(white, white) padding-box, linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%) border-box",
+                        borderWidth: "2px",
+                      }
+                    : {
+                        background: "white",
+                        borderColor: "#d1d5db",
+                      }
+                }
               >
                 {stepNumber}
               </div>
@@ -42,9 +54,13 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
             {stepNumber < totalSteps && (
               <div
                 className={cn(
-                  "flex-1 h-0.5 mx-4 transition-colors",
+                  "flex-1 h-0.5 mx-1 transition-colors relative",
                   stepNumber < currentStep ? "bg-[#46B753]" : "bg-gray-300"
                 )}
+                style={{
+                  marginLeft: "-12px",
+                  marginRight: "-12px",
+                }}
               />
             )}
           </React.Fragment>

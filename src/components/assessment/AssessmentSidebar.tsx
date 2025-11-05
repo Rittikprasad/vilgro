@@ -36,7 +36,7 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
             <div key={step.id} className="relative">
               {/* Connecting Line */}
               {index < steps.length - 1 && (
-                <div className="absolute left-3.5 top-10 w-1 h-16 bg-gray-200">
+                <div className="absolute left-3.5 top-10 w-[5px] h-16 bg-gray-200">
                   <div 
                     className="w-1 bg-[#46B753] transition-all duration-300"
                     style={{ height: `${(progressPercentage / 100) * 65}px` }}
@@ -47,7 +47,7 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
               {/* Step Circle and Label */}
               <div
                 className={cn(
-                  "flex items-center space-x-3 cursor-pointer transition-colors",
+                  "flex items-center  space-x-3 cursor-pointer transition-colors",
                   onStepClick && "hover:bg-gray-50 rounded-lg p-2 -ml-2"
                 )}
                 onClick={() => onStepClick?.(step.id)}
@@ -60,7 +60,7 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
                       ? "bg-green-600 border-green-600"
                       : step.isActive
                       ? "bg-green-600 border-green-600"
-                      : "bg-white border-gray-300"
+                      : "bg-gray-200 border-gray-200"
                   )}
                 >
                   {step.isCompleted && (
@@ -83,12 +83,12 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
                 {/* Step Label */}
                 <span
                   className={cn(
-                    "text-sm font-medium transition-colors",
+                    "text-[16px] font-[400] font-golos transition-colors",
                     step.isActive
                       ? "text-green-600"
                       : step.isCompleted
                       ? "text-gray-900"
-                      : "text-gray-500"
+                      : "text-gray-400"
                   )}
                 >
                   {step.label}

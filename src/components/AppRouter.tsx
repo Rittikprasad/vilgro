@@ -188,7 +188,7 @@ const AppRouter: React.FC = () => {
                 
                 {/* Admin Login - Public route */}
                 <Route
-                    path="/admin/signin"
+                    path="/signin/admin"
                     element={<AdminLogin />}
                 />
 

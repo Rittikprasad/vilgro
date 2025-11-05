@@ -83,7 +83,7 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
           <div className="w-full max-w-2xl ml-8">
             {/* Form Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-800" style={{ fontFamily: 'Baskervville' }}>
+              <h1 className="text-[25px] font-[400] text-gray-800 font-[Baskervville]" >
                 Tell us about your organisation
               </h1>
             </div>
@@ -94,11 +94,11 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Annual Operating Budget */}
-              <div className="space-y-3">
-                <label className="block text-lg font-medium text-gray-700 mb-3">
-                  Annual Operating Budget{" "}
-                  <span className="text-sm text-gray-500">
-                    (*Total spending by the enterprise in latest FY)
+              <div className="space-y-3 pb-6 border-b border-gray-200">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
+                  Annual Operating Budget<span className="text-red-500">*</span>
+                  <span className="text-[13px] font-[300] font-golos text-gray-500">
+                    (Total spending by the enterprise in latest FY)
                   </span>
                 </label>
                 <div className="space-y-1">
@@ -118,7 +118,7 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
               </div>
 
                <div className="space-y-3">
-                 <label className="block text-lg font-medium text-gray-700 mb-3">
+                 <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
                    Tell us about your company
                  </label>
                  <div className="space-y-1">
@@ -132,8 +132,8 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
                </div>
 
               {/* Funding Source */}
-              <div className="space-y-3">
-                <label className="block text-lg font-medium text-gray-700 mb-3">
+              <div className="space-y-3 pb-6 border-b border-gray-200">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
                   What are you using the questionnaire for funding or self assessment?
                 </label>
                 {metaLoading ? (
@@ -147,7 +147,7 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
                     {options?.use_of_questionnaire?.map((option) => (
                       <div key={option.key} className="flex items-center space-x-2">
                         <RadioGroupItem value={option.key} id={option.key} />
-                        <label htmlFor={option.key} className="text-sm cursor-pointer">
+                        <label htmlFor={option.key} className="text-[13px] font-[300] font-golos cursor-pointer">
                           {option.label}
                         </label>
                       </div>
@@ -161,7 +161,7 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
 
               {/* Philanthropic Funding */}
               <div className="space-y-3">
-                <label className="block text-lg font-medium text-gray-700 mb-3">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
                   Have you receive philanthropic funding before?
                 </label>
                 <RadioGroup
@@ -171,13 +171,13 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="yes" id="yes" />
-                    <label htmlFor="yes" className="text-sm cursor-pointer">
+                    <label htmlFor="yes" className="text-[13px] font-[300] font-golos cursor-pointer">
                       Yes
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="no" id="no" />
-                    <label htmlFor="no" className="text-sm cursor-pointer">
+                    <label htmlFor="no" className="text-[13px] font-[300] font-golos cursor-pointer">
                       No
                     </label>
                   </div>

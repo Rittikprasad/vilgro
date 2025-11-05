@@ -16,6 +16,7 @@ import RecyclingIcon from '../../assets/Recycling.svg'
 import HealthcareIcon from '../../assets/Healthcare.svg'
 import EnvelopeIcon from '../../assets/Envelope.svg'
 import OthersIcon from '../../assets/others.svg'
+import { Input } from "../ui/Input"
 
 // Validation schema for Step 4
 const step4Schema = z.object({
@@ -93,7 +94,7 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
           <div className="w-full max-w-4xl ml-8">
             {/* Form Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-800" style={{ fontFamily: 'Baskervville' }}>
+              <h1 className="text-[25px] font-[400] text-gray-800 font-[Baskervville]">
                 Tell us about your organisation
               </h1>
             </div>
@@ -102,41 +103,47 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
             <ProgressTracker currentStep={2} totalSteps={3} />
 
             {/* Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
               {/* Focus Sector Selection */}
-              <div className="space-y-4">
-                <label className="block text-lg font-medium text-gray-700 mb-4">
-                  Which is your main focus sector?
+              <div className="space-y-4 pb-6 border-b border-gray-200">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-4">
+                  Which is your main focus sector?<span className="text-red-500">*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading focus sectors...</div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                    {options?.focus_sectors?.map((sector) => (
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {options?.focus_sectors?.map((sector) => {
+                      const isSelected = selectedFocusSector === sector.key
+                      const hasSelection = selectedFocusSector !== undefined
+                      
+                      return (
                       <div
                         key={sector.key}
                         className={cn(
-                          "relative cursor-pointer rounded-lg border-2 p-2 text-center transition-all hover:shadow-md",
-                          selectedFocusSector === sector.key
-                            ? "border-[#46B753] bg-green-50"
-                            : "border-gray-200 bg-white hover:border-gray-300"
+                          "relative cursor-pointer rounded-lg border-2 p-2 text-center transition-all flex flex-col items-center justify-center",
+                          !hasSelection || isSelected ? "sector-card-gradient-border" : "",
+                          isSelected ? "bg-green-50" : "bg-white",
+                          hasSelection && !isSelected && "border-white"
                         )}
+                        style={
+                          hasSelection && !isSelected
+                            ? {
+                                boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)"
+                              }
+                            : undefined
+                        }
                         onClick={() => setValue("focusSector", sector.key)}
                       >
-                        <div className="text-4xl mb-3">
-                          <img src={sectorIcons[sector.key]} alt={sector.label} className="w-10 h-10 mx-auto" />
+                        <div className="text-4xl mb-3 flex items-center justify-center">
+                          <img src={sectorIcons[sector.key]} alt={sector.label} className="w-10 h-10" />
                         </div>
-                        <p className="text-sm font-medium text-gray-900 mb-2">
+                        <p className="text-[13px] font-[300] font-golos text-gray-900">
                           {sector.label}
                         </p>
-
-                        {selectedFocusSector === sector.key && (
-                          <div className="absolute top-2 right-2 w-4 h-4 bg-[#46B753] rounded-full flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          </div>
-                        )}
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
                 {errors.focusSector && (
@@ -145,9 +152,9 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* Stage Selection */}
-              <div className="space-y-3">
-                <label className="block text-lg font-medium text-gray-700 mb-3">
-                  At what stage you are?
+              <div className="space-y-3 pb-6 border-b border-gray-200">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
+                  At what stage you are?<span className="text-red-500">*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading stages...</div>
@@ -160,7 +167,7 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                     {options?.stages?.map((stage) => (
                       <div key={stage.key} className="flex items-center space-x-2">
                         <RadioGroupItem value={stage.key} id={stage.key} />
-                        <label htmlFor={stage.key} className="text-sm cursor-pointer">
+                        <label htmlFor={stage.key} className="text-[13px] font-[300] font-golos cursor-pointer">
                           {stage.label}
                         </label>
                       </div>
@@ -173,9 +180,9 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* Impact Focus */}
-              <div className="space-y-3">
-                <label className="block text-lg font-medium text-gray-700 mb-3">
-                  What kind of impact you focus on creating?
+              <div className="space-y-3 pb-6 border-b border-gray-200">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
+                  What kind of impact you focus on creating?<span className="text-red-500">*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading impact focus options...</div>
@@ -188,7 +195,7 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                     {options?.impact_focus?.map((impact) => (
                       <div key={impact.key} className="flex items-center space-x-2">
                         <RadioGroupItem value={impact.key} id={impact.key} />
-                        <label htmlFor={impact.key} className="text-sm cursor-pointer">
+                        <label htmlFor={impact.key} className="text-[13px] font-[300] font-golos cursor-pointer">
                           {impact.label}
                         </label>
                       </div>
@@ -199,6 +206,13 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                   <p className="text-red-500 text-sm">{errors.impactFocus.message}</p>
                 )}
               </div>
+              <div>
+                   <Input
+                     placeholder="Give some information"
+                     type="text"
+                     className="w-full border-0 border-b border-gray-300 bg-transparent px-0 py-2 focus:outline-none focus:border-gray-500 transition-colors"
+                   />
+                 </div>
 
               {/* Navigation Buttons */}
               <div className="flex justify-start pt-6">

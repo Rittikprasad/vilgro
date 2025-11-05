@@ -44,7 +44,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!role || !allowedRoles.includes(role)) {
       // Redirect to appropriate login page based on attempted access
       const adminAttempt = allowedRoles.includes("ADMIN")
-      return <Navigate to={adminAttempt ? "/admin/login" : "/login"} replace />
+      return <Navigate to={adminAttempt ? "/admin/signin" : "/login"} replace />
     }
   }
 

@@ -19,12 +19,12 @@ import type { RootState } from "../../app/store"
 const step2Schema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+  phoneNumber: z.string().optional(),
   designation: z.string().email("Please enter a valid email address"),
   companyName: z.string().min(1, "Company name is required"),
   legalRegistrationType: z.string().optional(), // Made optional
   dateOfIncorporation: z.string().min(1, "Date of Incorporation is required"), // Made mandatory
-  gstNumber: z.string().min(1, "DPIIT Number is required"), // Made mandatory
+  gstNumber: z.string().optional(), // Made optional
   cinNumber: z.string().min(1, "CIN Number is required"), // Made mandatory
 })
 
@@ -126,7 +126,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
           <div className="w-full max-w-2xl">
             {/* Form Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-800" style={{ fontFamily: 'Baskervville' }}>
+              <h1 className="text-[25px] font-[400] text-gray-800 font-[Baskervville]">
                 Tell us about yourself
               </h1>
             </div>
@@ -137,7 +137,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
 
 
             {/* Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Name Fields Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -191,7 +191,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                 <div className="space-y-1">
                   <Input
                     {...register("phoneNumber")}
-                    placeholder="Phone Number *"
+                    placeholder="Phone Number"
                     type="tel"
                     className={cn(
                       "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
@@ -208,7 +208,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
               <div className="space-y-1">
                 <Input
                   {...register("companyName")}
-                  placeholder="Organization Name *"
+                  placeholder="Name of Organization*"
                   className={cn(
                     "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
                     errors.companyName ? "border-red-500" : "gradient-border"
@@ -219,7 +219,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-gray-200">
                   {/* Date of Incorporation */}
                   <div className="space-y-1">
                     <div className="relative">
@@ -254,7 +254,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                   <div className="space-y-1">
                     <Input
                       {...register("gstNumber")}
-                      placeholder="DPIIT Number *"
+                      placeholder="DPIIT Number"
                       className={cn(
                         "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
                         errors.gstNumber ? "border-red-500" : "gradient-border"
@@ -268,8 +268,8 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
 
               {/* Legal Registration Type */}
               <div className="space-y-4">
-                <label className="text-sm font-medium text-gray-700 ">
-                  Legal Registration Type (Optional)
+                <label className="text-[15px] font-[500] text-gray-700 font-golos">
+                  Legal Registration Type
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading registration types...</div>
@@ -282,7 +282,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                     {options?.registration_types?.map((type) => (
                       <div key={type.key} className="flex items-center space-x-2">
                         <RadioGroupItem value={type.key} id={type.key} />
-                        <label htmlFor={type.key} className="text-sm cursor-pointer">
+                        <label htmlFor={type.key} className="text-[13px] font-[300] font-golos cursor-pointer">
                           {type.label}
                         </label>
                       </div>
@@ -297,7 +297,7 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                 <div className="space-y-1">
                     <Input
                       {...register("cinNumber")}
-                      placeholder="CIN Number *"
+                      placeholder="Enter CIN No.*"
                       className={cn(
                         "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
                         errors.cinNumber ? "border-red-500" : "gradient-border"

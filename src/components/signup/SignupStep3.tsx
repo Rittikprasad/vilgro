@@ -17,11 +17,11 @@ import type { RootState } from "../../app/store"
 const step3Schema = z.object({
   innovationType: z.string().min(1, "Please select an innovation type"),
   geographicScope: z.string().min(1, "Please select geographic scope"),
-  state1: z.string().min(1, "Please select first state"),
-  state2: z.string().min(1, "Please select second state"),
-  state3: z.string().min(1, "Please select third state"),
-  state4: z.string().min(1, "Please select fourth state"),
-  state5: z.string().min(1, "Please select fifth state"),
+  state1: z.string().min(1, "Please select at least one state"),
+  state2: z.string().optional(),
+  state3: z.string().optional(),
+  state4: z.string().optional(),
+  state5: z.string().optional(),
 })
 
 type Step3FormData = z.infer<typeof step3Schema>
@@ -97,7 +97,7 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
           <div className="w-full max-w-2xl ml-8">
             {/* Form Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-800">
+              <h1 className="text-[25px] font-[400] text-gray-800 font-[Baskervville]">
                 Tell us about your organisation
               </h1>
             </div>
@@ -106,11 +106,11 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
             <ProgressTracker currentStep={2} totalSteps={3} />
 
             {/* Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Type of Innovation */}
-              <div className="space-y-3">
-                <label className="block text-md font-medium text-gray-700 mb-3">
-                  Type of Innovation <span>*</span>
+              <div className="space-y-4 pb-6 border-b border-gray-200">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
+                  Type of Innovation <span className="text-red-500">*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading innovation types...</div>
@@ -123,7 +123,7 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
                     {options?.innovation_types?.map((type) => (
                       <div key={type.key} className="flex items-center space-x-2">
                         <RadioGroupItem value={type.key} id={type.key} />
-                        <label htmlFor={type.key} className="text-sm cursor-pointer">
+                        <label htmlFor={type.key} className="text-[13px] font-[300] font-golos cursor-pointer">
                           {type.label}
                         </label>
                       </div>
@@ -136,9 +136,9 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* Geographic Scope of work */}
-              <div className="space-y-3">
-                <label className="block text-md font-medium text-gray-700 mb-3">
-                  Geographic Scope of work <span>*</span>
+              <div className="space-y-4 pb-6 border-b border-gray-200">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
+                  Geographic Scope of work <span className="text-red-500">*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading geographic scopes...</div>
@@ -151,7 +151,7 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
                     {options?.geo_scopes?.map((scope) => (
                       <div key={scope.key} className="flex items-center space-x-2">
                         <RadioGroupItem value={scope.key} id={scope.key} />
-                        <label htmlFor={scope.key} className="text-sm cursor-pointer">
+                        <label htmlFor={scope.key} className="text-[13px] font-[300] font-golos cursor-pointer">
                           {scope.label}
                         </label>
                       </div>
@@ -164,31 +164,31 @@ const SignupStep3: React.FC<SignupStep3Props> = ({ onNext, onBack }) => {
               </div>
 
               {/* State Selection */}
-              <div className="space-y-3">
-                <label className="block text-md font-medium text-gray-700 mb-3">
-                  Select top 5 states based on customer presence <span>*</span>
+              <div className="space-y-4">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
+                  Select top 5 states based on customer presence <span className="text-red-500">*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading states...</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[
-                      { num: 1, value: selectedState1 },
-                      { num: 2, value: selectedState2 },
-                      { num: 3, value: selectedState3 },
-                      { num: 4, value: selectedState4 },
-                      { num: 5, value: selectedState5 },
-                    ].map(({ num, value }) => (
+                      { num: 1, value: selectedState1, isRequired: true },
+                      { num: 2, value: selectedState2, isRequired: false },
+                      { num: 3, value: selectedState3, isRequired: false },
+                      { num: 4, value: selectedState4, isRequired: false },
+                      { num: 5, value: selectedState5, isRequired: false },
+                    ].map(({ num, value, isRequired }) => (
                       <div key={num} className="space-y-1">
                         <Select 
-                          value={value} 
+                          value={value || ""} 
                           onValueChange={(newValue) => setValue(`state${num}` as any, newValue)}
                         >
                           <SelectTrigger className={cn(
                             "w-full h-12 rounded-lg bg-white",
                             errors[`state${num}` as keyof Step3FormData] ? "border-red-500" : "gradient-border"
                           )}>
-                            <SelectValue placeholder={`Select State ${num}`} />
+                            <SelectValue placeholder={isRequired ? `Select State ${num} *` : `Select State ${num}`} />
                           </SelectTrigger>
                           <SelectContent>
                             {options?.states?.map((state) => (

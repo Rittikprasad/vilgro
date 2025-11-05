@@ -24,7 +24,7 @@ roles/
 ## Current Implementation
 
 ### Admin Role
-- **Login**: `/admin/login` - Admin login page (no signup option)
+- **Login**: `/admin/signin` - Admin login page (no signup option)
 - **Dashboard**: `/admin/dashboard` - Main admin dashboard
 - Admin credentials are pre-created by backend
 

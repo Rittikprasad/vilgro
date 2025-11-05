@@ -83,6 +83,22 @@ body {
     box-shadow: 0 0 0 3px rgba(70, 183, 83, 0.1);
   }
   
+  /* Radio button gradient border - always applied */
+  .radio-gradient-border {
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%) border-box;
+  }
+  
+  /* Sector card gradient border - always applied */
+  .sector-card-gradient-border {
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%) border-box;
+  }
+  
   /* Standard label styling for consistent typography */
   .label-text {
     font-family: 'Golos Text', sans-serif;

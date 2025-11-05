@@ -11,7 +11,7 @@ export const publicRoutes = {
 } as const
 
 export const adminRoutes = {
-  login: "/admin/signin",
+  login: "/signin/admin",
   dashboard: "/admin/dashboard",
   forgotPassword: "/admin/forgot-password",
 } as const

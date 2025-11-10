@@ -20,8 +20,8 @@ const StatsCards: React.FC<StatsCardsProps> = ({ data }) => {
           key={index}
           className={`${
             index === 0
-              ? "text-white rounded-lg p-6 shadow-sm"
-              : "bg-white rounded-lg p-6 shadow-sm"
+              ? "text-white rounded-lg p-4 shadow-sm"
+              : "bg-white rounded-lg p-4 shadow-sm"
           }`}
           style={
             index === 0
@@ -40,10 +40,10 @@ const StatsCards: React.FC<StatsCardsProps> = ({ data }) => {
               )}
             </div>
             <div className="flex-1">
-              <h3 className={`text-sm font-medium ${index === 0 ? "text-white" : "text-gray-500"} mb-2`}>
+              <h3 className={`text-[14px] font-[400] font-golos ${index === 0 ? "text-white" : "text-gray-800"}`}>
                 {stat.title}
               </h3>
-              <p className={`text-2xl font-bold ${index === 0 ? "text-white" : "text-gray-900"}`}>
+              <p className={`text-2xl font-bold ${index === 0 ? "text-white" : "text-[#46B753]"}`}>
                 {stat.value}
               </p>
             </div>

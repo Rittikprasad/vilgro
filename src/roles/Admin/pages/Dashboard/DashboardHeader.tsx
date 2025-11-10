@@ -12,7 +12,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Good Morning, {userName}</h1>
+        <h1 className="text-[30px] font-[500] font-[Baskervville] text-gray-800">Good Morning, {userName}</h1>
        
       </div>
       <button className="mt-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">

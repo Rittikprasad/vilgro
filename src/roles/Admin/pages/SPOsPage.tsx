@@ -1,90 +1,83 @@
-import React from 'react';
-import LayoutWrapper from '../layout/LayoutWrapper';
-import { Card, CardContent } from '../../../components/ui/Card';
-import { Button } from '../../../components/ui/Button';
-import ViewIcon from '../../../assets/svg/view.svg';
-import EmailIcon from '../../../assets/svg/Newspos.svg';
-
-interface SPOData {
-  id: string;
-  sector: string;
-  organizationName: string;
-  contactEmail: string;
-  instrument: string;
-  loanRequest: string;
-}
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import LayoutWrapper from "../layout/LayoutWrapper";
+import { Card, CardContent } from "../../../components/ui/Card";
+import { Button } from "../../../components/ui/Button";
+import ViewIcon from "../../../assets/svg/view.svg";
+import EmailIcon from "../../../assets/svg/email.svg";
+import type { AppDispatch, RootState } from "../../../app/store";
+import { fetchAdminSpos, setSelectedAdminSpo } from "../../../features/adminSpo/adminSpoSlice";
+import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
 
 const SPOsPage: React.FC = () => {
-  // Dummy data for SPOs
-  const spoData: SPOData[] = [
-    {
-      id: '#12345',
-      sector: 'Agriculture',
-      organizationName: 'abcd company technology',
-      contactEmail: 'yuktiaggarwal@gmail.com',
-      instrument: 'Commercial Debt with Impact....',
-      loanRequest: 'Eligible'
-    },
-    {
-      id: '#12345',
-      sector: 'Waste management / Recycling',
-      organizationName: 'abcd company technology',
-      contactEmail: 'yuktiaggarwal@gmail.com',
-      instrument: 'Commercial Debt with Impact....',
-      loanRequest: 'Non Eligible'
-    },
-    {
-      id: '#12345',
-      sector: 'Health',
-      organizationName: 'abcd company technology',
-      contactEmail: 'yuktiaggarwal@gmail.com',
-      instrument: 'Not Completed',
-      loanRequest: '-'
-    },
-    {
-      id: '#12345',
-      sector: 'Livelihood creation',
-      organizationName: 'abcd company technology',
-      contactEmail: 'yuktiaggarwal@gmail.com',
-      instrument: 'Commercial Debt with Impact....',
-      loanRequest: 'Submitted'
-    },
-    {
-      id: '#12345',
-      sector: 'Others',
-      organizationName: 'abcd company technology',
-      contactEmail: 'yuktiaggarwal@gmail.com',
-      instrument: 'Not Completed',
-      loanRequest: 'Eligible'
-    },
-    {
-      id: '#12345',
-      sector: 'Agriculture',
-      organizationName: 'abcd company technology',
-      contactEmail: 'yuktiaggarwal@gmail.com',
-      instrument: 'Commercial Debt with Impact....',
-      loanRequest: '-'
-    },
-    {
-      id: '#12345',
-      sector: 'Waste management / Recycling',
-      organizationName: 'abcd company technology',
-      contactEmail: 'yuktiaggarwal@gmail.com',
-      instrument: 'Commercial Debt with Impact....',
-      loanRequest: 'Eligible'
+  const dispatch = useDispatch<AppDispatch>();
+  const { items, isLoading, error } = useSelector((state: RootState) => state.adminSpo);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const navigate = useNavigate();
+
+  const fetchSpos = useCallback(() => {
+    void dispatch(fetchAdminSpos());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!items || items.length === 0) {
+      fetchSpos();
     }
-  ];
+  }, [fetchSpos, items]);
+
+  const formattedRows = useMemo(() => {
+    return items.map((item: AdminSpoEntry) => ({
+      id: `#${item.id}`,
+      sector: item.organization?.focus_sector ?? '-',
+      organizationName: item.organization?.name ?? 'N/A',
+      contactEmail: item.email,
+      instrument: item.organization?.type_of_innovation ?? '-',
+      loanRequest: item.loan_eligible ? 'Eligible' : 'Non Eligible',
+      raw: item,
+    }));
+  }, [items]);
+
+  const totalItems = formattedRows.length;
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(totalItems / pageSize)),
+    [totalItems, pageSize]
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [pageSize, totalItems]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedRows = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return formattedRows.slice(startIndex, startIndex + pageSize);
+  }, [formattedRows, currentPage, pageSize]);
+
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
+  const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSize = Number(event.target.value);
+    setPageSize(newSize);
+  };
 
   const getLoanRequestColor = (status: string) => {
     if (status === 'Eligible') return 'text-green-600';
     if (status === 'Non Eligible') return 'text-red-600';
     if (status === 'Submitted') return 'text-blue-600';
     return 'text-gray-500';
-  };
-
-  const getInstrumentColor = (instrument: string) => {
-    if (instrument === 'Not Completed') return 'text-red-600';
-    return 'text-gray-900';
   };
 
   return (
@@ -96,7 +89,7 @@ const SPOsPage: React.FC = () => {
             className="text-gray-800"
             style={{
               fontFamily: 'Baskervville',
-              fontWeight: 600,
+              fontWeight: 500,
               fontStyle: 'normal',
               fontSize: '30px'
             }}
@@ -119,134 +112,85 @@ const SPOsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Error Banner */}
+        {error && (
+          <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={fetchSpos}
+              className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Table */}
         <Card className="overflow-hidden">
           <CardContent className="p-6">
+            {isLoading ? (
+              <div className="flex justify-center py-16 text-sm text-gray-500">
+                Loading SPOs...
+              </div>
+            ) : totalItems === 0 ? (
+              <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-[13px] font-[400] font-golos text-gray-500">
+                No SPO records found.
+              </div>
+            ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
                     <th 
                       scope="col" 
-                      className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{
-                        fontFamily: 'Golos Text',
-                        fontWeight: 400,
-                        fontStyle: 'normal',
-                        fontSize: '12px',
-                        verticalAlign: 'middle',
-                        paddingTop: '12px',
-                        paddingBottom: '12px'
-                      }}
+                      className="px-6 text-left text-[10px] font-[400] font-golos text-gray-500 uppercase tracking-wider"
                     >
                       ID
                     </th>
                     <th 
                       scope="col" 
-                      className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{
-                        fontFamily: 'Golos Text',
-                        fontWeight: 400,
-                        fontStyle: 'normal',
-                        fontSize: '12px',
-                        verticalAlign: 'middle',
-                        paddingTop: '12px',
-                        paddingBottom: '12px'
-                      }}
+                      className="px-6 text-left text-[10px] font-[400] font-golos text-gray-500 uppercase tracking-wider"
                     >
                       Sector
                     </th>
                     <th 
                       scope="col" 
-                      className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{
-                        fontFamily: 'Golos Text',
-                        fontWeight: 400,
-                        fontStyle: 'normal',
-                        fontSize: '12px',
-                        verticalAlign: 'middle',
-                        paddingTop: '12px',
-                        paddingBottom: '12px'
-                      }}
+                      className="px-6 text-left text-[10px] font-[400] font-golos text-gray-500 uppercase tracking-wider"
                     >
                       Organization Name
                     </th>
                     <th 
                       scope="col" 
-                      className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{
-                        fontFamily: 'Golos Text',
-                        fontWeight: 400,
-                        fontStyle: 'normal',
-                        fontSize: '12px',
-                        verticalAlign: 'middle',
-                        paddingTop: '12px',
-                        paddingBottom: '12px'
-                      }}
+                      className="px-6 text-left text-[10px] font-[400] font-golos text-gray-500 uppercase tracking-wider"
                     >
                       Contact Email ID
                     </th>
                     <th 
                       scope="col" 
-                      className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{
-                        fontFamily: 'Golos Text',
-                        fontWeight: 400,
-                        fontStyle: 'normal',
-                        fontSize: '12px',
-                        verticalAlign: 'middle',
-                        paddingTop: '12px',
-                        paddingBottom: '12px'
-                      }}
+                      className="px-6 text-left text-[10px] font-[400] font-golos text-gray-500 uppercase tracking-wider"
                     >
                       Instrument
                     </th>
                     <th 
                       scope="col" 
-                      className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{
-                        fontFamily: 'Golos Text',
-                        fontWeight: 400,
-                        fontStyle: 'normal',
-                        fontSize: '12px',
-                        verticalAlign: 'middle',
-                        paddingTop: '12px',
-                        paddingBottom: '12px'
-                      }}
-                    >
+                      className="px-6 text-left text-[10px] font-[400] font-golos text-gray-500 uppercase tracking-wider"
+                      >
                       Loan Request
                     </th>
                     <th 
                       scope="col" 
-                      className="px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{
-                        fontFamily: 'Golos Text',
-                        fontWeight: 400,
-                        fontStyle: 'normal',
-                        fontSize: '12px',
-                        verticalAlign: 'middle',
-                        paddingTop: '12px',
-                        paddingBottom: '12px'
-                      }}
+                      className="px-6 text-center text-[12px] font-[400] font-golos text-gray-500 uppercase tracking-wider"
                     >
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {spoData.map((item, index) => (
+                  {paginatedRows.map((item, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td 
                         className="px-6 whitespace-nowrap text-sm font-medium text-gray-900"
-                        style={{
-                          fontFamily: 'Golos Text',
-                          fontWeight: 400,
-                          fontStyle: 'normal',
-                          fontSize: '12px',
-                          verticalAlign: 'middle',
-                          paddingTop: '16px',
-                          paddingBottom: '16px'
-                        }}
                       >
                         {item.id}
                       </td>
@@ -293,7 +237,7 @@ const SPOsPage: React.FC = () => {
                         {item.contactEmail}
                       </td>
                       <td 
-                        className={`px-6 whitespace-nowrap text-sm ${getInstrumentColor(item.instrument)}`}
+                        className="px-6 whitespace-nowrap text-sm text-gray-900"
                         style={{
                           fontFamily: 'Golos Text',
                           fontWeight: 400,
@@ -332,6 +276,10 @@ const SPOsPage: React.FC = () => {
                           <button 
                             className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50 transition-colors"
                             title="View"
+                            onClick={() => {
+                              dispatch(setSelectedAdminSpo(item.raw));
+                              navigate(`/admin/spos/${item.raw.id}`);
+                            }}
                           >
                             <img src={ViewIcon} alt="View" className="w-5 h-5" />
                           </button>
@@ -347,7 +295,63 @@ const SPOsPage: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="text-[12px] font-[400] font-golos text-gray-500">
+                  Showing{" "}
+                  <span className="font-semibold text-gray-700">
+                    {Math.min((currentPage - 1) * pageSize + 1, totalItems)}
+                  </span>{" "}
+                  to{" "}
+                  <span className="font-semibold text-gray-700">
+                    {Math.min(currentPage * pageSize, totalItems)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-semibold text-gray-700">{totalItems}</span>{" "}
+                  results
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-[12px] font-[400] font-golos text-gray-600">
+                    Rows per page
+                    <select
+                      value={pageSize}
+                      onChange={handlePageSizeChange}
+                      className="rounded-md border border-gray-300 bg-white px-2 py-1 text-[12px] font-golos text-gray-700 focus:border-[#46B753] focus:outline-none focus:ring-1 focus:ring-[#46B753]"
+                    >
+                      {[5, 10, 20, 50].map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      disabled={currentPage === 1}
+                      className="rounded-md border border-gray-300 px-3 py-1 text-[12px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-[12px] font-[400] font-golos text-gray-600">
+                      Page <span className="font-semibold text-gray-800">{currentPage}</span> of{" "}
+                      <span className="font-semibold text-gray-800">{totalPages}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={currentPage === totalPages}
+                      className="rounded-md border border-gray-300 px-3 py-1 text-[12px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
+            )}
           </CardContent>
         </Card>
       </div>

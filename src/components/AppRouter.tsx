@@ -19,6 +19,7 @@ import {
   AdminLogin, 
   AdminDashboard,
   SPOsPage,
+  SPOProfilePage,
   QuestionsPage,
   BanksPage,
   ReviewsPage,
@@ -204,6 +205,10 @@ const AppRouter: React.FC = () => {
                 <Route
                     path="/admin/spos"
                     element={<SPOsPage />}
+                />
+                <Route
+                    path="/admin/spos/:spoId"
+                    element={<SPOProfilePage />}
                 />
 
                 {/* Admin Questions Page - Currently unprotected for development */}

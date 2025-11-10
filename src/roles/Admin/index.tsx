@@ -9,6 +9,7 @@ export { default as BanksPage } from "./pages/BanksPage"
 export { default as ReviewsPage } from "./pages/ReviewsPage"
 export { default as AdminsPage } from "./pages/AdminsPage"
 export { default as ActivityLogPage } from "./pages/ActivityLogPage"
+export { default as SPOProfilePage } from "./pages/SPOProfilePage"
 
 // Layout components
 export { default as AdminNavbar } from "./layout/Navbar"

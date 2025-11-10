@@ -1,4 +1,5 @@
 import React from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 interface SectorData {
   name: string;
@@ -12,84 +13,73 @@ interface SectorDistributionProps {
 }
 
 const SectorDistribution: React.FC<SectorDistributionProps> = ({ data }) => {
-  const centerX = 100;
-  const centerY = 100;
-  const outerRadius = 80;
-  const innerRadius = 60;
-
-  const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
-    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
-    return {
-      x: centerX + radius * Math.cos(angleInRadians),
-      y: centerY + radius * Math.sin(angleInRadians),
-    };
-  };
-
-  const renderDonutChart = () => {
-    let currentAngle = 0;
-    
-    return data.map((sector, index) => {
-      const startAngle = currentAngle;
-      const endAngle = currentAngle + (sector.percentage / 100) * 360;
-      const largeArcFlag = sector.percentage > 50 ? 1 : 0;
-      
-      const innerStart = polarToCartesian(centerX, centerY, innerRadius, startAngle);
-      const innerEnd = polarToCartesian(centerX, centerY, innerRadius, endAngle);
-      const outerStart = polarToCartesian(centerX, centerY, outerRadius, startAngle);
-      const outerEnd = polarToCartesian(centerX, centerY, outerRadius, endAngle);
-      
-      const d = [
-        `M ${outerStart.x} ${outerStart.y}`,
-        `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${outerEnd.x} ${outerEnd.y}`,
-        `L ${innerEnd.x} ${innerEnd.y}`,
-        `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStart.x} ${innerStart.y}`,
-        `Z`,
-      ].join(' ');
-
-      currentAngle = endAngle;
-
-      return (
-        <path
-          key={index}
-          d={d}
-          fill={sector.color}
-          stroke="#F8F6F0"
-          strokeWidth="2"
-        />
-      );
-    });
-  };
+  const topSector = data[0];
+  const pieData: Array<Record<string, number | string>> = data.map((sector) => ({
+    name: sector.name,
+    percentage: sector.percentage,
+    count: sector.count,
+    color: sector.color,
+  }));
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-800 mb-1">Sector Distribution</h3>
-      <p className="text-sm text-gray-600 mb-6">
+      <p className="text-[14px] font-[400] font-golos text-gray-400 mb-6">
         Breakdown of SPO's by Focus Area
       </p>
       
-      <div className="flex items-center gap-8">
-        <div className="relative flex-shrink-0">
-          <svg width="200" height="200" viewBox="0 0 200 200">
-            {renderDonutChart()}
-            <circle cx="100" cy="100" r="60" fill="#F8F6F0" />
-            <text x="100" y="95" textAnchor="middle" dominantBaseline="middle" fill="#1F2937" fontSize="14" fontWeight="600">
-              {data[0]?.percentage || 0}%
-            </text>
-            <text x="100" y="110" textAnchor="middle" dominantBaseline="middle" fill="#6B7280" fontSize="12" fontWeight="500">
-              {data[0]?.count || 0} SPOs
-            </text>
-          </svg>
+      {data.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-[13px] font-[400] font-golos text-gray-500">
+          No sector data available.
         </div>
-        
-        <div className="flex-1 space-y-3">
-          {data.map((sector, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sector.color }} />
-              <span className="text-sm font-medium text-gray-700">{sector.name}</span>
+      ) : (
+        <div className="flex items-center gap-8">
+          <div className="relative flex-shrink-0 w-52 h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="percentage"
+                  nameKey="name"
+                  innerRadius="60%"
+                  outerRadius="100%"
+                  stroke="#F8F6F0"
+                  // strokeWidth={2}
+                  // paddingAngle={2}
+                >
+                  {data.map((sector) => (
+                    <Cell key={sector.name} fill={sector.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: number, _name: string, entry: any) => [
+                    `${value}%`,
+                    entry.payload.count ? `${entry.payload.count} SPOs` : entry.payload.name,
+                  ]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center space-y-1">
+              <span className="text-sm font-semibold text-gray-800">
+                {topSector ? `${topSector.percentage}%` : "0%"}
+              </span>
+              <span className="text-xs font-medium text-gray-500">
+                {topSector ? `${topSector.count} SPOs` : "0 SPOs"}
+              </span>
             </div>
-          ))}
+          </div>
+          
+          <div className="flex-1 space-y-3">
+            {data.map((sector, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sector.color }} />
+                <span className="text-sm font-medium text-gray-700">{sector.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

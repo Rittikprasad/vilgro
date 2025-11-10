@@ -1,19 +1,558 @@
-import React from 'react';
-import LayoutWrapper from '../layout/LayoutWrapper';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import LayoutWrapper from "../layout/LayoutWrapper";
+import { Card, CardContent } from "../../../components/ui/Card";
+import { Button } from "../../../components/ui/Button";
+import ViewIcon from "../../../assets/svg/view.svg";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import { Input } from "../../../components/ui/Input";
+import {
+  clearAdminDetailsError,
+  createAdminDetail,
+  fetchAdminDetails,
+  updateAdminDetail,
+} from "../../../features/adminDetails/adminDetailsSlice";
+import type { AdminDetailsEntry } from "../../../features/adminDetails/adminDetailsTypes";
 
 const AdminsPage: React.FC = () => {
+  const [sortOrder, setSortOrder] = useState<"new_to_old" | "old_to_new">("new_to_old");
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const dispatch = useAppDispatch();
+  const {
+    items,
+    count,
+    isLoading,
+    error,
+    isCreating,
+    createError,
+    isUpdating,
+    updateError,
+  } = useAppSelector((state) => state.adminDetails);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState<AdminDetailsEntry | null>(null);
+  const initialFormState = useMemo(
+    () => ({
+      email: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      password: "",
+    }),
+    []
+  );
+  const [formState, setFormState] = useState(initialFormState);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  // Keep pagination parameters aligned with server state.
+  const fetchAdmins = useCallback(() => {
+    void dispatch(fetchAdminDetails({ page: currentPage, pageSize }));
+  }, [dispatch, currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchAdmins();
+  }, [fetchAdmins]);
+
+  const adminList = useMemo(() => {
+    return items.map((admin: AdminDetailsEntry) => {
+      const fullName = [admin.first_name, admin.last_name].filter(Boolean).join(" ").trim();
+      return {
+        id: `#${admin.id}`,
+        name: fullName.length > 0 ? fullName : admin.email,
+        status: admin.is_active ? "Active" : "Inactive",
+        access: admin.is_active,
+        email: admin.email,
+        raw: admin,
+      };
+    });
+  }, [items]);
+
+  const filteredAdmins = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = adminList.filter(
+      (admin) =>
+        admin.id.toLowerCase().includes(term) ||
+        admin.name.toLowerCase().includes(term) ||
+        admin.email.toLowerCase().includes(term)
+    );
+
+    return filtered.sort((a, b) => {
+      if (sortOrder === "new_to_old") {
+        return b.id.localeCompare(a.id);
+      }
+      return a.id.localeCompare(b.id);
+    });
+  }, [adminList, searchTerm, sortOrder]);
+
+  const totalItems = searchTerm ? filteredAdmins.length : count || filteredAdmins.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  const paginatedRows = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredAdmins.slice(startIndex, startIndex + pageSize);
+  }, [filteredAdmins, currentPage, pageSize]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
+  const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPageSize(Number(event.target.value));
+    setCurrentPage(1);
+  };
+
   return (
     <LayoutWrapper>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Admins Management</h1>
-          <p className="text-gray-600 mt-1">Manage admin users</p>
+        <div className="flex items-center justify-between">
+          <h1
+            className="text-gray-800"
+            style={{
+              fontFamily: "Baskervville",
+              fontWeight: 500,
+              fontStyle: "normal",
+              fontSize: "30px",
+            }}
+          >
+            Admins
+          </h1>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="px-4 py-2" onClick={() => setSearchTerm("")}>
+              Search
+            </Button>
+            <Button
+              variant="outline"
+              className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600"
+              onClick={() =>
+                setSortOrder((prev) => (prev === "new_to_old" ? "old_to_new" : "new_to_old"))
+              }
+            >
+              Sort by: {sortOrder === "new_to_old" ? "New to old" : "Old to new"}
+            </Button>
+            <Button
+              variant="gradient"
+              className="px-4 py-2"
+              onClick={() => {
+                dispatch(clearAdminDetailsError());
+                setLocalError(null);
+                setEditingAdmin(null);
+                setFormState(initialFormState);
+                setIsModalOpen(true);
+              }}
+            >
+              Add Admin
+            </Button>
+          </div>
         </div>
-        
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <p className="text-gray-600">Admins management content will be displayed here</p>
-        </div>
+
+        <Card className="overflow-hidden">
+          <CardContent className="p-6">
+            {error && (
+              <div className="mb-4 flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <span>{error}</span>
+                <button
+                  type="button"
+                  onClick={fetchAdmins}
+                  className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            {isLoading ? (
+              <div className="flex justify-center py-16 text-sm text-gray-500">
+                Loading admins...
+              </div>
+            ) : paginatedRows.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-[13px] font-[400] font-golos text-gray-500">
+                No admin records found.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-6 text-left text-[10px] font-[400] font-golos uppercase tracking-wider text-gray-500">
+                        ID
+                      </th>
+                      <th className="px-6 text-left text-[10px] font-[400] font-golos uppercase tracking-wider text-gray-500">
+                        Admin Name
+                      </th>
+                      <th className="px-6 text-left text-[10px] font-[400] font-golos uppercase tracking-wider text-gray-500">
+                        Status
+                      </th>
+                      <th className="px-6 text-left text-[10px] font-[400] font-golos uppercase tracking-wider text-gray-500">
+                        Access
+                      </th>
+                      <th className="px-6 text-center text-[12px] font-[400] font-golos uppercase tracking-wider text-gray-500">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {paginatedRows.map((admin, index) => (
+                      <tr key={`${admin.id}-${index}`} className="hover:bg-gray-50">
+                        <td
+                          className="px-6 whitespace-nowrap text-sm font-medium text-gray-900"
+                          style={{ paddingTop: "16px", paddingBottom: "16px" }}
+                        >
+                          {admin.id}
+                        </td>
+                        <td
+                          className="px-6 whitespace-nowrap text-sm text-gray-900"
+                          style={{
+                            fontFamily: "Golos Text",
+                            fontWeight: 400,
+                            fontStyle: "normal",
+                            fontSize: "12px",
+                            verticalAlign: "middle",
+                            paddingTop: "16px",
+                            paddingBottom: "16px",
+                          }}
+                        >
+                          {admin.name}
+                        </td>
+                        <td
+                          className={`px-6 whitespace-nowrap text-sm ${
+                            admin.status === "Active" ? "text-green-600" : "text-[#FF6B55]"
+                          }`}
+                          style={{
+                            fontFamily: "Golos Text",
+                            fontWeight: 400,
+                            fontStyle: "normal",
+                            fontSize: "12px",
+                            verticalAlign: "middle",
+                            paddingTop: "16px",
+                            paddingBottom: "16px",
+                          }}
+                        >
+                          {admin.status}
+                        </td>
+                        <td
+                          className="px-6 whitespace-nowrap text-sm"
+                          style={{ paddingTop: "16px", paddingBottom: "16px" }}
+                        >
+                          <div
+                            className={`flex h-5 w-10 items-center rounded-full px-1 transition-colors ${
+                              admin.access ? "bg-[#46B753]" : "bg-gray-300"
+                            }`}
+                          >
+                            <span
+                              className={`h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                                admin.access ? "translate-x-4" : "translate-x-0"
+                              }`}
+                            />
+                          </div>
+                        </td>
+                        <td
+                          className="px-6 whitespace-nowrap text-center"
+                          style={{ paddingTop: "16px", paddingBottom: "16px" }}
+                        >
+                          <div className="flex items-center justify-center gap-3">
+                            <button
+                              type="button"
+                              className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50 transition-colors"
+                              title="View"
+                          onClick={() => {
+                            dispatch(clearAdminDetailsError());
+                            setLocalError(null);
+                            setEditingAdmin(admin.raw);
+                            setFormState({
+                              email: admin.raw.email ?? "",
+                              firstName: admin.raw.first_name ?? "",
+                              lastName: admin.raw.last_name ?? "",
+                              phone: admin.raw.phone ?? "",
+                              password: "",
+                            });
+                            setIsModalOpen(true);
+                          }}
+                            >
+                              <img src={ViewIcon} alt="View" className="h-5 w-5" />
+                            </button>
+                            <button
+                              type="button"
+                              className="text-[#FF6B55] hover:text-[#d95340] p-1 rounded hover:bg-red-50 transition-colors"
+                              title="Delete"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="h-5 w-5"
+                              >
+                                <path d="M9 3a1 1 0 0 0-1 1v1H5.5a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5H16V4a1 1 0 0 0-1-1H9Zm1.5 6.25a.75.75 0 0 0-1.5 0v7a.75.75 0 0 0 1.5 0v-7Zm4 0a.75.75 0 0 0-1.5 0v7a.75.75 0 0 0 1.5 0v-7Z" />
+                                <path d="M6.25 8.5a.75.75 0 0 0-.75.75V18a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V9.25a.75.75 0 0 0-1.5 0V18a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V9.25a.75.75 0 0 0-.75-.75Z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="text-[12px] font-[400] font-golos text-gray-500">
+                    Showing{" "}
+                    <span className="font-semibold text-gray-700">
+                      {Math.min((currentPage - 1) * pageSize + 1, totalItems)}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-semibold text-gray-700">
+                      {Math.min(currentPage * pageSize, totalItems)}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold text-gray-700">{totalItems}</span>{" "}
+                    results
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-[12px] font-[400] font-golos text-gray-600">
+                      Rows per page
+                      <select
+                        value={pageSize}
+                        onChange={handlePageSizeChange}
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-[12px] font-golos text-gray-700 focus:border-[#46B753] focus:outline-none focus:ring-1 focus:ring-[#46B753]"
+                      >
+                        {[5, 10, 20, 50].map((size) => (
+                          <option key={size} value={size}>
+                            {size}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handlePrev}
+                        disabled={currentPage === 1}
+                        className="rounded-md border border-gray-300 px-3 py-1 text-[12px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
+                      >
+                        Previous
+                      </button>
+                      <span className="text-[12px] font-[400] font-golos text-gray-600">
+                        Page <span className="font-semibold text-gray-800">{currentPage}</span> of{" "}
+                        <span className="font-semibold text-gray-800">{totalPages}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        disabled={currentPage === totalPages}
+                        className="rounded-md border border-gray-300 px-3 py-1 text-[12px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4"
+          onClick={() => {
+            setIsModalOpen(false);
+            setLocalError(null);
+            setEditingAdmin(null);
+            dispatch(clearAdminDetailsError());
+            setFormState(initialFormState);
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 className="mb-6 text-start text-[18px] font-[700] font-golos text-gray-900">
+              {editingAdmin ? "Update Admin Profile" : "Create Admin Profile"}
+            </h2>
+
+            {(localError || createError || updateError) && (
+              <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-[400] font-golos text-red-600">
+                {localError ?? createError ?? updateError}
+              </div>
+            )}
+
+            <form
+              className="space-y-4"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setLocalError(null);
+                const trimmedEmail = formState.email.trim();
+                const trimmedFirstName = formState.firstName.trim();
+                const trimmedLastName = formState.lastName.trim();
+                const trimmedPhone = formState.phone.trim();
+                const trimmedPassword = formState.password.trim();
+
+                if (!trimmedEmail || !trimmedFirstName || !trimmedLastName || !trimmedPhone) {
+                  setLocalError("Email, first name, last name, and phone are mandatory.");
+                  return;
+                }
+
+                if (!editingAdmin && !trimmedPassword) {
+                  setLocalError("Password is required when creating a new admin.");
+                  return;
+                }
+
+                const payloadBase = {
+                  email: trimmedEmail,
+                  first_name: trimmedFirstName,
+                  last_name: trimmedLastName,
+                  phone: trimmedPhone,
+                  ...(trimmedPassword ? { password: trimmedPassword } : {}),
+                };
+
+                try {
+                  if (editingAdmin) {
+                    await dispatch(
+                      updateAdminDetail({
+                        id: editingAdmin.id,
+                        data: payloadBase,
+                      })
+                    ).unwrap();
+                  } else {
+                    await dispatch(createAdminDetail(payloadBase)).unwrap();
+                  }
+
+                  await dispatch(fetchAdminDetails({ page: currentPage, pageSize }));
+                  setIsModalOpen(false);
+                  setEditingAdmin(null);
+                  setFormState(initialFormState);
+                } catch (err) {
+                  if (typeof err === "string") {
+                    setLocalError(err);
+                  } else {
+                    setLocalError("Something went wrong. Please try again.");
+                  }
+                }
+              }}
+            >
+              <div>
+                <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
+                  Email
+                </label>
+                <Input
+                  required
+                  type="email"
+                  value={formState.email}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, email: event.target.value }))
+                  }
+                  placeholder="Enter admin email"
+                  className="gradient-border h-11 bg-white px-4 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
+                  First Name
+                </label>
+                <Input
+                  required
+                  value={formState.firstName}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, firstName: event.target.value }))
+                  }
+                  placeholder="Enter first name"
+                  className="gradient-border h-11 bg-white px-4 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
+                  Last Name
+                </label>
+                <Input
+                  required
+                  value={formState.lastName}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, lastName: event.target.value }))
+                  }
+                  placeholder="Enter last name"
+                  className="gradient-border h-11 bg-white px-4 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
+                  Phone
+                </label>
+                <Input
+                  required
+                  value={formState.phone}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, phone: event.target.value }))
+                  }
+                  placeholder="Enter phone number"
+                  className="gradient-border h-11 bg-white px-4 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
+                  Password
+                </label>
+                <Input
+                  type="password"
+                  value={formState.password}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, password: event.target.value }))
+                  }
+                  placeholder={editingAdmin ? "Leave blank to keep current password" : "Enter password"}
+                  className="gradient-border h-11 bg-white px-4 text-sm"
+                  required={!editingAdmin}
+                />
+              </div>
+
+              <div className="mt-6 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setLocalError(null);
+                    setEditingAdmin(null);
+                    dispatch(clearAdminDetailsError());
+                    setFormState(initialFormState);
+                  }}
+                  className="flex-1 rounded-lg border border-gray-300 bg-white py-2.5 text-[13px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating || isUpdating}
+                  className="flex-1 rounded-lg py-2.5 text-[13px] font-[500] font-golos text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+                  style={{
+                    background: "linear-gradient(92.06deg, #46B753 0.02%, #E0DC32 100.02%)",
+                  }}
+                >
+                  {editingAdmin
+                    ? isUpdating
+                      ? "Updating..."
+                      : "Update Admin"
+                    : isCreating
+                    ? "Creating..."
+                    : "Create Admin"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </LayoutWrapper>
   );
 };

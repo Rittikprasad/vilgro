@@ -4,6 +4,7 @@ import { useAuth } from "../auth/useAuth"
 import { 
   AdminDashboard,
   SPOsPage,
+  SPOProfilePage,
   QuestionsPage,
   BanksPage,
   ReviewsPage,
@@ -35,6 +36,7 @@ export const RoleRouter: React.FC = () => {
       <Routes>
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/spos" element={<SPOsPage />} />
+        <Route path="/admin/spos/:spoId" element={<SPOProfilePage />} />
         <Route path="/admin/questions" element={<QuestionsPage />} />
         <Route path="/admin/banks" element={<BanksPage />} />
         <Route path="/admin/reviews" element={<ReviewsPage />} />

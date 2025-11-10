@@ -34,7 +34,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
           className="text-gray-800"
           style={{
             fontFamily: 'Baskervville',
-            fontWeight: 600,
+            fontWeight: 500,
             fontStyle: 'normal',
             fontSize: '30px'
           }}

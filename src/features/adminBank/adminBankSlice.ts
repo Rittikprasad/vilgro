@@ -16,6 +16,8 @@ const initialState: AdminBankState = {
   isUpdating: false,
   updateError: null,
   lastFetchedAt: null,
+  isDeleting: false,
+  deleteError: null,
 };
 
 export const fetchAdminBanks = createAsyncThunk<
@@ -69,6 +71,23 @@ export const updateAdminBank = createAsyncThunk<
   }
 });
 
+export const deleteAdminBank = createAsyncThunk<
+  number,
+  number,
+  { rejectValue: string }
+>("adminBank/delete", async (id, { rejectWithValue }) => {
+  try {
+    await api.delete(endpoints.admin.bankById(id));
+    return id;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ??
+      error?.message ??
+      "Failed to delete bank";
+    return rejectWithValue(message);
+  }
+});
+
 const adminBankSlice = createSlice({
   name: "adminBank",
   initialState,
@@ -77,6 +96,7 @@ const adminBankSlice = createSlice({
       state.error = null;
       state.createError = null;
       state.updateError = null;
+      state.deleteError = null;
     },
     resetAdminBank: () => initialState,
   },
@@ -120,6 +140,18 @@ const adminBankSlice = createSlice({
       .addCase(updateAdminBank.rejected, (state, action) => {
         state.isUpdating = false;
         state.updateError = action.payload ?? "Failed to update bank";
+      })
+      .addCase(deleteAdminBank.pending, (state) => {
+        state.isDeleting = true;
+        state.deleteError = null;
+      })
+      .addCase(deleteAdminBank.fulfilled, (state, action) => {
+        state.isDeleting = false;
+        state.items = state.items.filter((bank) => bank.id !== action.payload);
+      })
+      .addCase(deleteAdminBank.rejected, (state, action) => {
+        state.isDeleting = false;
+        state.deleteError = action.payload ?? "Failed to delete bank";
       });
   },
 });

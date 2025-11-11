@@ -1,27 +1,20 @@
 import React, { useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import LayoutWrapper from "../layout/LayoutWrapper";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
 import BackIcon from "../../../assets/svg/BackIcon.svg";
-import ConfirmationModal from "../../../components/ui/ConfirmationModal";
+import BankingLayoutWrapper from "../layout/LayoutWrapper";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
   clearAdminSpoDetailError,
   fetchAdminSpoById,
-  resetSelectedAdminSpo,
   fetchAdminSpoReport,
   clearAdminSpoReportError,
-  deleteAdminSpo,
-  clearAdminSpoDeleteError,
 } from "../../../features/adminSpo/adminSpoSlice";
 import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
 
 const formatDate = (value: string | null | undefined) => {
-  if (!value) {
-    return "-";
-  }
-
+  if (!value) return "-";
   try {
     return new Date(value).toLocaleDateString(undefined, {
       year: "numeric",
@@ -33,55 +26,29 @@ const formatDate = (value: string | null | undefined) => {
   }
 };
 
-const SPOProfilePage: React.FC = () => {
+const BankingSPOProfilePage: React.FC = () => {
   const { spoId } = useParams<{ spoId: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const numericId = spoId ? Number(spoId) : NaN;
 
-  const {
-    selected,
-    isDetailLoading,
-    detailError,
-    isReportDownloading,
-    reportError,
-    isDeleting,
-    deleteError,
-  } = useAppSelector(
-    (state) => state.adminSpo
-  );
-
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const { selected, isDetailLoading, detailError, isReportDownloading, reportError } =
+    useAppSelector((state) => state.adminSpo);
 
   const activeSpo: AdminSpoEntry | null =
-    selected && !Number.isNaN(numericId) && selected.id === numericId
-      ? selected
-      : null;
+    selected && !Number.isNaN(numericId) && selected.id === numericId ? selected : null;
 
   useEffect(() => {
-    if (Number.isNaN(numericId)) {
-      return;
-    }
-
+    if (Number.isNaN(numericId)) return;
     if (!activeSpo) {
       void dispatch(fetchAdminSpoById(numericId));
     }
   }, [dispatch, numericId, activeSpo]);
 
-  useEffect(() => {
-    return () => {
-      dispatch(resetSelectedAdminSpo());
-    };
-  }, [dispatch]);
-
   const assessmentRows = useMemo(() => {
-    if (!activeSpo) {
-      return [];
-    }
-
+    if (!activeSpo) return [];
     const incorporationDate = formatDate(activeSpo.organization?.date_of_incorporation);
     const loanStatus = activeSpo.loan_eligible ? "Eligible" : "Not eligible";
-
     return [
       {
         id: `assessment-${activeSpo.id}`,
@@ -101,113 +68,71 @@ const SPOProfilePage: React.FC = () => {
       "SPO Profile");
 
   const handleRetry = () => {
-    if (!Number.isNaN(numericId)) {
-      dispatch(clearAdminSpoDetailError());
-      void dispatch(fetchAdminSpoById(numericId));
-    }
+    if (Number.isNaN(numericId)) return;
+    dispatch(clearAdminSpoDetailError());
+    void dispatch(fetchAdminSpoById(numericId));
   };
 
   const handleGenerateReport = async () => {
-    if (!activeSpo) {
-      return;
-    }
-
+    if (!activeSpo) return;
     try {
       const result = await dispatch(fetchAdminSpoReport(activeSpo.id)).unwrap();
+      const blobUrl = window.URL.createObjectURL(result.blob);
       const link = document.createElement("a");
-      link.href = result.url;
+      link.href = blobUrl;
       link.setAttribute("download", result.filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(result.url);
+      window.URL.revokeObjectURL(blobUrl);
       dispatch(clearAdminSpoReportError());
-    } catch (err) {
-      // No-op: error state is handled by slice for user feedback.
-      console.error("Failed to generate report", err);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (isDeleting) {
-      return;
-    }
-    if (!activeSpo) {
-      return;
-    }
-
-    try {
-      await dispatch(deleteAdminSpo(activeSpo.id)).unwrap();
-      dispatch(clearAdminSpoDeleteError());
-      setIsDeleteModalOpen(false);
-      navigate("/admin/spos");
-    } catch (err) {
-      console.error("Failed to delete SPO", err);
+    } catch (error) {
+      console.error("Banking SPO report generation failed", error);
     }
   };
 
   if (Number.isNaN(numericId)) {
     return (
-      <LayoutWrapper>
-        <div className="space-y-6">
-          <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-600">
-            Invalid SPO identifier.{" "}
-            <button
-              type="button"
-              onClick={() => navigate("/admin/spos")}
-              className="underline"
-            >
-              Go back to list.
-            </button>
-          </div>
+      <BankingLayoutWrapper>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-600">
+          Invalid SPO identifier.&nbsp;
+          <button type="button" className="underline" onClick={() => navigate("/banking/dashboard")}>
+            Go back to list.
+          </button>
         </div>
-      </LayoutWrapper>
+      </BankingLayoutWrapper>
     );
   }
 
   return (
-    <LayoutWrapper>
+    <BankingLayoutWrapper>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => navigate(-1)}
+              className="flex h-10 w-10 items-center justify-center"
               aria-label="Go back"
             >
               <img src={BackIcon} alt="Back" className="w-8 h-8" />
             </button>
-            <div>
-              <h1
-                className="text-gray-800"
-                style={{
-                  fontFamily: "Baskervville",
-                  fontWeight: 600,
-                  fontStyle: "normal",
-                  fontSize: "30px",
-                  textTransform: "capitalize",
-                }}
-              >
-                {displayName}
-              </h1>
-            </div>
+            <h1
+              className="text-gray-800"
+              style={{
+                fontFamily: "Baskervville",
+                fontWeight: 600,
+                fontStyle: "normal",
+                fontSize: "30px",
+                textTransform: "capitalize",
+              }}
+            >
+              {displayName}
+            </h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                dispatch(clearAdminSpoDeleteError());
-                setIsDeleteModalOpen(true);
-              }}
-            >
-              Delete Profile
-            </Button>
-            <Button
-              variant="gradient"
-              onClick={handleGenerateReport}
-              disabled={isReportDownloading || !activeSpo}
-            >
+            <Button variant="gradient" onClick={handleGenerateReport} disabled={isReportDownloading || !activeSpo}>
               {isReportDownloading ? "Generating..." : "Generate Report"}
             </Button>
           </div>
@@ -216,12 +141,6 @@ const SPOProfilePage: React.FC = () => {
         {reportError && (
           <div className="rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-xs font-golos text-yellow-800">
             {reportError}
-          </div>
-        )}
-
-        {deleteError && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-xs font-golos text-red-700">
-            {deleteError}
           </div>
         )}
 
@@ -251,9 +170,7 @@ const SPOProfilePage: React.FC = () => {
               </div>
 
               {isDetailLoading && !activeSpo ? (
-                <div className="flex justify-center py-16 text-sm text-gray-500">
-                  Loading SPO profile...
-                </div>
+                <div className="flex justify-center py-16 text-sm text-gray-500">Loading SPO profile...</div>
               ) : assessmentRows.length === 0 ? (
                 <div className="mt-6 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-[13px] font-[300] font-golos text-gray-500">
                   Assessment information is not available yet.
@@ -337,8 +254,7 @@ const SPOProfilePage: React.FC = () => {
                 <div className="flex justify-between gap-4">
                   <span className="font-[400] font-golos text-gray-700">Name</span>
                   <span className="text-right text-gray-500">
-                    {[activeSpo?.first_name, activeSpo?.last_name].filter(Boolean).join(" ") ||
-                      "Not provided"}
+                    {[activeSpo?.first_name, activeSpo?.last_name].filter(Boolean).join(" ") || "Not provided"}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
@@ -366,23 +282,9 @@ const SPOProfilePage: React.FC = () => {
           </Card>
         </div>
       </div>
-
-      <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        title="Delete SPO Profile"
-        message="Are you sure you want to delete this SPO profile? This action cannot be undone."
-        confirmText={isDeleting ? "Deleting..." : "Delete"}
-        cancelText="Cancel"
-        onConfirm={handleDelete}
-        onCancel={() => {
-          if (!isDeleting) {
-            setIsDeleteModalOpen(false);
-          }
-        }}
-      />
-    </LayoutWrapper>
+    </BankingLayoutWrapper>
   );
 };
 
-export default SPOProfilePage;
+export default BankingSPOProfilePage;
 

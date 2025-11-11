@@ -12,8 +12,10 @@ import {
   createAdminBank,
   fetchAdminBanks,
   updateAdminBank,
+  deleteAdminBank,
 } from "../../../features/adminBank/adminBankSlice";
 import type { AdminBankStatus } from "../../../features/adminBank/adminBankTypes";
+import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 
 const DeleteIcon: React.FC = () => (
   <svg
@@ -29,8 +31,17 @@ const DeleteIcon: React.FC = () => (
 
 const BanksPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { items, isLoading, error, isCreating, createError, isUpdating, updateError } =
-    useSelector((state: RootState) => state.adminBank);
+  const {
+    items,
+    isLoading,
+    error,
+    isCreating,
+    createError,
+    isUpdating,
+    updateError,
+    isDeleting,
+    deleteError,
+  } = useSelector((state: RootState) => state.adminBank);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<"new_to_old" | "old_to_new">("new_to_old");
@@ -53,6 +64,8 @@ const BanksPage: React.FC = () => {
   const [formState, setFormState] = useState(initialFormState);
   const [localError, setLocalError] = useState<string | null>(null);
   const [editingBank, setEditingBank] = useState<number | null>(null);
+  const [bankToDelete, setBankToDelete] = useState<number | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const fetchBanks = useCallback(() => {
     void dispatch(fetchAdminBanks());
@@ -126,6 +139,35 @@ const BanksPage: React.FC = () => {
     setPageSize(Number(event.target.value));
   };
 
+  const openDeleteModal = (id: number) => {
+    setLocalError(null);
+    dispatch(clearAdminBankError());
+    setBankToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    if (isDeleting) {
+      return;
+    }
+    setIsDeleteModalOpen(false);
+    setBankToDelete(null);
+  };
+
+  const handleDelete = async () => {
+    if (bankToDelete == null || isDeleting) {
+      return;
+    }
+
+    try {
+      await dispatch(deleteAdminBank(bankToDelete)).unwrap();
+      closeDeleteModal();
+    } catch (err) {
+      // Error surface via deleteError
+      console.error("Failed to delete bank", err);
+    }
+  };
+
   return (
     <LayoutWrapper>
       <div className="space-y-6">
@@ -176,12 +218,16 @@ const BanksPage: React.FC = () => {
           </div>
         </div>
         
-        {error && (
+        {(error || deleteError) && (
           <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            <span>{error}</span>
+            <span>{error ?? deleteError}</span>
             <button
               type="button"
-              onClick={fetchBanks}
+              onClick={() => {
+                setLocalError(null);
+                dispatch(clearAdminBankError());
+                fetchBanks();
+              }}
               className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
             >
               Retry
@@ -324,8 +370,9 @@ const BanksPage: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                        className="text-[#FF6B55] hover:text-[#d95340] p-1 rounded hover:bg-red-50 transition-colors"
+                              className="text-[#FF6B55] hover:text-[#d95340] p-1 rounded hover:bg-red-50 transition-colors"
                               title="Delete"
+                              onClick={() => openDeleteModal(row.raw.id)}
                             >
                               <DeleteIcon />
                             </button>
@@ -571,6 +618,16 @@ const BanksPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Bank"
+        message="Are you sure you want to delete this bank profile? This action cannot be undone."
+        confirmText={isDeleting ? "Deleting..." : "Delete"}
+        cancelText="Cancel"
+        onConfirm={handleDelete}
+        onCancel={closeDeleteModal}
+      />
     </LayoutWrapper>
   );
 };

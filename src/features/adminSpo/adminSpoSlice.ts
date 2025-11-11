@@ -13,6 +13,8 @@ const initialState: AdminSpoState = {
   detailError: null,
   isReportDownloading: false,
   reportError: null,
+  isDeleting: false,
+  deleteError: null,
 };
 
 export const fetchAdminSpos = createAsyncThunk<
@@ -50,7 +52,7 @@ export const fetchAdminSpoById = createAsyncThunk<
 });
 
 export interface AdminSpoReportPayload {
-  blob: Blob;
+  url: string;
   filename: string;
 }
 
@@ -68,8 +70,10 @@ export const fetchAdminSpoReport = createAsyncThunk<
     const filenameMatch = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i);
     const filename = filenameMatch ? decodeURIComponent(filenameMatch[1]) : `spo-report-${id}.pdf`;
 
+    const blobUrl = window.URL.createObjectURL(response.data);
+
     return {
-      blob: response.data,
+      url: blobUrl,
       filename,
     };
   } catch (error: any) {
@@ -77,6 +81,22 @@ export const fetchAdminSpoReport = createAsyncThunk<
       error?.response?.data?.message ??
       error?.message ??
       "Failed to download SPO report";
+    return rejectWithValue(message);
+  }
+});
+
+export const deleteAdminSpo = createAsyncThunk<
+  void,
+  number | string,
+  { rejectValue: string }
+>("adminSpo/delete", async (id, { rejectWithValue }) => {
+  try {
+    await api.delete(endpoints.admin.spoById(id));
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ??
+      error?.message ??
+      "Failed to delete SPO";
     return rejectWithValue(message);
   }
 });
@@ -101,6 +121,9 @@ const adminSpoSlice = createSlice({
     },
     clearAdminSpoReportError: (state) => {
       state.reportError = null;
+    },
+    clearAdminSpoDeleteError: (state) => {
+      state.deleteError = null;
     },
     resetAdminSpo: () => initialState,
   },
@@ -150,6 +173,23 @@ const adminSpoSlice = createSlice({
         state.isReportDownloading = false;
         state.reportError = action.payload ?? "Failed to download SPO report";
       });
+    builder
+      .addCase(deleteAdminSpo.pending, (state) => {
+        state.isDeleting = true;
+        state.deleteError = null;
+      })
+      .addCase(deleteAdminSpo.fulfilled, (state, action) => {
+        state.isDeleting = false;
+        const id = Number(action.meta.arg);
+        state.items = state.items.filter((item) => item.id !== id);
+        if (state.selected && state.selected.id === id) {
+          state.selected = null;
+        }
+      })
+      .addCase(deleteAdminSpo.rejected, (state, action) => {
+        state.isDeleting = false;
+        state.deleteError = action.payload ?? "Failed to delete SPO";
+      });
   },
 });
 
@@ -157,6 +197,7 @@ export const {
   clearAdminSpoError,
   clearAdminSpoDetailError,
   clearAdminSpoReportError,
+  clearAdminSpoDeleteError,
   resetAdminSpo,
   resetSelectedAdminSpo,
   setSelectedAdminSpo,

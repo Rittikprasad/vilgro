@@ -1,7 +1,7 @@
 import React from "react"
 import { Routes, Route, Navigate } from "react-router-dom"
 import { useAuth } from "../auth/useAuth"
-import { 
+import {
   AdminDashboard,
   SPOsPage,
   SPOProfilePage,
@@ -9,8 +9,10 @@ import {
   BanksPage,
   ReviewsPage,
   AdminsPage,
-  ActivityLogPage
+  ActivityLogPage,
+  ProfilePage,
 } from "../roles/Admin"
+import { BankingSPOsPage, BankingSPOProfilePage } from "../roles/Banking"
 import Assessment from "../components/assessment"
 
 /**
@@ -42,7 +44,18 @@ export const RoleRouter: React.FC = () => {
         <Route path="/admin/reviews" element={<ReviewsPage />} />
         <Route path="/admin/admins" element={<AdminsPage />} />
         <Route path="/admin/activity" element={<ActivityLogPage />} />
+        <Route path="/admin/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+      </Routes>
+    )
+  }
+
+  if (role === "BANKING") {
+    return (
+      <Routes>
+        <Route path="/banking/spos" element={<BankingSPOsPage />} />
+        <Route path="/banking/spos/:spoId" element={<BankingSPOProfilePage />} />
+        <Route path="*" element={<Navigate to="/banking/spos" replace />} />
       </Routes>
     )
   }

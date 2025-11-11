@@ -75,7 +75,7 @@ const Header: React.FC = () => {
 
         {/* CTA Button and Login Link */}
         <div className={styles.headerActions}>  
-        <Button style={{backgroundColor: 'var(--villgro-dark)', color: 'white'}} size="sm" onClick={() => navigate('/login')}>
+        <Button style={{backgroundColor: 'var(--villgro-dark)', color: 'white'}} size="sm" onClick={() => navigate('/signup')}>
               Start Your Assessment
             </Button>       
         </div>

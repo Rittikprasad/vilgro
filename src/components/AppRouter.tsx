@@ -15,8 +15,8 @@ import SubmissionSuccess from './assessment/SubmissionSuccess';
 import EnterEmail from './forgot-password/EnterEmail';
 import EnterCode from './forgot-password/EnterCode';
 import CreateNewPassword from './forgot-password/CreateNewPassword';
-import { 
-  AdminLogin, 
+import {
+  AdminLogin,
   AdminDashboard,
   SPOsPage,
   SPOProfilePage,
@@ -24,8 +24,10 @@ import {
   BanksPage,
   ReviewsPage,
   AdminsPage,
-  ActivityLogPage
+  ActivityLogPage,
+  ProfilePage,
 } from '../roles/Admin';
+import { BankingLogin, BankingSPOsPage, BankingSPOProfilePage } from '../roles/Banking';
 // TODO: API Integration - Uncomment when authentication is ready
 // import { ProtectedRoute as RoleProtectedRoute } from '../auth/ProtectedRoute';
 
@@ -193,11 +195,25 @@ const AppRouter: React.FC = () => {
                     element={<AdminLogin />}
                 />
 
+                <Route
+                    path="/signin/banking"
+                    element={<BankingLogin />}
+                />
+
                 {/* Admin Dashboard - Currently unprotected for development */}
                 {/* TODO: API Integration - Protect this route with role-based authentication */}
                 <Route
                     path="/admin/dashboard"
                     element={<AdminDashboard />}
+                />
+
+                <Route
+                    path="/banking/dashboard"
+                    element={<BankingSPOsPage />}
+                />
+                <Route
+                    path="/banking/spos/:spoId"
+                    element={<BankingSPOProfilePage />}
                 />
 
                 {/* Admin SPOs Page - Currently unprotected for development */}
@@ -244,6 +260,10 @@ const AppRouter: React.FC = () => {
                 <Route
                     path="/admin/activity"
                     element={<ActivityLogPage />}
+                />
+                <Route
+                    path="/admin/profile"
+                    element={<ProfilePage />}
                 />
 
                 {/* 

@@ -23,5 +23,7 @@ export interface AdminBankState {
   isUpdating: boolean;
   updateError: string | null;
   lastFetchedAt: string | null;
+  isDeleting: boolean;
+  deleteError: string | null;
 }
 

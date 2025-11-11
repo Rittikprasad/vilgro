@@ -11,6 +11,7 @@ import adminBankReducer from "../features/adminBank/adminBankSlice.js";
 import adminReviewsReducer from "../features/adminReviews/adminReviewsSlice.js";
 import adminDetailsReducer from "../features/adminDetails/adminDetailsSlice.js";
 import adminActivityLogReducer from "../features/adminActivityLog/adminActivityLogSlice.js";
+import adminProfileReducer from "../features/adminProfile/adminProfileSlice.js";
 
 
 export const rootReducer = combineReducers({
@@ -26,4 +27,5 @@ export const rootReducer = combineReducers({
   adminReviews: adminReviewsReducer,
   adminDetails: adminDetailsReducer,
   adminActivityLog: adminActivityLogReducer,
+  adminProfile: adminProfileReducer,
 });

@@ -7,7 +7,11 @@ import { Button } from "../../../components/ui/Button";
 import ViewIcon from "../../../assets/svg/view.svg";
 import EmailIcon from "../../../assets/svg/email.svg";
 import type { AppDispatch, RootState } from "../../../app/store";
-import { fetchAdminSpos, setSelectedAdminSpo } from "../../../features/adminSpo/adminSpoSlice";
+import {
+  fetchAdminSpos,
+  fetchAdminSpoReport,
+  setSelectedAdminSpo,
+} from "../../../features/adminSpo/adminSpoSlice";
 import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
 
 const SPOsPage: React.FC = () => {
@@ -106,7 +110,26 @@ const SPOsPage: React.FC = () => {
             <Button variant="outline" className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600">
               Sort by: New to old
             </Button>
-            <Button variant="gradient" className="px-4 py-2">
+            <Button
+              variant="gradient"
+              className="px-4 py-2"
+              onClick={async () => {
+                if (items.length === 0) return;
+                const latestSpo = items[0];
+                try {
+                  const result = await dispatch(fetchAdminSpoReport(latestSpo.id)).unwrap();
+                  const link = document.createElement("a");
+                  link.href = result.url;
+                  link.setAttribute("download", result.filename);
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                  window.URL.revokeObjectURL(result.url);
+                } catch (err) {
+                  console.error("Failed to generate report", err);
+                }
+              }}
+            >
               Generate Report
             </Button>
           </div>

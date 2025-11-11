@@ -1,18 +1,15 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import logo from '../../../assets/logo.png';
-import SearchIcon from '../../../assets/svg/SearchIcon.svg';
-import ProfileIcon from '../../../assets/svg/ProfileIcon.svg';
+import ProfileIcon from '../../../assets/svg/ProfileIcon.svg'
+import SearchIcon from '../../../assets/svg/SearchIcon.svg'
 
 interface NavbarProps {
   className?: string;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
-  const navigate = useNavigate();
-
   return (
-    <nav className={`bg-[#F8F6F0] px-6 py-4 flex items-center justify-between ${className}`}>
+    <nav className={`bg-[#F8F6F0] px-16 py-4 flex items-center justify-between ${className}`}>
       {/* Logo Section */}
       <div className="flex items-center space-x-2">
         <img 
@@ -30,10 +27,7 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
         </button>
 
         {/* Profile Icon */}
-        <button
-          className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200"
-          onClick={() => navigate('/admin/profile')}
-        >
+        <button className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200">
           <img src={ProfileIcon} alt="Profile" className="w-8 h-8" />
         </button>
       </div>

@@ -43,5 +43,7 @@ export interface AdminSpoState {
   detailError: string | null;
   isReportDownloading: boolean;
   reportError: string | null;
+  isDeleting: boolean;
+  deleteError: string | null;
 }
 

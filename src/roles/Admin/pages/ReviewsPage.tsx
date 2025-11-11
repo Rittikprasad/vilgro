@@ -41,35 +41,39 @@ const ReviewsPage: React.FC = () => {
   }, [fetchReviews, items]);
 
   const mapReviewEntry = (entry: AdminReviewEntry): ReviewRecord => {
-    const createdDate = entry.created_at ? new Date(entry.created_at) : null;
+    const createdDate = entry?.created_at ? new Date(entry.created_at) : null;
     const dateLabel = createdDate
       ? createdDate.toLocaleDateString("en-GB")
       : "-";
-    const statusNormalized = (entry.status ?? "").toLowerCase();
+    const statusNormalized = (entry?.status ?? "").toLowerCase();
     const statusLabel = statusNormalized === "completed" ? "Completed" : "Incomplete";
     const userLabel =
-      entry.user_name ??
-      entry.user?.name ??
-      entry.user?.email ??
+      entry?.user_name ??
+      entry?.user?.name ??
+      entry?.user?.email ??
       "Unknown user";
     const organizationLabel =
-      entry.organization_name ??
-      entry.organization?.name ??
+      entry?.organization_name ??
+      entry?.organization?.name ??
       "N/A";
+    const idValue = entry?.id ?? 0;
 
     return {
-      id: `#${entry.id.toString().padStart(5, "0")}`,
+      id: `#${idValue.toString().padStart(5, "0")}`,
       date: dateLabel,
       user: userLabel,
       organization: organizationLabel,
       status: statusLabel,
-      review: entry.review ?? "",
+      review: entry?.review ?? "",
       raw: entry,
     };
   };
 
   const mappedReviews = useMemo(
-    () => items.map(mapReviewEntry),
+    () =>
+      items
+        .filter((entry): entry is AdminReviewEntry => entry !== null && entry !== undefined)
+        .map(mapReviewEntry),
     [items]
   );
 

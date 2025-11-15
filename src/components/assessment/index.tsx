@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AssessmentLayout from "./AssessmentLayout";
 import QuestionRenderer from "./QuestionRenderer";
-import AssessmentDashboard from "./AssessmentDashboard";
 import Navbar from "../ui/Navbar";
 import { 
   startAssessment, 
@@ -47,8 +46,8 @@ const Assessment: React.FC = () => {
         error
     } = useSelector((state: RootState) => state.assessment);
 
-    const [cooldownMessage, setCooldownMessage] = useState<string>("");
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [validationError, setValidationError] = useState<string | null>(null);
     const initializationRef = useRef(false);
 
     // Initialize assessment on mount - only run once
@@ -90,8 +89,8 @@ const Assessment: React.FC = () => {
                             }
                         }
                     } else if (assessment.status === 'SUBMITTED') {
-                        // Redirect to results
-                        navigate('/assessment/results');
+                        // Redirect to dashboard for submitted assessments
+                        navigate('/assessment/dashboard', { replace: true });
                         return;
                     }
                 } else {
@@ -124,7 +123,9 @@ const Assessment: React.FC = () => {
                     } else if (startAssessment.rejected.match(startResult)) {
                         console.log('startAssessment rejected:', startResult.payload);
                         if (startResult.payload === 'COOLDOWN_ACTIVE') {
-                            setCooldownMessage('Assessment cooldown is active. Please wait before starting a new assessment.');
+                            // Redirect to dashboard when cooldown is active
+                            navigate('/assessment/dashboard', { replace: true });
+                            return;
                         }
                     }
                 }
@@ -149,27 +150,70 @@ const Assessment: React.FC = () => {
     const progressPercent = sections?.progress.percent || 0;
 
     // Check if we're on the first section and first question
-    const isFirstSection = sections?.sections.findIndex(s => s.code === currentSection) === 0;
+    const sectionList = sections?.sections || [];
+    const actionableSections = sectionList.filter(section => (section.progress?.required ?? 0) > 0);
+    const currentActionableIndex = actionableSections.findIndex(section => section.code === currentSection);
     const isFirstQuestion = currentQuestionIndex === 0;
+    const isFirstActionableSection = currentActionableIndex === 0;
     
     // Check if we're on the last section and last question
-    const isLastSection = sections?.sections.findIndex(s => s.code === currentSection) === (sections?.sections.length || 0) - 1;
     const isLastQuestion = currentQuestionIndex === (questions?.length || 0) - 1;
+    const isLastActionableSection = currentActionableIndex === actionableSections.length - 1 && actionableSections.length > 0;
 
     // Handle step navigation
+    const isAnswerProvided = useCallback((question: any, answer: any) => {
+        if (!question) return false;
+        if (!question.required) return true;
+        if (!answer) return false;
+
+        switch (question.type) {
+            case 'SINGLE_CHOICE':
+            case 'NPS':
+                return answer.value !== undefined && answer.value !== null && answer.value !== '';
+            case 'MULTI_CHOICE':
+                return Array.isArray(answer.values) && answer.values.length > 0;
+            case 'SLIDER':
+            case 'RATING':
+                return answer.value !== undefined && answer.value !== null;
+            case 'MULTI_SLIDER':
+                if (!question.dimensions || question.dimensions.length === 0 || !answer.values) {
+                    return false;
+                }
+                return question.dimensions.every((dimension: any) => answer.values[dimension.code] !== undefined && answer.values[dimension.code] !== null);
+            default:
+                return answer.value !== undefined && answer.value !== null;
+        }
+    }, []);
+
+    const getAnswerForQuestion = useCallback((question: any) => {
+        if (!question) return undefined;
+        const localAnswer = localAnswers[question.code];
+        return localAnswer !== undefined ? localAnswer : question.answer;
+    }, [localAnswers]);
+
     const handleStepClick = useCallback(async (stepId: string) => {
         if (!currentAssessment || currentAssessment.status !== 'DRAFT' || !questions) return;
 
         const sectionCode = stepId.toUpperCase();
+        const isSectionActionable = actionableSections.some(section => section.code === sectionCode);
+        if (!isSectionActionable) {
+            return;
+        }
         
         // Save current question's answer before switching sections (if answered)
         const currentQuestion = questions[currentQuestionIndex];
-        const currentAnswer = localAnswers[currentQuestion.code];
+        const currentAnswer = getAnswerForQuestion(currentQuestion);
+
+        if (!isAnswerProvided(currentQuestion, currentAnswer)) {
+            setValidationError("Please answer this question before moving ahead.");
+            return;
+        }
         
-        if (currentAnswer) {
+        const localAnswer = localAnswers[currentQuestion.code];
+        if (localAnswer) {
             const answer = {
                 question: currentQuestion.code,
-                data: currentAnswer
+                data: localAnswer
             };
             
             // Save the answer and update progress
@@ -183,7 +227,7 @@ const Assessment: React.FC = () => {
         dispatch(setCurrentSection(sectionCode));
         setCurrentQuestionIndex(0); // Reset to first question
         await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: sectionCode }) as any);
-    }, [currentAssessment, currentQuestionIndex, questions, localAnswers, dispatch]);
+    }, [currentAssessment, currentQuestionIndex, questions, localAnswers, dispatch, isAnswerProvided, getAnswerForQuestion, actionableSections]);
 
     // Handle answer changes - only update local state, save happens when navigating
     const handleAnswerChange = useCallback((questionCode: string, value: any) => {
@@ -191,6 +235,7 @@ const Assessment: React.FC = () => {
 
         // Update local state only
         dispatch(updateLocalAnswer({ questionCode, value }));
+        setValidationError(null);
     }, [currentAssessment, dispatch]);
 
     // Handle navigation
@@ -220,13 +265,11 @@ const Assessment: React.FC = () => {
             return;
         }
 
-        // We're on first question of current section
-        // Find current section index
-        const currentIndex = sections.sections.findIndex(s => s.code === currentSection);
+        // We're on first question of current section - move to previous actionable section if available.
+        const currentIndex = actionableSections.findIndex(s => s.code === currentSection);
         
-        // If not first section, go to previous section
         if (currentIndex > 0) {
-            const prevSection = sections.sections[currentIndex - 1];
+            const prevSection = actionableSections[currentIndex - 1];
             dispatch(setCurrentSection(prevSection.code));
             const result = await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: prevSection.code }) as any);
             
@@ -235,19 +278,29 @@ const Assessment: React.FC = () => {
                 setCurrentQuestionIndex(result.payload.questions.length - 1);
             }
         }
-    }, [currentAssessment, sections, currentSection, currentQuestionIndex, questions, localAnswers, dispatch]);
+    }, [currentAssessment, sections, currentSection, currentQuestionIndex, questions, localAnswers, dispatch, actionableSections]);
 
     const handleNext = useCallback(async () => {
         if (!currentAssessment || !sections || !questions) return;
 
         // Save current question's answer before proceeding
         const currentQuestion = questions[currentQuestionIndex];
-        const currentAnswer = localAnswers[currentQuestion.code];
+        if (!currentQuestion) return;
+
+        const currentAnswer = getAnswerForQuestion(currentQuestion);
+
+        if (!isAnswerProvided(currentQuestion, currentAnswer)) {
+            setValidationError("Please answer this question before moving ahead.");
+            return;
+        }
+
+        setValidationError(null);
         
-        if (currentAnswer) {
+        const localAnswer = localAnswers[currentQuestion.code];
+        if (localAnswer) {
             const answer = {
                 question: currentQuestion.code,
-                data: currentAnswer
+                data: localAnswer
             };
             
             // Save the answer and update progress
@@ -263,13 +316,11 @@ const Assessment: React.FC = () => {
             return;
         }
 
-        // We're on the last question of current section
-        // Find current section index
-        const currentIndex = sections.sections.findIndex(s => s.code === currentSection);
+        // We're on the last question of current section - move to next actionable section, otherwise submit.
+        const currentIndex = actionableSections.findIndex(s => s.code === currentSection);
         
-        if (currentIndex < sections.sections.length - 1) {
-            // Move to next section
-            const nextSection = sections.sections[currentIndex + 1];
+        if (currentIndex > -1 && currentIndex < actionableSections.length - 1) {
+            const nextSection = actionableSections[currentIndex + 1];
             dispatch(setCurrentSection(nextSection.code));
             setCurrentQuestionIndex(0); // Reset to first question
             await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: nextSection.code }) as any);
@@ -289,17 +340,7 @@ const Assessment: React.FC = () => {
                 console.error('Failed to submit assessment:', error);
             }
         }
-    }, [currentAssessment, sections, currentSection, currentQuestionIndex, questions, localAnswers, dispatch, navigate]);
-
-    // Show dashboard when cooldown is active (user has already submitted assessment)
-    if (cooldownMessage) {
-        return (
-            <>
-                <Navbar />
-                <AssessmentDashboard />
-            </>
-        );
-    }
+    }, [currentAssessment, sections, currentSection, currentQuestionIndex, questions, localAnswers, dispatch, navigate, isAnswerProvided, getAnswerForQuestion, actionableSections]);
 
     // Show loading state
     if (isLoading && !currentAssessment) {
@@ -363,9 +404,9 @@ const Assessment: React.FC = () => {
                 progressPercent={progressPercent}
                 onBack={handleBack}
                 onNext={handleNext}
-                showBackButton={!(isFirstSection && isFirstQuestion)}
+                showBackButton={!(isFirstActionableSection && isFirstQuestion)}
                 showNextButton={true}
-                nextButtonText={isLastSection && isLastQuestion ? "Get Result" : "Next"}
+                nextButtonText={isLastActionableSection && isLastQuestion ? "Get Result" : "Next"}
                 nextButtonDisabled={isSubmitting}
             >
                 <div className="text-center py-8">
@@ -377,6 +418,10 @@ const Assessment: React.FC = () => {
         );
     }
 
+    const currentQuestion = questions ? questions[currentQuestionIndex] : null;
+    const currentAnswer = getAnswerForQuestion(currentQuestion);
+    const isCurrentQuestionAnswered = isAnswerProvided(currentQuestion, currentAnswer);
+
     return (
         <>
             <Navbar />
@@ -387,10 +432,10 @@ const Assessment: React.FC = () => {
                 progressPercent={progressPercent}
                 onBack={handleBack}
                 onNext={handleNext}
-                showBackButton={!(isFirstSection && isFirstQuestion)}
+                showBackButton={!(isFirstActionableSection && isFirstQuestion)}
                 showNextButton={true}
-                nextButtonText={isLastSection && isLastQuestion ? "Get Result" : "Next"}
-                nextButtonDisabled={isSubmitting}
+                nextButtonText={isLastActionableSection && isLastQuestion ? "Get Result" : "Next"}
+                nextButtonDisabled={isSubmitting || !isCurrentQuestionAnswered}
             >
                 {/* Current Question Only */}
                 {questions && questions[currentQuestionIndex] && (
@@ -402,6 +447,12 @@ const Assessment: React.FC = () => {
                         onChange={(value) => handleAnswerChange(questions[currentQuestionIndex].code, value)}
                         disabled={isSubmitting}
                     />
+                )}
+
+                {validationError && (
+                    <div className="mt-4 text-sm text-red-600">
+                        {validationError}
+                    </div>
                 )}
 
                 {/* Submit Error */}

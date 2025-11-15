@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 interface SliderQuestionProps {
   question: string;
@@ -12,11 +12,26 @@ interface SliderQuestionProps {
 }
 
 const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, questionNumber, min = 0, max = 100, step = 1, value, onChange }) => {
-  console.log(question, min, max, step, "lololollolo");
+  const hasInitialized = useRef(false);
+  
+  // Initialize value to min on first render if value is at default middle position
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      const middleValue = (min + max) / 2;
+      // If value is exactly at the middle (likely default), initialize to min
+      if (value === middleValue) {
+        onChange(min);
+      }
+      hasInitialized.current = true;
+    }
+  }, [min, max, value, onChange]);
+  
+  // Use the value, or min as fallback
+  const displayValue = value !== undefined && value !== null ? value : min;
   
   // Calculate the range and percentage for display
   const range = max - min;
-  const percentage = ((value - min) / range) * 100;
+  const percentage = ((displayValue - min) / range) * 100;
   
   // Generate ticks based on actual min/max range
   const tickCount = 9; // Number of tick marks
@@ -29,14 +44,14 @@ const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, questionNumbe
   const labels = Array.from({ length: labelCount }, (_, i) => min + i * labelStep);
 
   return (
-    <div className="w-full space-y-7 pl-3 pr-3">
+    <div className="w-full space-y- pl-1 pr-3">
       {/* Question */}
       <p className="text-[#46B753] font-golos font-medium text-[18px] font-[500]">
         {questionNumber !== undefined && `${questionNumber}. `}{question}
       </p>
 
       {/* Value Display */}
-      <div className="text-[25px] font-[600] font-golos">{value}</div>
+      <div className="text-[25px] font-[600] font-golos">{displayValue}</div>
 
       {/* Slider with custom ticks */}
       <div className="relative w-full">
@@ -67,7 +82,7 @@ const SliderQuestion: React.FC<SliderQuestionProps> = ({ question, questionNumbe
           min={min}
           max={max}
           step={step}
-          value={value}
+          value={displayValue}
           onChange={(e) => onChange(Number(e.target.value))}
           className="
             relative w-full h-2 appearance-none bg-transparent cursor-pointer

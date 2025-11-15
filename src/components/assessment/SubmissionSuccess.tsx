@@ -1,26 +1,37 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Button } from '../ui/Button';
 import Navbar from '../ui/Navbar';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { getResults } from '../../features/assessment/assessmentSlice';
+import {
+  getLoanEligibility,
+  getResults,
+  getAssessmentReport,
+} from '../../features/assessment/assessmentSlice';
 import type { RootState } from '../../app/store';
+import { useAppDispatch } from '../../app/hooks';
 
 const SubmissionSuccess: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { assessmentId } = useParams<{ assessmentId: string }>();
   
   // Get results from Redux store
   const assessmentResult = useSelector((state: RootState) => state.assessment.results);
+  const eligibility = useSelector((state: RootState) => state.assessment.eligibility);
   const isLoading = useSelector((state: RootState) => state.assessment.isLoading);
   const error = useSelector((state: RootState) => state.assessment.error);
+  const isReportDownloading = useSelector(
+    (state: RootState) => state.assessment.isReportDownloading
+  );
+  const reportError = useSelector((state: RootState) => state.assessment.reportError);
   
   // Fetch results when component mounts
   useEffect(() => {
     if (assessmentId) {
-      dispatch(getResults(assessmentId) as any);
+      dispatch(getResults(assessmentId));
+      dispatch(getLoanEligibility(assessmentId));
     }
   }, [assessmentId, dispatch]);
 
@@ -69,10 +80,14 @@ const SubmissionSuccess: React.FC = () => {
     : [{ risk: 0, impact: 0, return: 0 }];
 
   // Get overall score
-  const overallScore = assessmentResult?.scores.overall || 0;
+  const overallScore = eligibility?.overall_score ?? assessmentResult?.scores.overall ?? 0;
 
   // Determine eligibility based on overall score (threshold can be adjusted)
-  const isEligible = overallScore >= 10;
+  const isEligible = eligibility?.is_eligible ?? overallScore >= 10;
+  const cooldownUntil = assessmentResult?.cooldown_until
+    ? new Date(assessmentResult.cooldown_until)
+    : null;
+  const isCooldownActive = cooldownUntil ? cooldownUntil > new Date() : false;
 
   // Generate instrument recommendation based on scores
   const getInstrumentRecommendation = () => {
@@ -105,23 +120,48 @@ const SubmissionSuccess: React.FC = () => {
             {/* Overall Score Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
               <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[23px] font-[600] font-golos text-gray-800 mb-6">Overall Score: {overallScore.toFixed(2)}</h2>
-              <div className="flex space-x-3">
+                <h2 className="text-[23px] font-[600] font-golos text-gray-800 mb-6">
+                  Overall Score: {overallScore.toFixed(2)}
+                </h2>
+                <div className="flex space-x-3">
                   <Button
                     variant="outline"
-                    onClick={() => navigate('/assessment')}
+                    onClick={() => navigate('/assessment/dashboard', { replace: true })}
                     className="border-green-500 text-green-600 hover:bg-green-50"
                   >
                     Go back to the dashboard
                   </Button>
                   <Button
                     variant="gradient"
-                    onClick={() => {/* TODO: Implement download functionality */}}
+                    onClick={async () => {
+                      if (!assessmentId) return;
+                      try {
+                        const result = await dispatch(
+                          getAssessmentReport(assessmentId)
+                        ).unwrap();
+                        const link = document.createElement("a");
+                        link.href = result.url;
+                        link.setAttribute("download", result.filename);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        window.URL.revokeObjectURL(result.url);
+                      } catch (err) {
+                        console.error("Failed to download assessment report", err);
+                      }
+                    }}
+                    disabled={isReportDownloading}
                   >
-                    Download Result
+                    {isReportDownloading ? "Downloading..." : "Download Result"}
                   </Button>
                 </div>
-                </div>
+              </div>
+
+              {reportError && (
+                <p className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-700">
+                  {reportError}
+                </p>
+              )}
               
               {/* Eligibility Message */}
               <div className="flex items-start space-x-4 mb-8">
@@ -148,10 +188,10 @@ const SubmissionSuccess: React.FC = () => {
 
               {/* Instrument Recommendation */}
               <div className="mb-8">
-                <p className="text-gray-700 mb-2 text-[14px] font-[300]">
-                  The instrument most appropriate for your current stage and profile is
+                <p className="text-gray-700 mb-2 text-[14px] font-[400] font-golos">
+                  <span className="font-bold">The instrument</span> most appropriate for your current stage and profile is
                 </p>
-                <p className="text-xl font-semibold text-green-600">
+                <p className="text-[25px] font-[500] text-green-600 font-golos">
                   {getInstrumentRecommendation()}
                 </p>
               </div>
@@ -291,10 +331,11 @@ const SubmissionSuccess: React.FC = () => {
               </p>
               <div className="space-y-3">
                 <Button
-                  variant="gradient"
+                  variant={isEligible ? "gradient" : "outline"}
                   size="lg"
                   className="w-full"
                   onClick={() => {/* TODO: Implement loan application */}}
+                  disabled={!isEligible}
                 >
                   Apply for Loan
                 </Button>
@@ -303,13 +344,26 @@ const SubmissionSuccess: React.FC = () => {
                   size="lg"
                   className="w-full"
                   onClick={() => {/* TODO: Implement retake test */}}
+                  disabled={isCooldownActive}
                 >
                   Take the test again
                 </Button>
               </div>
-              <p className="text-orange-500 text-sm mt-4">
-                You can retake test again after 6 months
-              </p>
+              {isCooldownActive ? (
+                <p className="text-orange-500 text-sm mt-4">
+                  You can retake the test on{" "}
+                  {cooldownUntil?.toLocaleDateString(undefined, {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                  .
+                </p>
+              ) : (
+                <p className="text-green-600 text-sm mt-4">
+                  You can retake the test now.
+                </p>
+              )}
             </div>
 
             {/* Contact Info Card */}

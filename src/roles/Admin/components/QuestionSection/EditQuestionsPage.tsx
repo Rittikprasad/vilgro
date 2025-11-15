@@ -139,19 +139,36 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
           min_value: question.options?.min || 0,
           max_value: question.options?.max || 100,
           points_per_unit: question.options?.pointsPerUnit || 1,
-          weight: question.weight
-        }];
+          weight: question.weight,
+          step: question.options?.step || 1
+        }] as any;
       } else if (question.type === 'Multi-Slider') {
         payload.type = 'MULTI_SLIDER';
-        payload.dimensions = question.options?.dimensions || [
+        // Map dimensions and ensure step is included in each
+        payload.dimensions = (question.options?.dimensions || [
           { code: 'dimension1', label: 'Dimension 1', min_value: 0, max_value: 100, points_per_unit: 1, weight: question.weight },
           { code: 'dimension2', label: 'Dimension 2', min_value: 0, max_value: 100, points_per_unit: 1, weight: question.weight }
-        ];
+        ]).map((dim: any) => ({
+          ...dim,
+          step: dim.step || 1
+        })) as any;
       } else if (question.type === 'RATING') {
         payload.type = 'RATING';
-        payload.options = Array.from({ length: question.options?.maxStars || 5 }, (_, i) => ({
-          label: question.options?.labels?.[i] || `${i + 1}`,
+        const maxStars = Math.max(question.options?.maxStars || 5, 3);
+        const labels = question.options?.labels || [];
+        payload.options = Array.from({ length: maxStars }, (_, i) => ({
+          label: labels[i] !== undefined ? labels[i] : `${i + 1}`,
           value: (i + 1).toString(),
+          points: '1'
+        }));
+      } else if (question.type === 'NPS') {
+        payload.type = 'NPS';
+        // Convert labels to options format (fixed 4 options)
+        const defaultLabels = ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely'];
+        const labels = question.options?.labels || [];
+        payload.options = Array.from({ length: 4 }, (_, i) => ({
+          label: labels[i] !== undefined ? labels[i] : defaultLabels[i],
+          value: i.toString(),
           points: '1'
         }));
       } else if (question.type === 'Smiley face') {
@@ -364,21 +381,21 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
     if (question.options && question.options.length > 0) {
       console.log('convertApiOptionsToQuestionOptions - options found:', question.options);
       
-      // For RATING questions, return labels and maxStars
+      // For RATING questions, return labels and maxStars (minimum 3)
       if (question.type === 'RATING') {
         const converted = {
-          maxStars: question.options.length,
+          maxStars: Math.max(question.options.length, 3),
           labels: question.options.map((opt: any) => opt.label)
         };
         console.log('convertApiOptionsToQuestionOptions - RATING converted to:', converted);
         return converted;
       }
       
-      // For NPS questions, return labels and maxStars (fixed to 5)
+      // For NPS questions, return labels and maxStars (fixed to 4)
       if (question.type === 'NPS') {
         const converted = {
-          maxStars: question.options.length || 5,
-          labels: question.options.map((opt: any) => opt.label)
+          maxStars: 4,
+          labels: question.options.slice(0, 4).map((opt: any) => opt.label)
         };
         console.log('convertApiOptionsToQuestionOptions - NPS converted to:', converted);
         return converted;
@@ -398,7 +415,8 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
             min_value: dim.min_value,
             max_value: dim.max_value,
             points_per_unit: dim.points_per_unit,
-            weight: dim.weight
+            weight: dim.weight,
+            step: dim.step || 1
           }))
         };
       } else {
@@ -406,7 +424,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         return {
           min: dim.min_value,
           max: dim.max_value,
-          step: 1,
+          step: dim.step || question.step || 1,
           pointsPerUnit: parseFloat(dim.points_per_unit),
           dimensionCode: dim.code,
           dimensionLabel: dim.label
@@ -520,21 +538,25 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         );
 
       case 'Multi-Slider':
-        // For Multi-Slider, render multiple SliderQuestion components
+        // For Multi-Slider, render question text once, then individual sliders for each dimension
         if (question.options?.dimensions && question.options.dimensions.length > 0) {
           return (
-            <div className="space-y-4">
+            <div className="space-y-8">
+              <h3 className="text-green-600 font-medium">
+                {question.question}
+              </h3>
               {question.options.dimensions.map((dimension: any, index: number) => (
-                <div key={index} className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <div key={index} className="space-y-2">
+                  <label className="text-[14px] font-[300] font-golos text-gray-900">
                     {dimension.label}
-                  </h4>
+                  </label>
                   <SliderQuestion
-                    {...commonProps}
+                    question=""
+                    onChange={commonProps.onChange}
                     value={0}
                     min={dimension.min_value || 0}
                     max={dimension.max_value || 100}
-                    step={1}
+                    step={dimension.step || 1}
                   />
                 </div>
               ))}
@@ -550,26 +572,25 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         }
 
       case 'RATING':
-        console.log('Rendering RATING question:', question);
-        console.log('RATING question options:', question.options);
-        console.log('RATING labels:', question.options?.labels);
         return (
           <StarRatingQuestion
             {...commonProps}
-            maxStars={question.options?.maxStars || 5}
+            maxStars={Math.max(question.options?.maxStars || 5, 3)}
             labels={question.options?.labels || []}
           />
         );
 
       case 'NPS':
-        // Convert options to VisualRatingOptions format with fixed 5 options  
-        const npsLabels = question.options?.labels || ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely', 'Extremely likely'];
+        // Convert options to VisualRatingOptions format with fixed 4 options (matching VisualRatingQuestion)
+        const defaultNpsLabels = ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely'];
+        const npsLabels = question.options?.labels;
+        // Use saved labels if they exist, otherwise use defaults
+        // Preserve empty strings from saved labels
         const npsOptions = [
-          { value: "0", emoji: "😞", label: npsLabels[0] || "Not at all likely" },
-          { value: "1", emoji: "😐", label: npsLabels[1] || "Slightly likely" },
-          { value: "2", emoji: "😊", label: npsLabels[2] || "Somewhat likely" },
-          { value: "3", emoji: "😄", label: npsLabels[3] || "Very likely" },
-          { value: "4", emoji: "🥳", label: npsLabels[4] || "Extremely likely" }
+          { value: "0", label: npsLabels?.[0] !== undefined ? npsLabels[0] : defaultNpsLabels[0] },
+          { value: "1", label: npsLabels?.[1] !== undefined ? npsLabels[1] : defaultNpsLabels[1] },
+          { value: "2", label: npsLabels?.[2] !== undefined ? npsLabels[2] : defaultNpsLabels[2] },
+          { value: "3", label: npsLabels?.[3] !== undefined ? npsLabels[3] : defaultNpsLabels[3] }
         ];
         return (
           <VisualRatingQuestion
@@ -579,12 +600,13 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         );
 
       case 'Smiley face':
-        // Convert options to the format expected by VisualRatingQuestion
-        const visualOptions = question.options?.options?.map((option: any) => ({
-          value: option.value.toString(),
-          emoji: option.emoji,
-          label: option.label
-        })) || [];
+        // Convert options to the format expected by VisualRatingQuestion (max 4 options, no emoji)
+        const visualOptions = (question.options?.options || [])
+          .slice(0, 4) // Limit to 4 options
+          .map((option: any) => ({
+            value: option.value.toString(),
+            label: option.label
+          }));
         return (
           <VisualRatingQuestion
             {...commonProps}

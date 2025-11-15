@@ -1,6 +1,8 @@
 import React from 'react';
 import ViewIcon from '../../assets/svg/view.svg';
 import { Download } from 'lucide-react';
+import { Button } from '../ui/Button';
+import Navbar from '../ui/Navbar';
 
 interface AssessmentDashboardProps {
   lastTestDate?: string;
@@ -48,7 +50,9 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-30 pb-8">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-50 pt-30 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -61,13 +65,14 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
               You took the last test on <span className="font-medium">{lastTestDate}</span>. <br/>you can retake test again after 6 months on{' '}
               <span className="text-green-600 font-medium">{retakeDate}</span>
             </p>
-            <button
+            <Button
               onClick={handleTakeTestAgain}
-              disabled
-              className="w-full bg-gray-100 text-gray-500 px-6 py-3 rounded-lg font-medium transition-colors cursor-not-allowed"
+              disabled={true}
+              variant="outline"
+              className="w-full"
             >
               Take the test again
-            </button>
+            </Button>
           </div>
 
           {/* Latest Result Card */}
@@ -78,13 +83,13 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
             <p className="text-gray-900 mb-6 text-[14px] font-[300]">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </p>
-            <button
+            <Button
               onClick={handleViewDetails}
-              className="w-full px-6 py-3 rounded-lg font-medium text-white transition-opacity hover:opacity-90"
-              style={{ background: 'linear-gradient(92deg, #46B753 0.02%, #E0DC32 100.02%)' }}
+              variant="gradient"
+              className="w-full"
             >
               View Details
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -169,6 +174,7 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };
 

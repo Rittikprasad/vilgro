@@ -44,6 +44,11 @@ export const endpoints = {
     finish: `${BASE_URL}/onboarding/finish`,
   },
 
+  assessment: {
+    report: (assessmentId: string | number) =>
+      `${BASE_URL}/assessments/${assessmentId}/report.pdf`,
+  },
+
   // Admin endpoints
   admin: {
     sections: `${BASE_URL}/admin/sections/`,
@@ -63,6 +68,11 @@ export const endpoints = {
     bankById: (id: number | string) => `${BASE_URL}/admin/banks/${id}/`,
     reviews: `${BASE_URL}/admin/reviews/`,
     audit: `${BASE_URL}/admin/audit/`,
+  },
+
+  loan: {
+    eligibility: (assessmentId: string | number) =>
+      `${BASE_URL}/loan/eligibility/?assessment_id=${assessmentId}`,
   },
 
   // Add more endpoint categories as needed

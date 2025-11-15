@@ -1,9 +1,15 @@
 import React from 'react'
 import { cn } from "../../../lib/utils"
+import {
+  NotAtAllLikelyIcon,
+  SlightlyLikelyIcon,
+  SomewhatLikelyIcon,
+  VeryLikelyIcon
+} from "../../../assets/icons"
 
 interface VisualRatingOption {
   value: string
-  emoji: string
+  emoji?: string
   label: string
 }
 
@@ -15,6 +21,13 @@ interface VisualRatingQuestionProps {
   options?: VisualRatingOption[]
 }
 
+// Map option values to icon components
+const iconMap: Record<string, React.ComponentType<any>> = {
+  "0": NotAtAllLikelyIcon,
+  "1": SlightlyLikelyIcon,
+  "2": SomewhatLikelyIcon,
+  "3": VeryLikelyIcon,
+}
 
 const VisualRatingQuestion: React.FC<VisualRatingQuestionProps> = ({ 
   question,
@@ -22,11 +35,10 @@ const VisualRatingQuestion: React.FC<VisualRatingQuestionProps> = ({
   value, 
   onChange,
   options = [
-    { value: "0", emoji: "😞", label: "Not at all likely" },
-    { value: "1", emoji: "😐", label: "Slightly likely" },
-    { value: "2", emoji: "😊", label: "Somewhat likely" },
-    { value: "3", emoji: "😄", label: "Very likely" },
-    { value: "4", emoji: "🥳", label: "Extremely likely" }
+    { value: "0", label: "Not at all likely" },
+    { value: "1", label: "Slightly likely" },
+    { value: "2", label: "Somewhat likely" },
+    { value: "3", label: "Very likely" }
   ]
 }) => {
   /**
@@ -45,66 +57,73 @@ const VisualRatingQuestion: React.FC<VisualRatingQuestionProps> = ({
       </p>
       
       {/* Horizontal options layout */}
-      <div className="grid grid-cols-5 gap-3 p-2">
-        {options.map((option) => (
-          <div
-            key={option.value}
-            className={cn(
-              "relative rounded-lg p-[2px] transition-all duration-200",
-              // Only allow hover scale when no option is selected or this option is selected
-              (!value || value === option.value) && "hover:scale-105",
-              // Gradient border background
-              value === option.value 
-                ? "bg-gradient-to-b from-[#46B753] to-[#E0DC32]"
-                : value 
-                  ? "bg-gradient-to-b from-gray-300 to-gray-400"
-                  : "bg-gradient-to-b from-[#46B753] to-[#E0DC32]",
-              // Hover shadow only when no selection made
-              !value && "hover:shadow-md"
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => handleOptionClick(option.value)}
+      <div className="grid grid-cols-4 gap-3 p-2">
+        {options.map((option) => {
+          const IconComponent = iconMap[option.value]
+          const isSelected = value === option.value
+          
+          return (
+            <div
+              key={option.value}
               className={cn(
-                "flex flex-col items-center justify-center w-full h-full p-4 rounded-lg bg-white focus:outline-none transition-all duration-200",
-                // Only show focus ring when not selected to avoid conflicts
-                value !== option.value && "focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                "relative rounded-lg p-[2px] transition-all duration-200",
+                // Only allow hover scale when no option is selected or this option is selected
+                (!value || isSelected) && "hover:scale-105",
+                // Gradient border background
+                isSelected
+                  ? "bg-gradient-to-b from-[#46B753] to-[#E0DC32]"
+                  : value 
+                    ? "bg-gradient-to-b from-gray-300 to-gray-400"
+                    : "bg-gradient-to-b from-[#46B753] to-[#E0DC32]",
+                // Hover shadow only when no selection made
+                !value && "hover:shadow-md"
               )}
             >
-            {/* Emoji - always keep normal colors */}
-            <div className="text-3xl mb-2">
-              {option.emoji}
-            </div>
+              <button
+                type="button"
+                onClick={() => handleOptionClick(option.value)}
+                className={cn(
+                  "flex flex-col w-full h-full p-4 rounded-lg bg-white focus:outline-none transition-all duration-200",
+                  // Only show focus ring when not selected to avoid conflicts
+                  !isSelected && "focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                )}
+              >
+              {/* Icon - use controlled mode to reflect selection state */}
+              <div className="mb-2 flex items-center justify-center">
+                {IconComponent && (
+                  <IconComponent
+                    isActive={isSelected}
+                    defaultColor={value && !isSelected ? "#9CA3AF" : "#231F20"}
+                    activeColor="black"
+                    size={35}
+                    onClick={() => {}} // Prevent double click handling
+                  />
+                )}
+              </div>
             
               {/* Label text - grey out when unselected */}
               <span 
                 className={cn(
-                  "label-text text-center leading-tight transition-all duration-200 text-xs break-words",
+                  "label-text text-center leading-tight transition-all duration-200 text-lg break-words text-golos",
                   // Ensure selected option has normal text color, grey out only unselected options
-                  value === option.value 
-                    ? "text-gray-900"
+                  isSelected
+                    ? "text-gray-700"
                     : value 
                       ? "text-gray-400"
-                      : "text-gray-900"
+                      : "text-gray-700"
                 )}
                 style={{
-                  fontFamily: 'Golos Text',
                   fontWeight: 400,
                   fontStyle: 'normal',
-                  fontSize: '12px',
-                  wordWrap: 'break-word',
-                  wordBreak: 'break-word',
-                  overflowWrap: 'break-word',
-                  display: 'block',
-                  maxWidth: '100%'
+                  fontSize: '14px',
                 }}
               >
                 {option.label}
               </span>
             </button>
           </div>
-        ))}
+        )
+        })}
       </div>
     </div>
   )

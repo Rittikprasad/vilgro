@@ -16,6 +16,7 @@ interface QuestionDimension {
   label: string;
   min: number;
   max: number;
+  step?: number;
 }
 
 interface VisualRatingOption {
@@ -129,15 +130,17 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       );
 
     case 'SLIDER':
+      // Use min/max/step from dimensions[0] if available, otherwise fallback to top-level or defaults
+      const sliderDimension = question.dimensions?.[0];
       return (
         <SliderQuestion
           question={question.text}
           questionNumber={questionNumber}
           value={currentValue as number}
           onChange={handleSliderChange}
-          min={question.min || 0}
-          max={question.max || 100}
-          step={question.step || 1}
+          min={sliderDimension?.min ?? question.min ?? 0}
+          max={sliderDimension?.max ?? question.max ?? 100}
+          step={sliderDimension?.step ?? question.step ?? 1}
           disabled={disabled}
         />
       );
@@ -160,23 +163,15 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       );
 
     case 'NPS':
-      // Helper to get NPS emoji based on index
-      const getNPSEmoji = (index: number): string => {
-        const emojis = ["😞", "😐", "😊", "😄", "🥳"];
-        return emojis[index] || "😐";
-      };
-      
-      // Convert options to VisualRatingOptions format with fixed 5 options
-      const npsOptions = question.visualRatingOptions || (question.options?.map((opt, index) => ({
+      // Convert options to VisualRatingOptions format with fixed 4 options (matching VisualRatingQuestion)
+      const npsOptions = question.visualRatingOptions || (question.options?.slice(0, 4).map((opt) => ({
         value: opt.value,
-        emoji: getNPSEmoji(index),
         label: opt.label
       }))) || [
-        { value: "0", emoji: "😞", label: "Not at all likely" },
-        { value: "1", emoji: "😐", label: "Slightly likely" },
-        { value: "2", emoji: "😊", label: "Somewhat likely" },
-        { value: "3", emoji: "😄", label: "Very likely" },
-        { value: "4", emoji: "🥳", label: "Extremely likely" }
+        { value: "0", label: "Not at all likely" },
+        { value: "1", label: "Slightly likely" },
+        { value: "2", label: "Somewhat likely" },
+        { value: "3", label: "Very likely" }
       ];
       
       return (
@@ -192,13 +187,13 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     case 'MULTI_SLIDER':
       // For multi-slider, we'll create individual sliders for each dimension
       return (
-        <div className="space-y-6">
+        <div className="space-y-8">
           <h3 className="text-green-600 font-medium">
             {questionNumber !== undefined && `${questionNumber}. `}{question.text}
           </h3>
           {question.dimensions?.map((dimension) => (
             <div key={dimension.code} className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-[14px] font-[300] font-golos text-gray-900">
                 {dimension.label}
               </label>
               <SliderQuestion
@@ -210,7 +205,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 }}
                 min={dimension.min}
                 max={dimension.max}
-                step={1}
+                step={dimension.step ?? 1}
                 disabled={disabled}
               />
             </div>

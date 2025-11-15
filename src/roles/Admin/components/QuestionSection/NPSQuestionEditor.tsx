@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
 import type { QuestionItem } from './QuestionListTable';
-import ACBIcon from '../../../../assets/svg/ACB.svg';
 
 interface NPSQuestionEditorProps {
   question: QuestionItem;
@@ -20,12 +19,20 @@ const NPSQuestionEditor: React.FC<NPSQuestionEditorProps> = ({
   isLoading = false
 }) => {
   const [questionText, setQuestionText] = useState(question.question);
-  // Fixed to 5 options for NPS
-  const emojis = ['😞', '😐', '😊', '😄', '🥳'];
-  const defaultLabels = ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely', 'Extremely likely'];
-  const [labels, setLabels] = useState<string[]>(
-    question.options?.labels || defaultLabels
-  );
+  // Fixed to 4 options for NPS (matching VisualRatingQuestion)
+  const defaultLabels = ['Not at all likely', 'Slightly likely', 'Somewhat likely', 'Very likely'];
+  
+  // Initialize labels - ensure we have exactly 4 labels, using defaults only for missing ones
+  const initializeLabels = (): string[] => {
+    const existingLabels = question.options?.labels || [];
+    const labelsArray: string[] = [];
+    for (let i = 0; i < 4; i++) {
+      labelsArray[i] = existingLabels[i] !== undefined ? existingLabels[i] : defaultLabels[i];
+    }
+    return labelsArray;
+  };
+  
+  const [labels, setLabels] = useState<string[]>(initializeLabels());
   const [weightage, setWeightage] = useState(question.weight);
   const [order, setOrder] = useState(question.order);
   const [isActive, setIsActive] = useState(question.status === 'Active');
@@ -45,8 +52,8 @@ const NPSQuestionEditor: React.FC<NPSQuestionEditorProps> = ({
       order: order,
       status: isActive ? 'Active' : 'Inactive',
       options: {
-        maxStars: 5, // Fixed to 5 for NPS
-        labels: labels.slice(0, 5) // Ensure exactly 5 labels
+        maxStars: 4, // Fixed to 4 for NPS (matching VisualRatingQuestion)
+        labels: labels.slice(0, 4) // Ensure exactly 4 labels
       }
     };
     onSave(updatedQuestion);
@@ -93,7 +100,7 @@ const NPSQuestionEditor: React.FC<NPSQuestionEditorProps> = ({
             </h4>
             
             <div className="space-y-4">
-              {/* Emoji Labels */}
+              {/* Option Labels (Icons are automatically mapped by value) */}
               <div>
                 <label 
                   className="block text-sm font-medium text-gray-600 mb-2"
@@ -104,15 +111,15 @@ const NPSQuestionEditor: React.FC<NPSQuestionEditorProps> = ({
                     fontSize: '12px'
                   }}
                 >
-                  Emoji Labels
+                  Option Labels (4 options)
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {emojis.map((emoji, index) => (
+                  {defaultLabels.map((_, index) => (
                     <div key={index} className="flex items-center space-x-2">
-                      <span className="text-lg w-8">{emoji}</span>
+                      <span className="text-sm font-medium text-gray-500 w-8">{index + 1}.</span>
                       <input
                         type="text"
-                        value={labels[index] || defaultLabels[index]}
+                        value={labels[index] !== undefined ? labels[index] : defaultLabels[index]}
                         onChange={(e) => handleLabelChange(index, e.target.value)}
                         className="flex-1 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
                         placeholder={defaultLabels[index]}
@@ -177,7 +184,7 @@ const NPSQuestionEditor: React.FC<NPSQuestionEditorProps> = ({
             </div>
 
             {/* Conditional Branching */}
-            <button
+            {/* <button
               className="flex items-center space-x-2 text-green-500 hover:text-green-600 transition-colors"
             >
               <img src={ACBIcon} alt="Conditional Branching" className="w-4 h-4" />
@@ -192,7 +199,7 @@ const NPSQuestionEditor: React.FC<NPSQuestionEditorProps> = ({
               >
                 Add Conditional Branching
               </span>
-            </button>
+            </button> */}
           </div>
 
           <div className="flex items-center space-x-4">

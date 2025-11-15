@@ -53,9 +53,6 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
    * Handles star selection
    * Updates the rating value when a star is clicked (1-based index)
    */
-  console.log('StarRatingQuestion - question:', question);
-  console.log('StarRatingQuestion - labels prop:', labels);
-  console.log('StarRatingQuestion - maxStars:', maxStars);
   
   const handleStarClick = (starIndex: number) => {
     if (!disabled) {
@@ -65,7 +62,6 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
 
   // Show labels if they exist (even if not matching exact count)
   const showLabels = labels && labels.length > 0;
-  console.log('StarRatingQuestion - showLabels:', showLabels, 'labels length:', labels?.length);
 
   return (
     <div className="w-full space-y-7">
@@ -75,12 +71,13 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
       </p>
       
       {/* Star rating scale - horizontal layout with matching width containers for alignment */}
-      <div className="flex items-center gap-18">
+      <div className="flex gap-18">
         {Array.from({ length: maxStars }, (_, index) => {
           const starNumber = index + 1
           const isFilled = starNumber <= value
           
           return (
+            <div className="flex flex-col items-center gap-2">
             <button
               key={index}
               type="button"
@@ -101,34 +98,13 @@ const StarRatingQuestion: React.FC<StarRatingQuestionProps> = ({
                 filled={isFilled}
               />
             </button>
+            <div className="w-30">
+            {showLabels && <p className="text-[14px] font-[300] text-golos text-gray-900 text-center break-words">{labels[index] || `${index + 1}`}</p>}
+            </div>
+            </div>
           )
         })}
-      </div>
-
-      {/* Optional labels below stars - show if labels are provided */}
-      {showLabels && (
-        <div className="flex items-start gap-18">
-          {Array.from({ length: maxStars }, (_, index) => (
-            <div 
-              key={index} 
-              className="text-xs text-gray-600 text-center flex-shrink-0 break-words"
-              style={{
-                fontFamily: 'Golos Text',
-                fontWeight: 300,
-                fontStyle: 'normal',
-                fontSize: '16px',
-                width: '2.5rem', // Match star width (40px = 2.5rem)
-                wordWrap: 'break-word',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-                display: 'block'
-              }}
-            >
-              {labels[index] || `${index + 1}`}
-            </div>
-          ))}
-        </div>
-      )}
+      </div>    
     </div>
   )
 }

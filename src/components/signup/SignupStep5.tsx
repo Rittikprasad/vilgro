@@ -34,7 +34,7 @@ interface SignupStep5Props {
  * Signup Step 5 Component - Final budget and funding questions
  * Collects budget and funding information to complete signup
  */
-const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
+const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack: _onBack }) => {
   const dispatch = useDispatch()
   const { options, isLoading: metaLoading } = useSelector((state: RootState) => state.meta)
 
@@ -50,6 +50,26 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
 
   const selectedFundingSource = watch("fundingSource")
   const selectedPhilanthropicFunding = watch("philanthropicFunding")
+  const annualBudgetValue = watch("annualBudget") || ""
+
+  // Formats numeric string into Indian numbering system (e.g., 345000 -> 3,45,000).
+  const formatIndianNumber = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, "")
+    if (!digitsOnly) return ""
+
+    const lastThree = digitsOnly.slice(-3)
+    const remaining = digitsOnly.slice(0, -3)
+
+    if (!remaining) return lastThree
+
+    const grouped = remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ",")
+    return `${grouped},${lastThree}`
+  }
+
+  const handleAnnualBudgetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatIndianNumber(event.target.value)
+    setValue("annualBudget", formattedValue, { shouldValidate: true })
+  }
 
   // Fetch meta options on component mount
   useEffect(() => {
@@ -64,8 +84,13 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
    */
   const onSubmit = async (data: Step5FormData) => {
     try {
-      console.log("Step 5 submitted:", data)
-      onComplete(data)
+      const sanitizedData: Step5FormData = {
+        ...data,
+        annualBudget: data.annualBudget.replace(/,/g, ""),
+      }
+
+      console.log("Step 5 submitted:", sanitizedData)
+      onComplete(sanitizedData)
     } catch (error) {
       console.error("Step 5 error:", error)
     }
@@ -104,8 +129,10 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack }) => {
                 <div className="space-y-1">
                   <Input
                     {...register("annualBudget")}
+                    value={annualBudgetValue}
+                    onChange={handleAnnualBudgetChange}
                     placeholder="Enter here (₹)"
-                    type="number"
+                    type="text"
                     className={cn(
                       "w-full h-11 px-4 py-3 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
                       errors.annualBudget ? "border-red-500" : "gradient-border"

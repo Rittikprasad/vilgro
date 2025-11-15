@@ -1,4 +1,6 @@
 import api from './api';
+import { endpoints } from './endpoints';
+import { endpoints } from './endpoints';
 
 // Types
 export interface AssessmentSection {
@@ -188,6 +190,19 @@ export const assessmentApi = {
   // Get results
   getResults: async (assessmentId: string): Promise<AssessmentResult> => {
     const response = await api.get(`/assessments/${assessmentId}/results`);
+    return response.data;
+  },
+
+  // Download assessment report
+  getAssessmentReport: async (assessmentId: string | number) => {
+    return await api.get(endpoints.assessment.report(assessmentId), {
+      responseType: "blob",
+    });
+  },
+
+  // Get loan eligibility
+  getLoanEligibility: async (assessmentId: string | number) => {
+    const response = await api.get(endpoints.loan.eligibility(assessmentId));
     return response.data;
   },
 

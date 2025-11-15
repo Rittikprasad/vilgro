@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import logo from "../../assets/logo.png"
 import { logoutUser } from '../../features/auth/authThunks'
 import type { RootState } from '../../app/store'
+import ProfileIcon from '../../assets/svg/ProfileIcon.svg'
 
 /**
  * Dynamic Navbar component for authenticated users

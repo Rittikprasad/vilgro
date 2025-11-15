@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
 import type { QuestionItem } from './QuestionListTable';
-import ACBIcon from '../../../../assets/svg/ACB.svg';
 
 interface SliderQuestionEditorProps {
   question: QuestionItem;
@@ -387,24 +386,6 @@ const SliderQuestionEditor: React.FC<SliderQuestionEditorProps> = ({
                 max="10"
               />
             </div>
-
-            {/* Conditional Branching */}
-            <button
-              className="flex items-center space-x-2 text-green-500 hover:text-green-600 transition-colors"
-            >
-              <img src={ACBIcon} alt="Conditional Branching" className="w-4 h-4" />
-              <span 
-                className="text-sm font-medium underline"
-                style={{
-                  fontFamily: 'Golos Text',
-                  fontWeight: 400,
-                  fontStyle: 'normal',
-                  fontSize: '14px'
-                }}
-              >
-                Add Conditional Branching
-              </span>
-            </button>
           </div>
 
           <div className="flex items-center space-x-4">

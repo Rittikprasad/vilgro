@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
 import type { QuestionItem } from './QuestionListTable';
-import ACBIcon from '../../../../assets/svg/ACB.svg';
 
 interface StarRatingQuestionEditorProps {
   question: QuestionItem;
@@ -20,26 +19,41 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
   isLoading = false
 }) => {
   const [questionText, setQuestionText] = useState(question.question);
-  const [maxStars, setMaxStars] = useState(question.options?.maxStars || 5);
-  const [labels, setLabels] = useState<string[]>(question.options?.labels || ['1', '2', '3', '4', '5']);
+  // Minimum 3 stars, default to 5 if not set
+  const [maxStars, setMaxStars] = useState(Math.max(question.options?.maxStars || 5, 3));
+  
+  // Initialize labels - ensure we have exactly maxStars labels, using empty strings for missing ones
+  const initializeLabels = (): string[] => {
+    const existingLabels = question.options?.labels || [];
+    const labelsArray: string[] = [];
+    const currentMaxStars = Math.max(question.options?.maxStars || 5, 3);
+    for (let i = 0; i < currentMaxStars; i++) {
+      labelsArray[i] = existingLabels[i] !== undefined ? existingLabels[i] : '';
+    }
+    return labelsArray;
+  };
+  
+  const [labels, setLabels] = useState<string[]>(initializeLabels());
   const [weightage, setWeightage] = useState(question.weight);
   const [order, setOrder] = useState(question.order);
   const [isActive, setIsActive] = useState(question.status === 'Active');
 
   // Update labels when maxStars changes
   const handleMaxStarsChange = (newMaxStars: number) => {
-    setMaxStars(newMaxStars);
+    // Ensure minimum is 3
+    const validatedMaxStars = Math.max(3, Math.min(10, newMaxStars));
+    setMaxStars(validatedMaxStars);
     
-    // Adjust labels array to match new maxStars
+    // Adjust labels array to match new maxStars - don't add default values
     const newLabels = [...labels];
-    if (newMaxStars > labels.length) {
-      // Add new labels
-      for (let i = labels.length; i < newMaxStars; i++) {
-        newLabels.push(`${i + 1}`);
+    if (validatedMaxStars > labels.length) {
+      // Add empty strings for new labels
+      for (let i = labels.length; i < validatedMaxStars; i++) {
+        newLabels.push('');
       }
-    } else if (newMaxStars < labels.length) {
+    } else if (validatedMaxStars < labels.length) {
       // Remove excess labels
-      newLabels.splice(newMaxStars);
+      newLabels.splice(validatedMaxStars);
     }
     setLabels(newLabels);
   };
@@ -123,10 +137,10 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
                 <input
                   type="number"
                   value={maxStars}
-                  onChange={(e) => handleMaxStarsChange(parseInt(e.target.value) || 5)}
+                  onChange={(e) => handleMaxStarsChange(parseInt(e.target.value) || 3)}
                   className="w-20 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none text-center"
-                  min="1"
-                  max="10"
+                  min="3"
+                  max="5"
                 />
               </div>
 
@@ -149,10 +163,10 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
                       <span className="text-sm text-gray-500 w-8">⭐ {index + 1}:</span>
                       <input
                         type="text"
-                        value={labels[index] || `${index + 1}`}
+                        value={labels[index] !== undefined ? labels[index] : ''}
                         onChange={(e) => handleLabelChange(index, e.target.value)}
                         className="flex-1 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
-                        placeholder={`Label ${index + 1}`}
+                        placeholder={`Label ${index + 1} (optional)`}
                       />
                     </div>
                   ))}
@@ -214,7 +228,7 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
             </div>
 
             {/* Conditional Branching */}
-            <button
+            {/* <button
               className="flex items-center space-x-2 text-green-500 hover:text-green-600 transition-colors"
             >
               <img src={ACBIcon} alt="Conditional Branching" className="w-4 h-4" />
@@ -229,7 +243,7 @@ const StarRatingQuestionEditor: React.FC<StarRatingQuestionEditorProps> = ({
               >
                 Add Conditional Branching
               </span>
-            </button>
+            </button> */}
           </div>
 
           <div className="flex items-center space-x-4">

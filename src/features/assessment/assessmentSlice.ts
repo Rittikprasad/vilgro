@@ -26,6 +26,9 @@ interface AssessmentState {
   
   // Results
   results: AssessmentResult | null;
+  eligibility: LoanEligibilityResponse | null;
+  isReportDownloading: boolean;
+  reportError: string | null;
   
   // Admin functionality
   questionTypes: QuestionType[];
@@ -71,7 +74,38 @@ const initialState: AssessmentState = {
   createQuestionError: null,
   isLoading: false,
   error: null,
+  eligibility: null,
+  isReportDownloading: false,
+  reportError: null,
 };
+
+export interface LoanEligibilityResponse {
+  assessment_id: number;
+  is_eligible: boolean;
+  overall_score: number;
+  details: {
+    sections: Record<
+      string,
+      {
+        raw: number;
+        normalized: number;
+        min: number;
+        max: number;
+        weight: number;
+        contribution: number;
+        gate_pass: boolean;
+        criteria: {
+          notes: string;
+          sub_metrics: string[];
+        };
+        recommendation: string;
+      }
+    >;
+    weights_sum: number;
+    reason: string | null;
+    stage: string | null;
+  };
+}
 
 // Async thunks
 export const startAssessment = createAsyncThunk<
@@ -174,6 +208,40 @@ export const getResults = createAsyncThunk<
   }
 });
 
+export const getLoanEligibility = createAsyncThunk<
+  LoanEligibilityResponse,
+  string,
+  { rejectValue: string }
+>('assessment/getLoanEligibility', async (assessmentId, { rejectWithValue }) => {
+  try {
+    return await assessmentApi.getLoanEligibility(assessmentId);
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to get loan eligibility');
+  }
+});
+
+export interface AssessmentReportPayload {
+  url: string;
+  filename: string;
+}
+
+export const getAssessmentReport = createAsyncThunk<
+  AssessmentReportPayload,
+  string | number,
+  { rejectValue: string }
+>('assessment/getAssessmentReport', async (assessmentId, { rejectWithValue }) => {
+  try {
+    const response = await assessmentApi.getAssessmentReport(assessmentId);
+    const disposition = response.headers["content-disposition"] ?? "";
+    const filenameMatch = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i);
+    const filename = filenameMatch ? decodeURIComponent(filenameMatch[1]) : `assessment-report-${assessmentId}.pdf`;
+    const blobUrl = window.URL.createObjectURL(response.data);
+    return { url: blobUrl, filename };
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to download assessment report');
+  }
+});
+
 // Admin async thunks
 export const getQuestionTypes = createAsyncThunk<
   QuestionType[],
@@ -244,6 +312,7 @@ const assessmentSlice = createSlice({
       state.results = null;
       state.error = null;
       state.submitError = null;
+      state.eligibility = null;
     },
   },
   extraReducers: (builder) => {
@@ -340,6 +409,33 @@ const assessmentSlice = createSlice({
       // Get results
       .addCase(getResults.fulfilled, (state, action) => {
         state.results = action.payload;
+      })
+
+      // Get loan eligibility
+      .addCase(getLoanEligibility.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getLoanEligibility.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.eligibility = action.payload;
+      })
+      .addCase(getLoanEligibility.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || 'Failed to get loan eligibility';
+      })
+
+      // Get assessment report
+      .addCase(getAssessmentReport.pending, (state) => {
+        state.isReportDownloading = true;
+        state.reportError = null;
+      })
+      .addCase(getAssessmentReport.fulfilled, (state) => {
+        state.isReportDownloading = false;
+      })
+      .addCase(getAssessmentReport.rejected, (state, action) => {
+        state.isReportDownloading = false;
+        state.reportError = action.payload || 'Failed to download assessment report';
       })
 
       // Get question types

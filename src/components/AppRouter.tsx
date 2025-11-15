@@ -12,6 +12,7 @@ import Home from './Home';
 import type { RootState } from '../app/store';
 import Assessment from './assessment';
 import SubmissionSuccess from './assessment/SubmissionSuccess';
+import AssessmentDashboard from './assessment/AssessmentDashboard';
 import EnterEmail from './forgot-password/EnterEmail';
 import EnterCode from './forgot-password/EnterCode';
 import CreateNewPassword from './forgot-password/CreateNewPassword';
@@ -316,6 +317,15 @@ const AppRouter: React.FC = () => {
                     element={
                         <ProtectedRoute>
                             <Assessment />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/assessment/dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <AssessmentDashboard />
                         </ProtectedRoute>
                     }
                 />

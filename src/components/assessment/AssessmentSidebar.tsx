@@ -27,10 +27,13 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
       {/* Progress Steps */}
       <div className="space-y-12">
         {steps.map((step, index) => {
-          // Calculate progress percentage for the connecting line
-          const progressPercentage = step.progress 
-            ? (step.progress.answered / step.progress.required) * 100 
+          const answeredCount = step.progress?.answered ?? 0;
+          const requiredCount = step.progress?.required ?? 0;
+          // Protect against division by zero for informational-only steps such as "Result".
+          const progressPercentage = requiredCount > 0
+            ? (answeredCount / requiredCount) * 100
             : (step.isCompleted ? 100 : 0);
+          const isInformationalStep = requiredCount === 0;
 
           return (
             <div key={step.id} className="relative">
@@ -47,10 +50,15 @@ const AssessmentSidebar: React.FC<AssessmentSidebarProps> = ({
               {/* Step Circle and Label */}
               <div
                 className={cn(
-                  "flex items-center  space-x-3 cursor-pointer transition-colors",
-                  onStepClick && "hover:bg-gray-50 rounded-lg p-2 -ml-2"
+                  "flex items-center  space-x-3 transition-colors",
+                  onStepClick && !isInformationalStep && "cursor-pointer hover:bg-gray-50 rounded-lg p-2 -ml-2",
+                  isInformationalStep && "cursor-default"
                 )}
-                onClick={() => onStepClick?.(step.id)}
+                onClick={() => {
+                  if (!isInformationalStep) {
+                    onStepClick?.(step.id);
+                  }
+                }}
               >
                 {/* Step Circle */}
                 <div

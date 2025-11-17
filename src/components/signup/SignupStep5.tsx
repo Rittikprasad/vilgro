@@ -88,8 +88,6 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack: _onBack }
         ...data,
         annualBudget: data.annualBudget.replace(/,/g, ""),
       }
-
-      console.log("Step 5 submitted:", sanitizedData)
       onComplete(sanitizedData)
     } catch (error) {
       console.error("Step 5 error:", error)

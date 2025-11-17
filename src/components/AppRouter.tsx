@@ -12,6 +12,7 @@ import Home from './Home';
 import type { RootState } from '../app/store';
 import Assessment from './assessment';
 import SubmissionSuccess from './assessment/SubmissionSuccess';
+import LoanRequestForm from './loan/LoanRequestForm';
 import AssessmentDashboard from './assessment/AssessmentDashboard';
 import EnterEmail from './forgot-password/EnterEmail';
 import EnterCode from './forgot-password/EnterCode';
@@ -58,46 +59,42 @@ const OnboardingRoute: React.FC = () => {
 
 /**
  * Auth Route Component
- * Redirects authenticated users based on their profile completion status
+ * Handles basic authentication checks and profile completion redirects
+ * Excludes signup and assessment routes to allow direct navigation
  */
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const dispatch = useDispatch();
     const { isAuthenticated, user, has_completed_profile } = useSelector((state: RootState) => state.auth);
+    const currentPath = window.location.pathname;
 
+    // Skip all logic for signup and assessment routes
+    if (currentPath.startsWith('/signup') || currentPath.startsWith('/assessment')) {
+        return <>{children}</>;
+    }
+
+    // Fetch onboarding progress for incomplete profiles (only on non-signup routes)
     useEffect(() => {
-        if (isAuthenticated && user && !has_completed_profile) {
-            // User is authenticated but hasn't completed profile, fetch onboarding progress
-            // But only if we're not in the signup flow (to avoid API calls during signup)
-            const currentPath = window.location.pathname;
-            if (!currentPath.startsWith('/signup')) {
-                console.log('User authenticated but profile incomplete, fetching onboarding progress...');
-                // Add a small delay to ensure the user profile is fully loaded
-                const timer = setTimeout(() => {
-                    dispatch(fetchOnboardingProgress() as any);
-                }, 200);
-                
-                return () => clearTimeout(timer);
-            }
+        if (isAuthenticated && user && !has_completed_profile && !currentPath.startsWith('/signup')) {
+            const timer = setTimeout(() => {
+                dispatch(fetchOnboardingProgress() as any);
+            }, 200);
+            return () => clearTimeout(timer);
         }
-    }, [dispatch, isAuthenticated, user, has_completed_profile]);
+    }, [dispatch, isAuthenticated, user, has_completed_profile, currentPath]);
 
+    // Handle login page - let login component handle its own navigation
+    if (currentPath === '/login') {
+        return <>{children}</>;
+    }
+
+    // For authenticated users on other pages, check profile completion
     if (isAuthenticated) {
-        // Check if user is on login page - let login component handle navigation
-        const currentPath = window.location.pathname;
-        if (currentPath === '/login') {
-            return <>{children}</>;
-        }
-        
-        // For other pages, check profile completion status
         if (has_completed_profile) {
-            return <Navigate to="/assessment" replace />;
+            // Profile complete - allow access
+            return <>{children}</>;
         } else {
-            // Check if user is already in signup flow
-            if (currentPath.startsWith('/signup')) {
-                // User is already in signup flow, don't redirect
-                return <>{children}</>;
-            } else {
-                // User is authenticated but not in signup flow, redirect to step 2
+            // Profile incomplete - redirect to signup (but not if already in signup)
+            if (!currentPath.startsWith('/signup')) {
                 return <Navigate to="/signup/step/2" replace />;
             }
         }
@@ -335,6 +332,15 @@ const AppRouter: React.FC = () => {
                     element={
                         <ProtectedRoute>
                             <SubmissionSuccess />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/loan/request/:assessmentId?"
+                    element={
+                        <ProtectedRoute>
+                            <LoanRequestForm />
                         </ProtectedRoute>
                     }
                 />

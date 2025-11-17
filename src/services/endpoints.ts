@@ -49,6 +49,12 @@ export const endpoints = {
       `${BASE_URL}/assessments/${assessmentId}/report.pdf`,
   },
 
+  // Feedback endpoints
+  feedback: {
+    meta: `${BASE_URL}/feedback/meta`,
+    submit: `${BASE_URL}/feedback`,
+  },
+
   // Admin endpoints
   admin: {
     sections: `${BASE_URL}/admin/sections/`,
@@ -73,6 +79,10 @@ export const endpoints = {
   loan: {
     eligibility: (assessmentId: string | number) =>
       `${BASE_URL}/loan/eligibility/?assessment_id=${assessmentId}`,
+    meta: `${BASE_URL}/loan/meta/`,
+    prefill: (assessmentId: number) =>
+      `${BASE_URL}/loan/prefill/?assessment_id=${assessmentId}`,
+    submit: `${BASE_URL}/loan/`,
   },
 
   // Add more endpoint categories as needed

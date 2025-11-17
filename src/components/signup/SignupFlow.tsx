@@ -8,6 +8,8 @@ import {
   updateStep3,
   finishOnboarding
 } from "../../features/onboarding/onboardingSlice";
+import { fetchUserProfile } from "../../features/auth/authThunks";
+import { updateProfileCompletion } from "../../features/auth/authSlice";
 import type { RootState } from "../../app/store";
 
 // ✅ Your existing UI components (no UI changes)
@@ -16,7 +18,6 @@ import SignupStep2 from "./SignupStep2"; // Innovation + Geography
 import SignupStep3 from "./SignupStep3"; // Innovation + Geography
 import SignupStep4 from "./SignupStep4"; // Sector + Stage + Impact
 import SignupStep5 from "./SignupStep5"; // Budget + Funding
-import ProgressTracker from "../ui/ProgressTracker";
 
 const SignupFlow: React.FC = () => {
   const dispatch = useDispatch();
@@ -25,7 +26,14 @@ const SignupFlow: React.FC = () => {
   const currentStep = Number(location.pathname.split("/").pop()) || 1;
 
   const { progress } = useSelector((state: RootState) => state.onboarding);
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, has_completed_profile } = useSelector((state: RootState) => state.auth);
+
+  // Redirect users with completed profiles to assessment
+  useEffect(() => {
+    if (isAuthenticated && has_completed_profile) {
+      navigate("/assessment", { replace: true });
+    }
+  }, [isAuthenticated, has_completed_profile, navigate]);
 
   // Redirect if not logged in (except for step 1 - account creation)
   useEffect(() => {
@@ -115,20 +123,17 @@ const SignupFlow: React.FC = () => {
       console.error("User must be authenticated to complete step 5");
       return;
     }
-    const step3Data = progress?.data;
-    console.log("Step 5 - Progress data:", progress);
-    console.log("Step 5 - Step3Data:", step3Data);
-    console.log("Step 5 - FormData:", formData);
     
+    const step3Data = progress?.data;
     if (!step3Data?.focusSector || !step3Data?.stage || !step3Data?.impactFocus) {
       console.error("Missing step 3 data:", {
         focusSector: step3Data?.focusSector,
         stage: step3Data?.stage,
         impactFocus: step3Data?.impactFocus,
-        fullStep3Data: step3Data
       });
       return;
     }
+    
     const payload = {
       focus_sector: step3Data.focusSector,
       org_stage: step3Data.stage,
@@ -137,10 +142,43 @@ const SignupFlow: React.FC = () => {
       use_of_questionnaire: formData.fundingSource,
       received_philanthropy_before: formData.philanthropicFunding === "yes",
     };
-    const result = await dispatch(updateStep3(payload) as any);
-    if (updateStep3.fulfilled.match(result)) {
-      const finish = await dispatch(finishOnboarding() as any);
-      if (finishOnboarding.fulfilled.match(finish)) navigate("/assessment");
+    
+    try {
+      // Update step 3
+      const step3Result = await dispatch(updateStep3(payload) as any);
+      if (!updateStep3.fulfilled.match(step3Result)) {
+        console.error("Failed to update step 3");
+        return;
+      }
+
+      // Finish onboarding
+      const finishResult = await dispatch(finishOnboarding() as any);
+      if (!finishOnboarding.fulfilled.match(finishResult)) {
+        console.error("Failed to finish onboarding");
+        return;
+      }
+
+      // Update profile completion status immediately
+      dispatch(updateProfileCompletion(true));
+      
+      // Navigate immediately - don't wait for API calls
+      navigate("/assessment", { replace: true });
+      
+      // Fetch latest data in background (non-blocking)
+      Promise.all([
+        dispatch(fetchOnboardingProgress() as any),
+        dispatch(fetchUserProfile() as any).catch(() => {
+          // Silently fail - navigation already happened
+        })
+      ]).catch(() => {
+        // Silently fail - navigation already happened
+      });
+      
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      // Navigate even on error
+      dispatch(updateProfileCompletion(true));
+      navigate("/assessment", { replace: true });
     }
   };
 

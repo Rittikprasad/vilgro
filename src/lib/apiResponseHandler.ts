@@ -117,25 +117,37 @@ export class ApiResponseHandler {
    * Handle 401 Unauthorized errors
    */
   private static handle401Error(errorData: any) {
+    // Prefer backend-provided detailed error message when available
+    const detailedError: string | undefined =
+      typeof errorData.errors === "string"
+        ? errorData.errors
+        : Array.isArray(errorData.errors)
+        ? errorData.errors.join(", ")
+        : errorData.errors?.detail ||
+          (Array.isArray(errorData.non_field_errors)
+            ? errorData.non_field_errors[0]
+            : undefined);
+
     if (errorData.message?.includes("Invalid credentials") || errorData.message?.includes("Invalid email or password")) {
       showNotification({
         type: 'error',
         title: 'Login Failed',
-        message: 'Invalid email or password. Please check your credentials and try again.',
+        message: detailedError || 'Invalid email or password. Please check your credentials and try again.',
         duration: 5000,
       });
     } else if (errorData.message?.includes("Account not found")) {
       showNotification({
         type: 'error',
         title: 'Account Not Found',
-        message: 'No account found with this email. Please sign up first.',
+        message: detailedError || 'No account found with this email. Please sign up first.',
         duration: 5000,
       });
     } else {
       showNotification({
         type: 'error',
         title: 'Unauthorized',
-        message: errorData.message || 'Please log in to continue.',
+        // For generic 401 (e.g. login failure), show detailed error if present
+        message: detailedError || errorData.message || 'Please log in to continue.',
         duration: 5000,
       });
     }

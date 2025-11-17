@@ -1,35 +1,55 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LayoutWrapper from "../layout/LayoutWrapper";
 import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
+import { Input } from "../../../components/ui/Input";
 import ViewIcon from "../../../assets/svg/view.svg";
 import EmailIcon from "../../../assets/svg/email.svg";
+import SPOsFilterModal from "../components/SPOsFilterModal";
 import type { AppDispatch, RootState } from "../../../app/store";
 import {
   fetchAdminSpos,
   fetchAdminSpoReport,
   setSelectedAdminSpo,
+  type AdminSpoFilters,
 } from "../../../features/adminSpo/adminSpoSlice";
 import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
+import { cn } from "../../../lib/utils";
 
 const SPOsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { items, isLoading, error } = useSelector((state: RootState) => state.adminSpo);
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<AdminSpoFilters>({});
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const fetchSpos = useCallback(() => {
-    void dispatch(fetchAdminSpos());
+  // Initial fetch on mount
+  useEffect(() => {
+    dispatch(fetchAdminSpos({}) as any);
   }, [dispatch]);
 
-  useEffect(() => {
-    if (!items || items.length === 0) {
-      fetchSpos();
-    }
-  }, [fetchSpos, items]);
+  const handleApplyFilters = (newFilters: AdminSpoFilters) => {
+    // Merge with existing search query
+    const mergedFilters = { ...newFilters, q: filters.q };
+    setFilters(mergedFilters);
+    setCurrentPage(1);
+    dispatch(fetchAdminSpos(mergedFilters) as any);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const newFilters = { ...filters, q: query.trim() || undefined };
+    setFilters(newFilters);
+    setCurrentPage(1);
+    dispatch(fetchAdminSpos(newFilters) as any);
+  };
+
+  const hasActiveDateFilters = !!(filters.start_date || filters.end_date);
 
   const formattedRows = useMemo(() => {
     return items.map((item: AdminSpoEntry) => ({
@@ -101,14 +121,27 @@ const SPOsPage: React.FC = () => {
             SPOs Management
           </h1>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="px-4 py-2">
-              Search
-            </Button>
-            <Button variant="outline" className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600">
-              Filters
-            </Button>
-            <Button variant="outline" className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600">
-              Sort by: New to old
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className={cn(
+                  "w-64 h-10 px-4 py-2 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-white",
+                  "gradient-border"
+                )}
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              className={cn(
+                "px-4 py-2",
+                hasActiveDateFilters && "bg-green-50 border-green-300 text-green-700"
+              )}
+              onClick={() => setIsFilterModalOpen(true)}
+            >
+              Filters {hasActiveDateFilters && "(Date Range)"}
             </Button>
             <Button
               variant="gradient"
@@ -117,7 +150,7 @@ const SPOsPage: React.FC = () => {
                 if (items.length === 0) return;
                 const latestSpo = items[0];
                 try {
-                  const result = await dispatch(fetchAdminSpoReport(latestSpo.id)).unwrap();
+                  const result = await dispatch(fetchAdminSpoReport(latestSpo.id) as any).unwrap();
                   const link = document.createElement("a");
                   link.href = result.url;
                   link.setAttribute("download", result.filename);
@@ -141,7 +174,7 @@ const SPOsPage: React.FC = () => {
             <span>{error}</span>
             <button
               type="button"
-              onClick={fetchSpos}
+              onClick={() => dispatch(fetchAdminSpos(filters) as any)}
               className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
             >
               Retry
@@ -378,6 +411,13 @@ const SPOsPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      
+      <SPOsFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        onApply={handleApplyFilters}
+        currentFilters={filters}
+      />
     </LayoutWrapper>
   );
 };

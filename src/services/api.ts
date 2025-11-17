@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { store } from '../app/store';
 import { authSlice } from '../features/auth/authSlice';
+import { resetOnboarding } from '../features/onboarding/onboardingSlice';
 import { refreshToken } from '../features/auth/authThunks';
 
 /**
@@ -113,12 +114,14 @@ api.interceptors.response.use(
         } else {
           // Token refresh failed, logout user
           store.dispatch(authSlice.actions.logout());
+          store.dispatch(resetOnboarding());
           processQueue(error, null);
           return Promise.reject(error);
         }
       } catch (refreshError) {
         // Token refresh failed, logout user
         store.dispatch(authSlice.actions.logout());
+        store.dispatch(resetOnboarding());
         processQueue(refreshError, null);
         return Promise.reject(refreshError);
       } finally {

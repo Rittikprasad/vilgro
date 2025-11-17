@@ -334,7 +334,13 @@ const SubmissionSuccess: React.FC = () => {
                   variant={isEligible ? "gradient" : "outline"}
                   size="lg"
                   className="w-full"
-                  onClick={() => {/* TODO: Implement loan application */}}
+                  onClick={() => {
+                    if (assessmentId) {
+                      navigate(`/loan/request/${assessmentId}`);
+                    } else {
+                      navigate("/loan/request");
+                    }
+                  }}
                   disabled={!isEligible}
                 >
                   Apply for Loan

@@ -17,13 +17,34 @@ const initialState: AdminSpoState = {
   deleteError: null,
 };
 
+export interface AdminSpoFilters {
+  q?: string; // Search: email / name / organization
+  status?: 'active' | 'inactive'; // Filter by status
+  ordering?: string; // Sort by: email, -email, first_name, -first_name, date_joined, -date_joined
+  start_date?: string; // Date range start (YYYY-MM-DD)
+  end_date?: string; // Date range end (YYYY-MM-DD)
+}
+
 export const fetchAdminSpos = createAsyncThunk<
   AdminSpoEntry[],
-  void,
+  AdminSpoFilters | void,
   { rejectValue: string }
->("adminSpo/fetchAll", async (_, { rejectWithValue }) => {
+>("adminSpo/fetchAll", async (filters, { rejectWithValue }) => {
   try {
-    const response = await api.get<AdminSpoEntry[]>(endpoints.admin.spos);
+    const params = new URLSearchParams();
+    
+    if (filters) {
+      if (filters.q) params.append('q', filters.q);
+      if (filters.status) params.append('status', filters.status);
+      if (filters.ordering) params.append('ordering', filters.ordering);
+      if (filters.start_date) params.append('start_date', filters.start_date);
+      if (filters.end_date) params.append('end_date', filters.end_date);
+    }
+    
+    const queryString = params.toString();
+    const url = queryString ? `${endpoints.admin.spos}?${queryString}` : endpoints.admin.spos;
+    
+    const response = await api.get<AdminSpoEntry[]>(url);
     return response.data;
   } catch (error: any) {
     const message =

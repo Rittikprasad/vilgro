@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { assessmentApi, type AssessmentStartResponse, type SectionsResponse, type QuestionsResponse, type SaveAnswersResponse, type SubmitResponse, type AssessmentResult, type MissingAnswersError } from '../../services/assessmentApi';
+import { assessmentApi, feedbackApi, type AssessmentStartResponse, type SectionsResponse, type QuestionsResponse, type SaveAnswersResponse, type SubmitResponse, type AssessmentResult, type MissingAnswersError, type FeedbackMetaResponse, type FeedbackReason, type FeedbackSubmitRequest, type FeedbackSubmitResponse } from '../../services/assessmentApi';
 import { adminApi, type QuestionType, type CreateQuestionPayload, type CreateQuestionResponse, type CreateQuestionErrorResponse } from '../../services/adminApi';
 import { ApiResponseHandler } from '../../lib/apiResponseHandler';
 
@@ -39,6 +39,13 @@ interface AssessmentState {
   isCreatingQuestion: boolean;
   createQuestionError: string | null;
   
+  // Feedback
+  feedbackReasons: FeedbackReason[];
+  feedbackMetaLoading: boolean;
+  feedbackMetaError: string | null;
+  isSubmittingFeedback: boolean;
+  feedbackSubmitError: string | null;
+  
   // Loading states
   isLoading: boolean;
   error: string | null;
@@ -72,6 +79,11 @@ const initialState: AssessmentState = {
   questionTypesError: null,
   isCreatingQuestion: false,
   createQuestionError: null,
+  feedbackReasons: [],
+  feedbackMetaLoading: false,
+  feedbackMetaError: null,
+  isSubmittingFeedback: false,
+  feedbackSubmitError: null,
   isLoading: false,
   error: null,
   eligibility: null,
@@ -269,6 +281,31 @@ export const createQuestion = createAsyncThunk<
     return rejectWithValue({
       message: error.response?.data?.message || 'Failed to create question'
     });
+  }
+});
+
+// Feedback async thunks
+export const getFeedbackMeta = createAsyncThunk<
+  FeedbackMetaResponse,
+  void,
+  { rejectValue: string }
+>('assessment/getFeedbackMeta', async (_, { rejectWithValue }) => {
+  try {
+    return await feedbackApi.getFeedbackMeta();
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to get feedback meta');
+  }
+});
+
+export const submitFeedback = createAsyncThunk<
+  FeedbackSubmitResponse,
+  FeedbackSubmitRequest,
+  { rejectValue: string }
+>('assessment/submitFeedback', async (payload, { rejectWithValue }) => {
+  try {
+    return await feedbackApi.submitFeedback(payload);
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to submit feedback');
   }
 });
 
@@ -470,6 +507,35 @@ const assessmentSlice = createSlice({
         state.createQuestionError = action.payload?.message || 'Failed to create question';
         // Show error notification
         ApiResponseHandler.handleError(action.payload || { message: 'Failed to create question' }, 'Failed to create question');
+      })
+
+      // Get feedback meta
+      .addCase(getFeedbackMeta.pending, (state) => {
+        state.feedbackMetaLoading = true;
+        state.feedbackMetaError = null;
+      })
+      .addCase(getFeedbackMeta.fulfilled, (state, action) => {
+        state.feedbackMetaLoading = false;
+        state.feedbackReasons = action.payload.reasons;
+        state.feedbackMetaError = null;
+      })
+      .addCase(getFeedbackMeta.rejected, (state, action) => {
+        state.feedbackMetaLoading = false;
+        state.feedbackMetaError = action.payload || 'Failed to get feedback meta';
+      })
+
+      // Submit feedback
+      .addCase(submitFeedback.pending, (state) => {
+        state.isSubmittingFeedback = true;
+        state.feedbackSubmitError = null;
+      })
+      .addCase(submitFeedback.fulfilled, (state) => {
+        state.isSubmittingFeedback = false;
+        state.feedbackSubmitError = null;
+      })
+      .addCase(submitFeedback.rejected, (state, action) => {
+        state.isSubmittingFeedback = false;
+        state.feedbackSubmitError = action.payload || 'Failed to submit feedback';
       });
   },
 });

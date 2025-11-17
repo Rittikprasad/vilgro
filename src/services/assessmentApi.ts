@@ -1,6 +1,5 @@
 import api from './api';
 import { endpoints } from './endpoints';
-import { endpoints } from './endpoints';
 
 // Types
 export interface AssessmentSection {
@@ -209,6 +208,50 @@ export const assessmentApi = {
   // Get assessment history
   getHistory: async (): Promise<AssessmentHistory> => {
     const response = await api.get('/assessments/history');
+    const data = response.data;
+
+    // Backend may return either a plain array or an object with `assessments`
+    if (Array.isArray(data)) {
+      return { assessments: data };
+    }
+
+    return {
+      assessments: Array.isArray(data?.assessments) ? data.assessments : [],
+    };
+  },
+};
+
+// Feedback types
+export interface FeedbackReason {
+  key: string;
+  label: string;
+}
+
+export interface FeedbackMetaResponse {
+  reasons: FeedbackReason[];
+}
+
+export interface FeedbackSubmitRequest {
+  assessment: number | string;
+  reasons: string[];
+  comment?: string;
+}
+
+export interface FeedbackSubmitResponse {
+  message?: string;
+}
+
+// Feedback API functions
+export const feedbackApi = {
+  // Get feedback meta (reasons)
+  getFeedbackMeta: async (): Promise<FeedbackMetaResponse> => {
+    const response = await api.get(endpoints.feedback.meta);
+    return response.data;
+  },
+
+  // Submit feedback
+  submitFeedback: async (payload: FeedbackSubmitRequest): Promise<FeedbackSubmitResponse> => {
+    const response = await api.post(endpoints.feedback.submit, payload);
     return response.data;
   },
 };

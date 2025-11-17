@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AssessmentLayout from "./AssessmentLayout";
 import QuestionRenderer from "./QuestionRenderer";
+import AssessmentExitModal from "./AssessmentExitModal";
 import Navbar from "../ui/Navbar";
 import { 
   startAssessment, 
@@ -48,7 +49,59 @@ const Assessment: React.FC = () => {
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [showExitModal, setShowExitModal] = useState(false);
+    const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
     const initializationRef = useRef(false);
+    const location = useLocation();
+
+    // Handle browser back button and page unload
+    useEffect(() => {
+        if (!currentAssessment || currentAssessment.status !== 'DRAFT') {
+            return;
+        }
+
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = '';
+        };
+
+        // Handle browser back button
+        const handlePopState = () => {
+            setShowExitModal(true);
+            setPendingNavigation(() => () => {
+                window.history.back();
+            });
+            // Push current state back to prevent navigation
+            window.history.pushState(null, '', location.pathname);
+        };
+
+        // Push a state to detect back button
+        window.history.pushState(null, '', location.pathname);
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [currentAssessment, location.pathname]);
+
+    // Expose exit handler to window for Navbar to use
+    useEffect(() => {
+        if (currentAssessment && currentAssessment.status === 'DRAFT') {
+            (window as any).__assessmentExitHandler = (onConfirm: () => void) => {
+                setShowExitModal(true);
+                setPendingNavigation(() => onConfirm);
+            };
+        } else {
+            delete (window as any).__assessmentExitHandler;
+        }
+
+        return () => {
+            delete (window as any).__assessmentExitHandler;
+        };
+    }, [currentAssessment]);
 
     // Initialize assessment on mount - only run once
     useEffect(() => {
@@ -342,6 +395,23 @@ const Assessment: React.FC = () => {
         }
     }, [currentAssessment, sections, currentSection, currentQuestionIndex, questions, localAnswers, dispatch, navigate, isAnswerProvided, getAnswerForQuestion, actionableSections]);
 
+    // Handle exit modal actions - MUST be before any early returns
+    const handleExitSubmit = useCallback(() => {
+        setShowExitModal(false);
+        if (pendingNavigation) {
+            pendingNavigation();
+            setPendingNavigation(null);
+        }
+    }, [pendingNavigation]);
+
+    const handleExitSkip = useCallback(() => {
+        setShowExitModal(false);
+        if (pendingNavigation) {
+            pendingNavigation();
+            setPendingNavigation(null);
+        }
+    }, [pendingNavigation]);
+
     // Show loading state
     if (isLoading && !currentAssessment) {
         return (
@@ -425,6 +495,12 @@ const Assessment: React.FC = () => {
     return (
         <>
             <Navbar />
+            <AssessmentExitModal
+                isOpen={showExitModal}
+                assessmentId={currentAssessment?.id || ''}
+                onSubmit={handleExitSubmit}
+                onSkip={handleExitSkip}
+            />
             <AssessmentLayout
                 steps={steps}
                 currentStep={currentSection?.toLowerCase() || ""}

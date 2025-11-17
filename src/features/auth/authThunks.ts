@@ -7,9 +7,19 @@ import type {
   ThunkApiConfig,
 } from "./authTypes";
 import { authSlice } from "./authSlice";
+import { resetOnboarding } from "../onboarding/onboardingSlice";
 import api from "../../services/api";
 import { endpoints } from "../../services/endpoints";
 import { ApiResponseHandler } from "../../lib/apiResponseHandler";
+
+/**
+ * Helper function to logout user and reset onboarding
+ * Ensures both auth and onboarding state are cleared
+ */
+const logoutAndResetOnboarding = (dispatch: any) => {
+  dispatch(authSlice.actions.logout());
+  dispatch(resetOnboarding());
+};
 
 
 export const login = createAsyncThunk<
@@ -98,7 +108,7 @@ export const fetchUserProfile = createAsyncThunk<
 
       // If token is invalid, logout user
       if (error.response?.status === 401) {
-        dispatch(authSlice.actions.logout());
+        logoutAndResetOnboarding(dispatch);
       }
 
       return rejectWithValue({
@@ -147,7 +157,7 @@ export const refreshToken = createAsyncThunk<
     };
   } catch (error: any) {
     // If refresh fails, logout user
-    dispatch(authSlice.actions.logout());
+    logoutAndResetOnboarding(dispatch);
 
     return rejectWithValue({
       message: "Token refresh failed",
@@ -203,7 +213,7 @@ export const fetchOnboardingProgress = createAsyncThunk<
 
       // If token is invalid, logout user
       if (error.response?.status === 401) {
-        dispatch(authSlice.actions.logout());
+        logoutAndResetOnboarding(dispatch);
       }
 
       return rejectWithValue({
@@ -239,7 +249,7 @@ export const logoutUser = createAsyncThunk<void, void, ThunkApiConfig>(
       console.warn("Logout API call failed:", error);
     } finally {
       // Always clear local state and localStorage
-      dispatch(authSlice.actions.logout());
+      logoutAndResetOnboarding(dispatch);
     }
   }
 );

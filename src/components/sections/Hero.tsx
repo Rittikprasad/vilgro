@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import styles from './Hero.module.css';
 import buttonStyles from '../ui/Button.module.css';
 import { Button } from '../ui/Button';
@@ -8,9 +9,21 @@ import Step1Icon from '../../assets/svg/Step1.svg';
 import Step2Icon from '../../assets/svg/Step2.svg';
 import Step3Icon from '../../assets/svg/Step3.svg';
 import { useNavigate } from 'react-router-dom';
+import type { RootState } from '../../app/store';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, has_completed_profile } = useSelector((state: RootState) => state.auth);
+
+  const handleStartAssessment = () => {
+    // If user has completed profile, go directly to assessment
+    // Otherwise, go to signup flow
+    if (isAuthenticated && has_completed_profile) {
+      navigate('/assessment');
+    } else {
+      navigate('/signup');
+    }
+  };
   return (
     <section className={styles.hero}>
       <div className={styles.container}>
@@ -28,7 +41,7 @@ const Hero: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className={styles.heroButtons}>
-            <Button variant="gradient" size="lg" onClick={() => navigate('/signup')}>
+            <Button variant="gradient" size="lg" onClick={handleStartAssessment}>
               Start Your Assessment Now
             </Button>
             

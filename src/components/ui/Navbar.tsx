@@ -1,10 +1,9 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import logo from "../../assets/logo.png"
 import { logoutUser } from '../../features/auth/authThunks'
 import type { RootState } from '../../app/store'
-import ProfileIcon from '../../assets/svg/ProfileIcon.svg'
 
 /**
  * Dynamic Navbar component for authenticated users
@@ -13,17 +12,33 @@ import ProfileIcon from '../../assets/svg/ProfileIcon.svg'
 const Navbar: React.FC = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const location = useLocation()
     const { user, isLoading } = useSelector((state: RootState) => state.auth)
 
     const handleLogout = async () => {
+        // Check if we're on assessment page and if exit handler exists
+        const exitHandler = (window as any).__assessmentExitHandler;
+        if (location.pathname.startsWith('/assessment') && exitHandler) {
+            // Show exit modal instead of logging out immediately
+            exitHandler(async () => {
+                try {
+                    await dispatch(logoutUser() as any);
+                    navigate('/login');
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    navigate('/login');
+                }
+            });
+            return;
+        }
+
+        // Normal logout flow
         try {
             await dispatch(logoutUser() as any).then(() => {
                 navigate('/login')
             })
-            // navigate('/login')
         } catch (error) {
             console.error('Logout error:', error)
-            // Even if logout fails, redirect to login
             navigate('/login')
         }
     }

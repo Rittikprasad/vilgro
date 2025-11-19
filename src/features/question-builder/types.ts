@@ -37,11 +37,7 @@ export interface QuestionDimension {
 // Question Condition interface
 export interface QuestionCondition {
   id: number;
-  logic: {
-    q: string;
-    op: string;
-    val: string;
-  };
+  logic: Record<string, any>;
 }
 
 // Admin Question interface
@@ -59,6 +55,7 @@ export interface AdminQuestion {
   options: QuestionOption[];
   dimensions: QuestionDimension[];
   conditions: QuestionCondition[];
+  is_active?: boolean;
 }
 
 // Admin Sections Response interface

@@ -44,8 +44,13 @@ const Navbar: React.FC = () => {
     }
 
     const handleProfileClick = () => {
-        // TODO: Navigate to profile page when implemented
-        console.log('Profile clicked')
+        const userRole = user?.role?.toUpperCase()
+
+        if (userRole === 'ADMIN') {
+            navigate('/admin/profile')
+        } else {
+            navigate('/profile')
+        }
     }
 
     return (

@@ -10,6 +10,7 @@ export { default as ReviewsPage } from "./pages/ReviewsPage"
 export { default as AdminsPage } from "./pages/AdminsPage"
 export { default as ActivityLogPage } from "./pages/ActivityLogPage"
 export { default as SPOProfilePage } from "./pages/SPOProfilePage"
+export { default as SPOResponsesPage } from "./pages/SPOResponsesPage"
 export { default as ProfilePage } from "./pages/ProfilePage"
 
 // Layout components

@@ -41,6 +41,7 @@ export interface SignupCompleteResponse {
 export interface SignupState {
   isLoading: boolean;
   error: string | null;
+  fieldErrors: Record<string, string[]> | null;
   step1Completed: boolean;
   step1bCompleted: boolean;
   currentUser: SignupStartResponse["user"] | null;
@@ -51,4 +52,5 @@ export interface SignupErrorResponse {
   message: string;
   status: number;
   code?: string;
+  errors?: Record<string, string[]>;
 }

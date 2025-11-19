@@ -85,6 +85,7 @@ const SPOProfilePage: React.FC = () => {
     return [
       {
         id: `assessment-${activeSpo.id}`,
+        assessmentId: activeSpo.id,
         date: incorporationDate,
         score: "Impact: –  Risk: –  Return: –",
         instrument: activeSpo.organization?.type_of_innovation ?? "Not specified",
@@ -281,6 +282,9 @@ const SPOProfilePage: React.FC = () => {
                             <button
                               type="button"
                               className="text-[#69C24E] underline transition-colors hover:text-[#46B753]"
+                              onClick={() => {
+                                navigate(`/admin/spos/${activeSpo?.id}/responses`);
+                              }}
                             >
                               View Answers
                             </button>

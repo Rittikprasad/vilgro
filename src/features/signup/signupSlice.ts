@@ -18,6 +18,7 @@ import type {
 const initialState: SignupState = {
   isLoading: false,
   error: null,
+  fieldErrors: null,
   step1Completed: false,
   step1bCompleted: false,
   currentUser: null,
@@ -57,6 +58,7 @@ export const startSignup = createAsyncThunk<
       message: errorData.message || "Signup failed",
       status: error.response?.status || 500,
       code: errorData.code,
+      errors: errorData.errors,
     });
   }
 });
@@ -104,6 +106,7 @@ export const signupSlice = createSlice({
     resetSignup: (state) => {
       state.isLoading = false;
       state.error = null;
+      state.fieldErrors = null;
       state.step1Completed = false;
       state.step1bCompleted = false;
       state.currentUser = null;
@@ -123,6 +126,7 @@ export const signupSlice = createSlice({
       .addCase(startSignup.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.fieldErrors = null;
       })
       .addCase(startSignup.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -130,25 +134,30 @@ export const signupSlice = createSlice({
         state.currentUser = action.payload.user;
         state.tokens = action.payload.tokens;
         state.error = null;
+        state.fieldErrors = null;
       })
       .addCase(startSignup.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload?.message || "Signup failed";
+        state.fieldErrors = action.payload?.errors || null;
       })
 
       // Complete signup
       .addCase(completeSignup.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.fieldErrors = null;
       })
       .addCase(completeSignup.fulfilled, (state) => {
         state.isLoading = false;
         state.step1bCompleted = true;
         state.error = null;
+        state.fieldErrors = null;
       })
       .addCase(completeSignup.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload?.message || "Failed to complete signup";
+        state.fieldErrors = action.payload?.errors || null;
       });
   },
 });

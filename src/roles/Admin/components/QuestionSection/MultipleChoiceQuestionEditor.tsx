@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
-import type { QuestionItem } from './QuestionListTable';
-import type { RootState } from '../../../../app/store';
-import { fetchQuestionCodesBySection } from '../../../../features/question-builder/questionBuilderSlice';
+import type { QuestionChoiceItem, QuestionConditionItem, QuestionItem } from './QuestionListTable';
+import type { AdminSection, QuestionCode } from '../../../../features/question-builder/types';
 import ACBIcon from '../../../../assets/svg/ACB.svg';
+
+const slugifyLabel = (value: string): string =>
+  value.toLowerCase().trim().replace(/\s+/g, '_');
+
+const normalizeChoice = (choice: QuestionChoiceItem | string) => {
+  if (typeof choice === 'string') {
+    return {
+      label: choice,
+      value: slugifyLabel(choice),
+      points: undefined,
+      score: 1,
+    };
+  }
+
+  return {
+    label: choice.label,
+    value: choice.value || slugifyLabel(choice.label),
+    points: choice.points,
+    score: choice.points ? parseFloat(choice.points) || 1 : 1,
+  };
+};
 
 interface QuestionOption {
   id: string;
   text: string;
+  value: string;
   score: number;
   conditionalBranching?: {
-    goTo: string; // "Question" or "Return"
+    goTo?: string;
     questionId?: string | number;
     score?: number;
   };
@@ -24,6 +44,9 @@ interface MultipleChoiceQuestionEditorProps {
   onCancel: () => void;
   onDelete?: (questionId: number) => void;
   isLoading?: boolean;
+  sections: AdminSection[];
+  questionCodesMap: Record<string, QuestionCode[]>;
+  isQuestionCodesLoading?: boolean;
 }
 
 const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> = ({
@@ -31,124 +54,189 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
   onSave,
   onCancel,
   onDelete,
-  isLoading = false
+  isLoading = false,
+  sections,
+  questionCodesMap,
+  isQuestionCodesLoading = false,
 }) => {
-  // Get sections and questionCodes from Redux store
-  const { sections, questionCodes, questionCodesLoading } = useSelector((state: RootState) => state.questionBuilder);
-  const dispatch = useDispatch();
-  
   const [questionText, setQuestionText] = useState(question.question);
-  const [options, setOptions] = useState<QuestionOption[]>(
-    question.options?.choices?.map((choice: string, index: number) => ({
-      id: `option_${index}`,
-      text: choice,
-      score: 1, // Default score for multiple choice options
-      conditionalBranching: {
-        goTo: "Return",
-        questionId: undefined,
-        score: 0
-      }
-    })) || []
-  );
   const [weightage, setWeightage] = useState(question.weight);
   const [order, setOrder] = useState(question.order);
   const [isActive, setIsActive] = useState(question.status === 'Active');
-  const [showConditionalBranching, setShowConditionalBranching] = useState(false);
+  const [showConditionalBranching, setShowConditionalBranching] = useState(
+    (question.conditions?.length || 0) > 0
+  );
+
+  const buildOptionsFromQuestion = (): QuestionOption[] => {
+    const baseChoices = question.options?.choices || [];
+
+    return baseChoices.map((choice: QuestionChoiceItem | string, index: number) => {
+      const normalized = normalizeChoice(choice);
+      const existingCondition = question.conditions?.find(
+        (condition: QuestionConditionItem) => condition.expectedValue === normalized.value
+      );
+
+      return {
+        id: `option_${index}_${question.id}`,
+        text: normalized.label,
+        value: normalized.value,
+        score: normalized.score,
+        conditionalBranching: {
+          goTo: existingCondition?.sectionCode || '',
+          questionId: existingCondition?.questionCode,
+          score: 0,
+        },
+      };
+    });
+  };
+
+  const [options, setOptions] = useState<QuestionOption[]>(buildOptionsFromQuestion);
+
+  useEffect(() => {
+    setOptions(buildOptionsFromQuestion());
+    setQuestionText(question.question);
+    setWeightage(question.weight);
+    setOrder(question.order);
+    setIsActive(question.status === 'Active');
+    setShowConditionalBranching((question.conditions?.length || 0) > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question.id]);
+
+  const questionCodeToSection = useMemo(() => {
+    const map: Record<string, string> = {};
+    Object.entries(questionCodesMap).forEach(([sectionCode, codes]) => {
+      codes.forEach((code) => {
+        map[code.code] = sectionCode;
+      });
+    });
+    return map;
+  }, [questionCodesMap]);
+
+  useEffect(() => {
+    if (!question.conditions || question.conditions.length === 0) {
+      return;
+    }
+
+    setOptions((currentOptions) =>
+      currentOptions.map((option) => {
+        if (option.conditionalBranching?.goTo) {
+          return option;
+        }
+
+        const matchedCondition = question.conditions?.find(
+          (condition) => condition.expectedValue === option.value
+        );
+
+        if (!matchedCondition) {
+          return option;
+        }
+
+        const inferredSection =
+          matchedCondition.sectionCode || questionCodeToSection[matchedCondition.questionCode];
+
+        if (!inferredSection) {
+          return option;
+        }
+
+        return {
+          ...option,
+          conditionalBranching: {
+            ...option.conditionalBranching,
+            goTo: inferredSection,
+            questionId: matchedCondition.questionCode,
+          },
+        };
+      })
+    );
+  }, [question.conditions, questionCodeToSection]);
 
   const handleAddOption = () => {
+    const nextIndex = options.length + 1;
+    const defaultLabel = `Option ${nextIndex}`;
     const newOption: QuestionOption = {
       id: `option_${Date.now()}`,
-      text: '',
+      text: defaultLabel,
+      value: slugifyLabel(`${defaultLabel}_${Date.now()}`),
       score: 1,
       conditionalBranching: {
-        goTo: "Return",
+        goTo: '',
         questionId: undefined,
-        score: 0
-      }
+        score: 0,
+      },
     };
-    setOptions([...options, newOption]);
+    setOptions((prev) => [...prev, newOption]);
   };
 
   const handleConditionalBranchingToggle = () => {
-    setShowConditionalBranching(!showConditionalBranching);
+    setShowConditionalBranching((prev) => !prev);
   };
 
-  const handleGoToChange = (optionId: string, goTo: string) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { 
-        ...option, 
-        conditionalBranching: { 
-          goTo,
-          questionId: option.conditionalBranching?.questionId,
-          score: option.conditionalBranching?.score || 0
-        }
-      } : option
-    ));
-    
-    // Fetch question codes when section is selected
-    if (goTo) {
-      dispatch(fetchQuestionCodesBySection(goTo) as any);
-    }
+  const handleGoToChange = (optionId: string, sectionCode: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.map((option) =>
+        option.id === optionId
+          ? {
+              ...option,
+              conditionalBranching: {
+                goTo: sectionCode,
+                questionId: sectionCode ? option.conditionalBranching?.questionId : undefined,
+                score: option.conditionalBranching?.score || 0,
+              },
+            }
+          : option
+      )
+    );
   };
 
   const handleQuestionChange = (optionId: string, questionId: string | number) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { 
-        ...option, 
-        conditionalBranching: { 
-          goTo: option.conditionalBranching?.goTo || "Return",
-          questionId,
-          score: option.conditionalBranching?.score || 0
-        }
-      } : option
-    ));
-  };
-
-  const handleConditionalScoreChange = (optionId: string, score: number) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { 
-        ...option, 
-        conditionalBranching: { 
-          goTo: option.conditionalBranching?.goTo || "Return",
-          questionId: option.conditionalBranching?.questionId,
-          score 
-        }
-      } : option
-    ));
+    setOptions((prevOptions) =>
+      prevOptions.map((option) =>
+        option.id === optionId
+          ? {
+              ...option,
+              conditionalBranching: {
+                ...option.conditionalBranching,
+                questionId,
+              },
+            }
+          : option
+      )
+    );
   };
 
   const handleDeleteOption = (optionId: string) => {
-    setOptions(options.filter(option => option.id !== optionId));
+    setOptions((prevOptions) => prevOptions.filter((option) => option.id !== optionId));
   };
 
   const handleOptionTextChange = (optionId: string, text: string) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { ...option, text } : option
-    ));
+    setOptions((prevOptions) =>
+      prevOptions.map((option) =>
+        option.id === optionId ? { ...option, text, value: slugifyLabel(text || option.id) } : option
+      )
+    );
   };
 
   const handleOptionScoreChange = (optionId: string, score: number) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { ...option, score } : option
-    ));
+    setOptions((prevOptions) =>
+      prevOptions.map((option) => (option.id === optionId ? { ...option, score } : option))
+    );
+  };
+
+  const buildConditionsPayload = (): QuestionConditionItem[] | undefined => {
+    const nextConditions = options
+      .filter(
+        (option) => option.conditionalBranching?.questionId && option.conditionalBranching?.goTo
+      )
+      .map((option) => ({
+        questionCode: String(option.conditionalBranching?.questionId),
+        expectedValue: option.value,
+        sectionCode: option.conditionalBranching?.goTo || undefined,
+      }));
+
+    return nextConditions.length > 0 ? nextConditions : undefined;
   };
 
   const handleSave = () => {
-    // Build conditions array from conditional branching selections
-    // Convert option text to value format (lowercase with underscores)
-    const conditions = options
-      .filter(option => 
-        option.conditionalBranching?.questionId && 
-        option.conditionalBranching?.goTo !== "Return"
-      )
-      .map(option => ({
-        logic: {
-          q: String(option.conditionalBranching?.questionId || ""),
-          op: "",
-          val: option.text.toLowerCase().replace(/\s+/g, '_') // Convert label to value format
-        }
-      }));
-
     const updatedQuestion: QuestionItem = {
       ...question,
       question: questionText,
@@ -157,9 +245,13 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
       status: isActive ? 'Active' : 'Inactive',
       options: {
         type: 'multiple-choice',
-        choices: options.map(option => option.text)
+        choices: options.map((option) => ({
+          label: option.text,
+          value: option.value,
+          points: option.score.toString(),
+        })),
       },
-      conditions: conditions.length > 0 ? conditions : undefined
+      conditions: buildConditionsPayload(),
     };
     onSave(updatedQuestion);
   };
@@ -202,7 +294,7 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
                 <>
                   <span className="text-sm text-gray-700">Go to</span>
                   <select
-                    value={option.conditionalBranching?.goTo || ""}
+                    value={option.conditionalBranching?.goTo || ''}
                     onChange={(e) => handleGoToChange(option.id, e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded focus:border-green-500 focus:outline-none text-sm"
                   >
@@ -216,15 +308,20 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
 
                   <span className="text-sm text-gray-700">Question</span>
                   <select
-                    value={option.conditionalBranching?.questionId || ""}
+                    value={option.conditionalBranching?.questionId || ''}
                     onChange={(e) => handleQuestionChange(option.id, e.target.value as any)}
                     className="px-3 py-2 border border-gray-300 rounded focus:border-green-500 focus:outline-none text-sm"
-                    disabled={questionCodesLoading}
+                    disabled={
+                      isQuestionCodesLoading || !option.conditionalBranching?.goTo
+                    }
                   >
                     <option value="">Select Question</option>
-                    {questionCodes.map((question) => (
-                      <option key={question.code} value={question.code}>
-                        {question.code}
+                    {(option.conditionalBranching?.goTo
+                      ? questionCodesMap[option.conditionalBranching.goTo] || []
+                      : []
+                    ).map((questionCode) => (
+                      <option key={questionCode.code} value={questionCode.code}>
+                        {questionCode.code}
                       </option>
                     ))}
                   </select>

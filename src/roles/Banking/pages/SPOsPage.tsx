@@ -324,13 +324,6 @@ const BankingSPOsPage: React.FC = () => {
                             >
                               <img src={ViewIcon} alt="View" className="h-5 w-5" />
                             </button>
-                            <button
-                              className="rounded p-1 text-green-600 transition-colors hover:bg-green-50 hover:text-green-800"
-                              title="Email"
-                              type="button"
-                            >
-                              <img src={EmailIcon} alt="Email" className="h-5 w-5" />
-                            </button>
                           </div>
                         </td>
                       </tr>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import LayoutWrapper from "../layout/LayoutWrapper";
 import { Card, CardContent } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
+// import { Button } from "../../../components/ui/Button";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
   clearAdminActivityLogError,
@@ -95,7 +95,7 @@ const ActivityLogPage: React.FC = () => {
             Activity Log
           </h1>
 
-          <Button
+          {/* <Button
             variant="outline"
             className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600"
             onClick={() =>
@@ -103,7 +103,7 @@ const ActivityLogPage: React.FC = () => {
             }
           >
             Sort by: {sortOrder === "new_to_old" ? "New to old" : "Old to new"}
-          </Button>
+          </Button> */}
         </div>
 
         <Card className="overflow-hidden">

@@ -185,14 +185,6 @@ const Login: React.FC = () => {
                   <p className="text-red-500 text-sm">{errors.password.message}</p>
                 )}
               </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className="text-center">
-                  <p className="text-red-500 text-sm">{error}</p>
-                </div>
-              )}
-
               {/* Submit Button */}
               <div className="flex justify-center">
                 <Button

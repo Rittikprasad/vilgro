@@ -48,7 +48,7 @@ const convertApiQuestionsToQuestionItems = (apiQuestions: AdminQuestion[]): Ques
 // Helper function to convert API question type to display type
 const convertQuestionType = (apiType: string): string => {
   switch (apiType) {
-    case 'SINGLE_CHOICE': return 'Multi-select';
+    case 'SINGLE_CHOICE': return 'single-choice';
     case 'MULTI_SLIDER': return 'Multi-Slider';
     case 'MULTI_CHOICE': return 'Multi-select';
     case 'RATING': return 'RATING';
@@ -166,8 +166,16 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
     }
   };
 
-  // Convert API questions to display format
-  const displayQuestions = convertApiQuestionsToQuestionItems(questions);
+  // Convert API questions to display format - ensure it's always an array
+  const displayQuestions = questions && Array.isArray(questions) 
+    ? convertApiQuestionsToQuestionItems(questions) 
+    : [];
+  
+  // Handle edit questions click - always navigate, even with empty data
+  const handleEditClick = () => {
+    onEditQuestions(displayQuestions);
+  };
+
   return (
     <div className="space-y-6">
       {/* Delete Confirmation Modal */}
@@ -208,8 +216,8 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
         <Button 
           variant="gradient"
           className="px-6 py-3"
-          onClick={() => onEditQuestions(displayQuestions)}
-          disabled={questionsLoading || questionsError !== null}
+          onClick={handleEditClick}
+          disabled={questionsLoading}
         >
           {questionsLoading ? 'Loading...' : 'Edit Questions'}
         </Button>

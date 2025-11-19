@@ -5,6 +5,7 @@ import { Button } from "../../../components/ui/Button";
 import ViewIcon from "../../../assets/svg/view.svg";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { Input } from "../../../components/ui/Input";
+import { cn } from "../../../lib/utils";
 import {
   clearAdminDetailsError,
   createAdminDetail,
@@ -14,7 +15,6 @@ import {
 import type { AdminDetailsEntry } from "../../../features/adminDetails/adminDetailsTypes";
 
 const AdminsPage: React.FC = () => {
-  const [sortOrder, setSortOrder] = useState<"new_to_old" | "old_to_new">("new_to_old");
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,7 +36,6 @@ const AdminsPage: React.FC = () => {
       email: "",
       firstName: "",
       lastName: "",
-      phone: "",
       password: "",
     }),
     []
@@ -77,12 +76,9 @@ const AdminsPage: React.FC = () => {
     );
 
     return filtered.sort((a, b) => {
-      if (sortOrder === "new_to_old") {
-        return b.id.localeCompare(a.id);
-      }
-      return a.id.localeCompare(b.id);
+      return b.id.localeCompare(a.id);
     });
-  }, [adminList, searchTerm, sortOrder]);
+  }, [adminList, searchTerm]);
 
   const totalItems = searchTerm ? filteredAdmins.length : count || filteredAdmins.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -127,18 +123,18 @@ const AdminsPage: React.FC = () => {
             Admins
           </h1>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="px-4 py-2" onClick={() => setSearchTerm("")}>
-              Search
-            </Button>
-            <Button
-              variant="outline"
-              className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600"
-              onClick={() =>
-                setSortOrder((prev) => (prev === "new_to_old" ? "old_to_new" : "new_to_old"))
-              }
-            >
-              Sort by: {sortOrder === "new_to_old" ? "New to old" : "Old to new"}
-            </Button>
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={cn(
+                  "w-64 h-10 px-4 py-2 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-white",
+                  "gradient-border"
+                )}
+              />
+            </div>
             <Button
               variant="gradient"
               className="px-4 py-2"
@@ -271,7 +267,6 @@ const AdminsPage: React.FC = () => {
                               email: admin.raw.email ?? "",
                               firstName: admin.raw.first_name ?? "",
                               lastName: admin.raw.last_name ?? "",
-                              phone: admin.raw.phone ?? "",
                               password: "",
                             });
                             setIsModalOpen(true);
@@ -395,11 +390,10 @@ const AdminsPage: React.FC = () => {
                 const trimmedEmail = formState.email.trim();
                 const trimmedFirstName = formState.firstName.trim();
                 const trimmedLastName = formState.lastName.trim();
-                const trimmedPhone = formState.phone.trim();
                 const trimmedPassword = formState.password.trim();
 
-                if (!trimmedEmail || !trimmedFirstName || !trimmedLastName || !trimmedPhone) {
-                  setLocalError("Email, first name, last name, and phone are mandatory.");
+                if (!trimmedEmail || !trimmedFirstName || !trimmedLastName) {
+                  setLocalError("Email, first name, and last name are mandatory.");
                   return;
                 }
 
@@ -412,7 +406,6 @@ const AdminsPage: React.FC = () => {
                   email: trimmedEmail,
                   first_name: trimmedFirstName,
                   last_name: trimmedLastName,
-                  phone: trimmedPhone,
                   ...(trimmedPassword ? { password: trimmedPassword } : {}),
                 };
 
@@ -483,21 +476,6 @@ const AdminsPage: React.FC = () => {
                     setFormState((prev) => ({ ...prev, lastName: event.target.value }))
                   }
                   placeholder="Enter last name"
-                  className="gradient-border h-11 bg-white px-4 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
-                  Phone
-                </label>
-                <Input
-                  required
-                  value={formState.phone}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, phone: event.target.value }))
-                  }
-                  placeholder="Enter phone number"
                   className="gradient-border h-11 bg-white px-4 text-sm"
                 />
               </div>

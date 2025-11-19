@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../../services/api";
 import { endpoints } from "../../services/endpoints";
-import type { AdminReviewsState, AdminReviewEntry } from "./adminReviewsTypes";
+import type { AdminReviewsState, AdminReviewEntry, AdminReviewsPaginatedResponse } from "./adminReviewsTypes";
 
 const initialState: AdminReviewsState = {
   items: [],
@@ -16,16 +16,26 @@ export const fetchAdminReviews = createAsyncThunk<
   { rejectValue: string }
 >("adminReviews/fetchAll", async (_, { rejectWithValue }) => {
   try {
-    const response = await api.get<AdminReviewEntry[] | AdminReviewEntry>(
+    const response = await api.get<AdminReviewsPaginatedResponse | AdminReviewEntry[]>(
       endpoints.admin.reviews
     );
     const data = response.data;
+    
+    // Handle paginated response
+    if (data && typeof data === "object" && "results" in data) {
+      return (data as AdminReviewsPaginatedResponse).results;
+    }
+    
+    // Handle array response
     if (Array.isArray(data)) {
       return data;
     }
+    
+    // Handle single object
     if (data && typeof data === "object") {
-      return [data];
+      return [data as AdminReviewEntry];
     }
+    
     return [];
   } catch (error: any) {
     const message =

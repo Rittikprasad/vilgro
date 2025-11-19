@@ -48,7 +48,23 @@ const AdminLogin: React.FC = () => {
   // Handle navigation after successful authentication
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log("User authenticated, navigating to admin dashboard")
+      const userRole = user.role?.toUpperCase();
+      console.log("User authenticated, checking role:", userRole)
+      
+      // Only allow ADMIN role to access admin routes
+      if (userRole !== 'ADMIN') {
+        console.error("Non-admin user attempted to login via admin portal")
+        if (userRole === 'SPO') {
+          navigate("/assessment", { replace: true })
+        } else if (userRole === 'BANK_USER') {
+          navigate("/banking/dashboard", { replace: true })
+        } else {
+          navigate("/signin/admin", { replace: true })
+        }
+        return
+      }
+      
+      console.log("Admin user authenticated, navigating to admin dashboard")
       navigate("/admin/dashboard", { replace: true })
     }
   }, [isAuthenticated, user, navigate])

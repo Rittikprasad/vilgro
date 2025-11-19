@@ -105,16 +105,31 @@ const AdminDashboard: React.FC = () => {
   const { summary, isLoading, error } = useSelector(
     (state: RootState) => state.adminDashboard
   );
+  const [dashboardFilters, setDashboardFilters] = React.useState<{ start_date?: string; end_date?: string }>({});
+  const [hasInitialFetch, setHasInitialFetch] = React.useState(false);
 
-  const fetchSummary = useCallback(() => {
-    void dispatch(fetchAdminDashboardSummary());
+  const fetchSummary = useCallback((filters?: { start_date?: string; end_date?: string }) => {
+    void dispatch(fetchAdminDashboardSummary(filters || undefined));
   }, [dispatch]);
 
+  // Initial fetch without filters
   useEffect(() => {
-    if (!summary) {
+    if (!hasInitialFetch) {
       fetchSummary();
+      setHasInitialFetch(true);
     }
-  }, [fetchSummary, summary]);
+  }, [fetchSummary, hasInitialFetch]);
+
+  // Refetch when filters change
+  useEffect(() => {
+    if (hasInitialFetch) {
+      fetchSummary(dashboardFilters);
+    }
+  }, [dashboardFilters.start_date, dashboardFilters.end_date, hasInitialFetch, fetchSummary]);
+
+  const handleFilterChange = useCallback((filters: { start_date?: string; end_date?: string }) => {
+    setDashboardFilters(filters);
+  }, []);
 
   const statsData = useMemo(() => {
     if (!summary) {
@@ -204,22 +219,39 @@ const AdminDashboard: React.FC = () => {
     return user.first_name || user.name || user.email?.split("@")[0] || "Admin";
   }, [user]);
 
-  const filterText = useMemo(
-    () => formatDateRange(summary?.kpi.window?.from, summary?.kpi.window?.to),
-    [summary]
-  );
+  const filterText = useMemo(() => {
+    // Use applied filters if available, otherwise use summary window
+    if (dashboardFilters.start_date && dashboardFilters.end_date) {
+      return formatDateRange(dashboardFilters.start_date, dashboardFilters.end_date);
+    }
+    if (dashboardFilters.start_date || dashboardFilters.end_date) {
+      // If only one date is selected, show it
+      const date = dashboardFilters.start_date || dashboardFilters.end_date;
+      const formatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const dateObj = new Date(date);
+      if (!Number.isNaN(dateObj.getTime())) {
+        return formatter.format(dateObj);
+      }
+    }
+    return formatDateRange(summary?.kpi.window?.from, summary?.kpi.window?.to);
+  }, [summary, dashboardFilters]);
 
   return (
     <LayoutWrapper>
       <div className="space-y-6">
-        <DashboardHeader userName={userName} filterText={filterText} />
+        <DashboardHeader 
+          userName={userName} 
+          filterText={filterText}
+          onFilterChange={handleFilterChange}
+          currentFilters={dashboardFilters}
+        />
 
         {error && (
           <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
             <span>{error}</span>
             <button
               type="button"
-              onClick={fetchSummary}
+              onClick={() => fetchSummary(dashboardFilters)}
               className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
             >
               Retry

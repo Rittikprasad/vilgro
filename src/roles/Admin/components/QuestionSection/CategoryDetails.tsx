@@ -86,8 +86,8 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
     setQuestionsToEdit([]);
   };
 
-  // Show EditQuestionsPage if editing questions
-  if (showEditQuestions && questionsToEdit.length > 0 && selectedSubCategory) {
+  // Show EditQuestionsPage if editing questions - allow navigation even with empty questions array
+  if (showEditQuestions && selectedSubCategory) {
     // Find the section data to get the section ID
     const sectionData = (sections || []).find(section => section.title === selectedSubCategory.title);
     const sectionId = sectionData?.id ? `${sectionData.id}` : '';

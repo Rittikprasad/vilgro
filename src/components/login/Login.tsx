@@ -34,7 +34,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 const Login: React.FC = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { isLoading, error, isAuthenticated, has_completed_profile, onboarding } = useSelector((state: RootState) => state.auth)
+  const { isLoading, error, isAuthenticated, has_completed_profile, onboarding, user } = useSelector((state: RootState) => state.auth)
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -47,10 +47,25 @@ const Login: React.FC = () => {
 
   // Handle navigation after successful authentication
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log("User authenticated, checking profile completion status...")
+    if (isAuthenticated && user) {
+      const userRole = user.role?.toUpperCase();
+      console.log("User authenticated, checking role and profile completion status...")
+      console.log("User role:", userRole)
       console.log("has_completed_profile:", has_completed_profile)
       console.log("onboarding:", onboarding)
+      
+      // Only allow SPO role to access SPO routes
+      if (userRole !== 'SPO') {
+        console.error("Non-SPO user attempted to login via SPO portal")
+        if (userRole === 'ADMIN') {
+          navigate("/admin/dashboard", { replace: true })
+        } else if (userRole === 'BANK_USER') {
+          navigate("/banking/dashboard", { replace: true })
+        } else {
+          navigate("/login", { replace: true })
+        }
+        return
+      }
       
       if (has_completed_profile) {
         console.log("User has completed profile, navigating to assessment")
@@ -61,7 +76,7 @@ const Login: React.FC = () => {
         navigate(`/signup/step/${currentStep + 1}`, { replace: true })
       }
     }
-  }, [isAuthenticated, has_completed_profile, onboarding, navigate])
+  }, [isAuthenticated, user, has_completed_profile, onboarding, navigate])
 
   /**
    * Handle form submission

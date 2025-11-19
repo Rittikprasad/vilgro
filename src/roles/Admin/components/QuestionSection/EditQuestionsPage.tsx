@@ -45,7 +45,6 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
   const { 
     questionTypes, 
     questionTypesLoading, 
-    questionTypesError,
     isCreatingQuestion,
     createQuestionError
   } = useSelector((state: RootState) => state.assessment);
@@ -110,7 +109,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
 
     // Add type-specific options
     if (question.options) {
-      if (question.type === 'Multi-select' && question.options.type === 'single-choice') {
+      if (question.type === 'single-choice' || (question.type === 'Multi-select' && question.options.type === 'single-choice')) {
         payload.type = 'SINGLE_CHOICE';
         payload.options = question.options.choices.map((choice: string) => ({
           label: choice,
@@ -363,7 +362,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
   // Helper function to convert API question type to display type
   const convertApiTypeToDisplayType = (apiType: string): string => {
     switch (apiType) {
-      case 'SINGLE_CHOICE': return 'Multi-select';
+      case 'SINGLE_CHOICE': return 'single-choice';
       case 'MULTI_CHOICE': return 'Multi-select';
       case 'SLIDER': return 'Slider';
       case 'MULTI_SLIDER': return 'Multi-Slider';
@@ -497,6 +496,18 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
     };
 
     switch (question.type) {
+      case 'single-choice':
+        // Convert string array to {value, label} format
+        const singleChoiceOptions = question.options?.choices?.map((choice: string) => ({
+          value: choice.toLowerCase().replace(/\s+/g, '_'),
+          label: choice
+        })) || [];
+        return (
+          <SingleChoiceQuestion
+            {...commonProps}
+            options={singleChoiceOptions}
+          />
+        );
       case 'Multi-select':
         if (question.options?.type === 'single-choice') {
           // Convert string array to {value, label} format
@@ -669,7 +680,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
             questionTypes={questionTypes}
             onSelectType={handleQuestionTypeSelect}
             isLoading={questionTypesLoading}
-            disabled={questionTypesError !== null}
+            disabled={questionTypesLoading}
           />
         </div>
         <Button 
@@ -686,7 +697,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
           <div key={question.id}>
             {editingQuestionId === question.order ? (
               // Edit Mode - Show editor based on question type
-              question.type === 'Multi-select' && question.options?.type === 'single-choice' ? (
+              (question.type === 'single-choice' || (question.type === 'Multi-select' && question.options?.type === 'single-choice')) ? (
                 <SingleChoiceQuestionEditor
                   question={question}
                   onSave={handleSaveQuestion}

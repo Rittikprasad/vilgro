@@ -13,6 +13,7 @@ import adminDetailsReducer from "../features/adminDetails/adminDetailsSlice.js";
 import adminActivityLogReducer from "../features/adminActivityLog/adminActivityLogSlice.js";
 import adminProfileReducer from "../features/adminProfile/adminProfileSlice.js";
 import loanReducer from "../features/loan/loanSlice.js";
+import bankingSpoReducer from "../features/bankingSpo/bankingSpoSlice.js";
 
 
 export const rootReducer = combineReducers({
@@ -30,4 +31,5 @@ export const rootReducer = combineReducers({
   adminActivityLog: adminActivityLogReducer,
   adminProfile: adminProfileReducer,
   loan: loanReducer,
+  bankingSpo: bankingSpoReducer,
 });

@@ -11,6 +11,19 @@ interface AssessmentFunnelProps {
 }
 
 const AssessmentFunnel: React.FC<AssessmentFunnelProps> = ({ data }) => {
+  // Calculate the maximum percentage to scale all bars proportionally
+  const maxPercentage = data.length > 0 
+    ? Math.max(...data.map(step => step.percentage))
+    : 100;
+
+  // Normalize percentages: highest value becomes 100%, others scale proportionally
+  const normalizedData = data.map(step => ({
+    ...step,
+    normalizedPercentage: maxPercentage > 0 
+      ? (step.percentage / maxPercentage) * 100 
+      : 0
+  }));
+
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm">
       <h3 className="text-[16px] font-[500] font-golos text-gray-900 mb-1">
@@ -26,17 +39,17 @@ const AssessmentFunnel: React.FC<AssessmentFunnelProps> = ({ data }) => {
         </div>
       ) : (
         <div className="space-y-4">
-          {data.map((step, index) => (
+          {normalizedData.map((step, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex-1 mr-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[12px] font-[400] font-golos text-gray-600">{step.label}</span>
                   <span className="text-[14px] font-[500] font-golos text-gray-900">{step.count}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                   <div
                     className="bg-[#46b753] h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${step.percentage}%` }}
+                    style={{ width: `${Math.min(step.normalizedPercentage, 100)}%` }}
                   />
                 </div>
               </div>

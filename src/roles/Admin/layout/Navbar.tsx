@@ -25,9 +25,9 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
       {/* Right Section - Search and Profile */}
       <div className="flex items-center space-x-4">
         {/* Search Icon */}
-        <button className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200">
+        {/* <button className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200">
           <img src={SearchIcon} alt="Search" className="w-8 h-8" />
-        </button>
+        </button> */}
 
         {/* Profile Icon */}
         <button

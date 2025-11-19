@@ -30,8 +30,7 @@ import {
   ProfilePage,
 } from '../roles/Admin';
 import { BankingLogin, BankingSPOsPage, BankingSPOProfilePage } from '../roles/Banking';
-// TODO: API Integration - Uncomment when authentication is ready
-// import { ProtectedRoute as RoleProtectedRoute } from '../auth/ProtectedRoute';
+import { RoleProtectedRoute } from './RoleProtectedRoute';
 
 /**
  * Protected Route Component
@@ -67,37 +66,47 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isAuthenticated, user, has_completed_profile } = useSelector((state: RootState) => state.auth);
     const currentPath = window.location.pathname;
 
-    // Skip all logic for signup and assessment routes
+    // Skip all logic for signup and assessment routes (they have their own role protection)
     if (currentPath.startsWith('/signup') || currentPath.startsWith('/assessment')) {
         return <>{children}</>;
     }
 
-    // Fetch onboarding progress for incomplete profiles (only on non-signup routes)
-    useEffect(() => {
-        if (isAuthenticated && user && !has_completed_profile && !currentPath.startsWith('/signup')) {
-            const timer = setTimeout(() => {
-                dispatch(fetchOnboardingProgress() as any);
-            }, 200);
-            return () => clearTimeout(timer);
-        }
-    }, [dispatch, isAuthenticated, user, has_completed_profile, currentPath]);
-
-    // Handle login page - let login component handle its own navigation
-    if (currentPath === '/login') {
+    // Skip role checks for login pages and public routes
+    if (currentPath === '/login' || currentPath.startsWith('/signin/') || currentPath.startsWith('/forgot-password')) {
         return <>{children}</>;
     }
 
-    // For authenticated users on other pages, check profile completion
-    if (isAuthenticated) {
-        if (has_completed_profile) {
-            // Profile complete - allow access
-            return <>{children}</>;
-        } else {
-            // Profile incomplete - redirect to signup (but not if already in signup)
-            if (!currentPath.startsWith('/signup')) {
-                return <Navigate to="/signup/step/2" replace />;
+    // Fetch onboarding progress for incomplete profiles (only on non-signup routes and SPO users)
+    useEffect(() => {
+        if (isAuthenticated && user && !has_completed_profile && !currentPath.startsWith('/signup')) {
+            const userRole = user.role?.toUpperCase();
+            // Only fetch onboarding for SPO users
+            if (userRole === 'SPO') {
+                const timer = setTimeout(() => {
+                    dispatch(fetchOnboardingProgress() as any);
+                }, 200);
+                return () => clearTimeout(timer);
             }
         }
+    }, [dispatch, isAuthenticated, user, has_completed_profile, currentPath]);
+
+    // For authenticated users on other pages, check profile completion (only for SPO)
+    if (isAuthenticated && user) {
+        const userRole = user.role?.toUpperCase();
+        
+        // For SPO users, check profile completion
+        if (userRole === 'SPO') {
+            if (has_completed_profile) {
+                // Profile complete - allow access
+                return <>{children}</>;
+            } else {
+                // Profile incomplete - redirect to signup (but not if already in signup)
+                if (!currentPath.startsWith('/signup')) {
+                    return <Navigate to="/signup/step/2" replace />;
+                }
+            }
+        }
+        // For ADMIN and BANK_USER, allow access (they don't need profile completion)
     }
 
     return <>{children}</>;
@@ -178,90 +187,128 @@ const AppRouter: React.FC = () => {
                     element={<CreateNewPassword />}
                 />
 
+                {/* Signup Flow - Step 1 is public (account creation), Steps 2-5 require SPO role */}
                 <Route
                     path="/signup/*"
                     element={<SignupFlow />}
                 />
 
                 {/* ==================== ADMIN ROUTES ==================== */}
-                {/* NOTE: Authentication is currently bypassed for development */}
-                {/* TODO: API Integration - Protect this route with role-based authentication */}
-                
                 {/* Admin Login - Public route */}
                 <Route
                     path="/signin/admin"
                     element={<AdminLogin />}
                 />
 
+                {/* Banking Login - Public route */}
                 <Route
                     path="/signin/banking"
                     element={<BankingLogin />}
                 />
 
-                {/* Admin Dashboard - Currently unprotected for development */}
-                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                {/* Admin Dashboard - Protected with ADMIN role */}
                 <Route
                     path="/admin/dashboard"
-                    element={<AdminDashboard />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <AdminDashboard />
+                        </RoleProtectedRoute>
+                    }
                 />
 
-                <Route
-                    path="/banking/dashboard"
-                    element={<BankingSPOsPage />}
-                />
-                <Route
-                    path="/banking/spos/:spoId"
-                    element={<BankingSPOProfilePage />}
-                />
-
-                {/* Admin SPOs Page - Currently unprotected for development */}
-                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                {/* Admin SPOs Page - Protected with ADMIN role */}
                 <Route
                     path="/admin/spos"
-                    element={<SPOsPage />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <SPOsPage />
+                        </RoleProtectedRoute>
+                    }
                 />
                 <Route
                     path="/admin/spos/:spoId"
-                    element={<SPOProfilePage />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <SPOProfilePage />
+                        </RoleProtectedRoute>
+                    }
                 />
 
-                {/* Admin Questions Page - Currently unprotected for development */}
-                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                {/* Admin Questions Page - Protected with ADMIN role */}
                 <Route
                     path="/admin/questions"
-                    element={<QuestionsPage />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <QuestionsPage />
+                        </RoleProtectedRoute>
+                    }
                 />
 
-                {/* Admin Banks Page - Currently unprotected for development */}
-                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                {/* Admin Banks Page - Protected with ADMIN role */}
                 <Route
                     path="/admin/banks"
-                    element={<BanksPage />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <BanksPage />
+                        </RoleProtectedRoute>
+                    }
                 />
 
-                {/* Admin Reviews Page - Currently unprotected for development */}
-                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                {/* Admin Reviews Page - Protected with ADMIN role */}
                 <Route
                     path="/admin/reviews"
-                    element={<ReviewsPage />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <ReviewsPage />
+                        </RoleProtectedRoute>
+                    }
                 />
 
-                {/* Admin Admins Page - Currently unprotected for development */}
-                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                {/* Admin Admins Page - Protected with ADMIN role */}
                 <Route
                     path="/admin/admins"
-                    element={<AdminsPage />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <AdminsPage />
+                        </RoleProtectedRoute>
+                    }
                 />
 
-                {/* Admin Activity Log Page - Currently unprotected for development */}
-                {/* TODO: API Integration - Protect this route with role-based authentication */}
+                {/* Admin Activity Log Page - Protected with ADMIN role */}
                 <Route
                     path="/admin/activity"
-                    element={<ActivityLogPage />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <ActivityLogPage />
+                        </RoleProtectedRoute>
+                    }
                 />
                 <Route
                     path="/admin/profile"
-                    element={<ProfilePage />}
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <ProfilePage />
+                        </RoleProtectedRoute>
+                    }
+                />
+
+                {/* ==================== BANKING ROUTES ==================== */}
+                {/* Banking Dashboard - Protected with BANK_USER role */}
+                <Route
+                    path="/banking/dashboard"
+                    element={
+                        <RoleProtectedRoute allowedRoles={['BANK_USER']}>
+                            <BankingSPOsPage />
+                        </RoleProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/banking/spos/:spoId"
+                    element={
+                        <RoleProtectedRoute allowedRoles={['BANK_USER']}>
+                            <BankingSPOProfilePage />
+                        </RoleProtectedRoute>
+                    }
                 />
 
                 {/* 
@@ -281,67 +328,67 @@ const AppRouter: React.FC = () => {
                     />
                 */}
 
-                {/* SPO Protected Routes */}
+                {/* ==================== SPO PROTECTED ROUTES ==================== */}
                 <Route
                     path="/onboarding"
                     element={
-                        <ProtectedRoute>
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
                             <OnboardingRoute />
-                        </ProtectedRoute>
+                        </RoleProtectedRoute>
                     }
                 />
 
                 <Route
                     path="/onboarding/step/:step"
                     element={
-                        <ProtectedRoute>
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
                             <OnboardingRoute />
-                        </ProtectedRoute>
+                        </RoleProtectedRoute>
                     }
                 />
 
                 <Route
                     path="/welcome"
                     element={
-                        <ProtectedRoute>
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
                             <Welcome />
-                        </ProtectedRoute>
+                        </RoleProtectedRoute>
                     }
                 />
 
                 <Route
                     path="/assessment"
                     element={
-                        <ProtectedRoute>
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
                             <Assessment />
-                        </ProtectedRoute>
+                        </RoleProtectedRoute>
                     }
                 />
 
                 <Route
                     path="/assessment/dashboard"
                     element={
-                        <ProtectedRoute>
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
                             <AssessmentDashboard />
-                        </ProtectedRoute>
+                        </RoleProtectedRoute>
                     }
                 />
 
                 <Route
                     path="/assessment/:assessmentId/success"
                     element={
-                        <ProtectedRoute>
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
                             <SubmissionSuccess />
-                        </ProtectedRoute>
+                        </RoleProtectedRoute>
                     }
                 />
 
                 <Route
                     path="/loan/request/:assessmentId?"
                     element={
-                        <ProtectedRoute>
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
                             <LoanRequestForm />
-                        </ProtectedRoute>
+                        </RoleProtectedRoute>
                     }
                 />
 

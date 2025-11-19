@@ -71,13 +71,14 @@ const SubmissionSuccess: React.FC = () => {
   }
 
   // Prepare chart data from assessment result
+  // One bubble: X = Impact, Y = Risk, size = Return
   const chartData = assessmentResult 
     ? [{
-        risk: assessmentResult.graph.scores.sections.RISK,
         impact: assessmentResult.graph.scores.sections.IMPACT,
+        risk: assessmentResult.graph.scores.sections.RISK,
         return: assessmentResult.graph.scores.sections.RETURN,
       }]
-    : [{ risk: 0, impact: 0, return: 0 }];
+    : [{ impact: 0, risk: 0, return: 0 }];
 
   // Get overall score
   const overallScore = eligibility?.overall_score ?? assessmentResult?.scores.overall ?? 0;
@@ -196,7 +197,7 @@ const SubmissionSuccess: React.FC = () => {
                 </p>
               </div>
 
-              {/* Scatter Plot - 3 Variables: Risk vs Impact/Return */}
+              {/* Scatter Plot - Impact (X) vs Risk (Y), Bubble size = Return */}
               <div className="bg-white border border-gray-200 rounded-lg p-2">
                 <div className="w-full h-80 relative">
                   <ResponsiveContainer width="100%" height="100%">
@@ -211,21 +212,8 @@ const SubmissionSuccess: React.FC = () => {
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       
-                      {/* X-Axis: Risk */}
+                      {/* X-Axis: Impact */}
                       <XAxis 
-                        type="number" 
-                        dataKey="risk" 
-                        name="Risk"
-                        domain={[0, 100]}
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
-                        axisLine={{ stroke: '#6b7280' }}
-                        tickLine={{ stroke: '#6b7280' }}
-                        label={{ value: 'Risk', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: '#374151' } }}
-                      />
-                      
-                      {/* Left Y-Axis: Impact */}
-                      <YAxis 
-                        yAxisId="left"
                         type="number" 
                         dataKey="impact" 
                         name="Impact"
@@ -233,82 +221,95 @@ const SubmissionSuccess: React.FC = () => {
                         tick={{ fontSize: 12, fill: '#6b7280' }}
                         axisLine={{ stroke: '#6b7280' }}
                         tickLine={{ stroke: '#6b7280' }}
-                        label={{ value: 'Impact', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151' } }}
+                        label={{ value: 'Impact', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: '#374151' } }}
                       />
                       
-                      {/* Right Y-Axis: Return */}
+                      {/* Y-Axis: Risk */}
                       <YAxis 
-                        yAxisId="right"
                         type="number" 
-                        dataKey="return" 
-                        name="Return"
+                        dataKey="risk" 
+                        name="Risk"
                         domain={[0, 100]}
-                        orientation="right"
                         tick={{ fontSize: 12, fill: '#6b7280' }}
                         axisLine={{ stroke: '#6b7280' }}
                         tickLine={{ stroke: '#6b7280' }}
-                        label={{ value: 'Return', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#374151' } }}
+                        label={{ value: 'Risk', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151' } }}
                       />
                       
-                      {/* Impact Data Points */}
+                      {/* Single Bubble: Position at (Impact, Risk), Size based on Return value */}
                       <Scatter 
-                        yAxisId="left"
-                        dataKey="impact" 
+                        data={chartData}
                         fill="#10b981" 
                         stroke="#059669"
                         strokeWidth={2}
-                        r={8}
+                        shape={(props: any) => {
+                          const { cx, cy, payload } = props;
+                          // Calculate bubble size based on return value (0-100 maps to radius 5-30)
+                          const minRadius = 5;
+                          const maxRadius = 30;
+                          const returnValue = payload?.return || 0;
+                          const radius = minRadius + (returnValue / 100) * (maxRadius - minRadius);
+                          return (
+                            <g>
+                              {/* Bubble (larger circle, size based on return) */}
+                              <circle
+                                cx={cx}
+                                cy={cy}
+                                r={radius}
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth={2}
+                                opacity={0.7}
+                              />
+                              {/* Point (smaller dot at center) */}
+                              <circle
+                                cx={cx}
+                                cy={cy}
+                                r={4}
+                                fill="#059669"
+                                stroke="#ffffff"
+                                strokeWidth={1.5}
+                              />
+                            </g>
+                          );
+                        }}
                       />
                       
-                      {/* Return Data Points (same position as Impact) */}
-                      <Scatter 
-                        yAxisId="right"
-                        dataKey="return" 
-                        fill="#10b981" 
-                        stroke="#059669"
-                        strokeWidth={2}
-                        r={8}
-                      />
-                      
-                      {/* Horizontal reference lines at 25, 50, 75 */}
+                      {/* Vertical reference lines at 25, 50, 75 for Impact */}
                       <ReferenceLine 
-                        yAxisId="left"
-                        y={75} 
+                        x={25} 
                         stroke="#d1d5db" 
                         strokeDasharray="3 3" 
                         strokeWidth={1}
                       />
                       <ReferenceLine 
-                        yAxisId="left"
-                        y={50} 
+                        x={50} 
                         stroke="#d1d5db" 
                         strokeDasharray="3 3" 
                         strokeWidth={1}
                       />
                       <ReferenceLine 
-                        yAxisId="left"
+                        x={75} 
+                        stroke="#d1d5db" 
+                        strokeDasharray="3 3" 
+                        strokeWidth={1}
+                      />
+                      
+                      {/* Horizontal reference lines at 25, 50, 75 for Risk */}
+                      <ReferenceLine 
                         y={25} 
                         stroke="#d1d5db" 
                         strokeDasharray="3 3" 
                         strokeWidth={1}
                       />
                       <ReferenceLine 
-                        yAxisId="right"
-                        y={75} 
-                        stroke="#d1d5db" 
-                        strokeDasharray="3 3" 
-                        strokeWidth={1}
-                      />
-                      <ReferenceLine 
-                        yAxisId="right"
                         y={50} 
                         stroke="#d1d5db" 
                         strokeDasharray="3 3" 
                         strokeWidth={1}
                       />
                       <ReferenceLine 
-                        yAxisId="right"
-                        y={25} 
+                        y={75} 
                         stroke="#d1d5db" 
                         strokeDasharray="3 3" 
                         strokeWidth={1}

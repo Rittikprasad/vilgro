@@ -1,45 +1,101 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "../../../components/ui/Card";
 import ViewIcon from "../../../assets/svg/view.svg";
 import EmailIcon from "../../../assets/svg/email.svg";
-import { fetchAdminSpos, setSelectedAdminSpo } from "../../../features/adminSpo/adminSpoSlice";
-import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
+import { fetchBankSpos, setSelectedBankingSpo, type BankingSpoFilters } from "../../../features/bankingSpo/bankingSpoSlice";
+import type { BankingSpoEntry } from "../../../features/bankingSpo/bankingSpoTypes";
 import type { AppDispatch, RootState } from "../../../app/store";
 import BankingLayoutWrapper from "../layout/LayoutWrapper";
 import { Button } from "../../../components/ui/Button";
+import { Input } from "../../../components/ui/Input";
+import { cn } from "../../../lib/utils";
+import BankingSPOsFilterModal from "../components/BankingSPOsFilterModal";
 
 const BankingSPOsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { items, isLoading, error } = useSelector((state: RootState) => state.adminSpo);
+  const { items, count, isLoading, error } = useSelector((state: RootState) => state.bankingSpo);
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [filters, setFilters] = useState<BankingSpoFilters>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
-  const fetchSpos = useCallback(() => {
-    void dispatch(fetchAdminSpos());
+  // Initial fetch on mount
+  useEffect(() => {
+    dispatch(fetchBankSpos({}) as any);
   }, [dispatch]);
 
-  useEffect(() => {
-    if (!items || items.length === 0) {
-      fetchSpos();
+  const handleApplyFilters = (newFilters: BankingSpoFilters) => {
+    // Merge with existing search query
+    const mergedFilters = { ...newFilters, q: filters.q };
+    setFilters(mergedFilters);
+    setCurrentPage(1);
+    dispatch(fetchBankSpos(mergedFilters) as any);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const newFilters = { ...filters, q: query.trim() || undefined };
+    setFilters(newFilters);
+    setCurrentPage(1);
+    dispatch(fetchBankSpos(newFilters) as any);
+  };
+
+  const hasActiveDateFilters = !!(filters.start_date || filters.end_date);
+
+  // Format date range for display
+  const formatDateRange = (from?: string, to?: string) => {
+    if (!from || !to) {
+      return "All Time";
     }
-  }, [fetchSpos, items]);
+    const formatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+      return "All Time";
+    }
+
+    return `${formatter.format(fromDate)} - ${formatter.format(toDate)}`;
+  };
+
+  const filterText = useMemo(() => {
+    if (filters.start_date && filters.end_date) {
+      return formatDateRange(filters.start_date, filters.end_date);
+    }
+    if (filters.start_date || filters.end_date) {
+      // If only one date is selected, show it
+      const date = filters.start_date || filters.end_date;
+      if (date) {
+        const formatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
+        const dateObj = new Date(date);
+        if (!Number.isNaN(dateObj.getTime())) {
+          return formatter.format(dateObj);
+        }
+      }
+    }
+    return "All Time";
+  }, [filters.start_date, filters.end_date]);
 
   const formattedRows = useMemo(() => {
-    return items.map((item: AdminSpoEntry) => ({
+    if (!Array.isArray(items)) {
+      return [];
+    }
+    return items.map((item: BankingSpoEntry) => ({
       id: `#${item.id}`,
-      sector: item.organization?.focus_sector ?? "-",
-      organizationName: item.organization?.name ?? "N/A",
+      sector: item.focus_sector ?? "-",
+      organizationName: item.organization_name ?? "N/A",
       contactEmail: item.email,
-      instrument: item.organization?.type_of_innovation ?? "-",
-      loanRequest: item.loan_eligible ? "Eligible" : "Non Eligible",
+      instrument: "-", // Not available in banking API response
+      loanRequest: item.last_loan_request_submitted_at ? "Submitted" : "Not Submitted",
       raw: item,
     }));
   }, [items]);
 
-  const totalItems = formattedRows.length;
+  const totalItems = count || formattedRows.length;
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalItems / pageSize)),
     [totalItems, pageSize]
@@ -74,9 +130,8 @@ const BankingSPOsPage: React.FC = () => {
   };
 
   const getLoanRequestColor = (status: string) => {
-    if (status === "Eligible") return "text-green-600";
-    if (status === "Non Eligible") return "text-red-600";
-    if (status === "Submitted") return "text-blue-600";
+    if (status === "Submitted") return "text-green-600";
+    if (status === "Not Submitted") return "text-gray-500";
     return "text-gray-500";
   };
 
@@ -96,15 +151,30 @@ const BankingSPOsPage: React.FC = () => {
             SPOs Management
           </h1>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="px-4 py-2">
-              Search
-            </Button>
-            <Button variant="outline" className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className={cn(
+                  "w-64 h-10 px-4 py-2 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-white",
+                  "gradient-border"
+                )}
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              className="px-4 py-2"
+              onClick={() => setIsFilterModalOpen(true)}
+            >
               Filters
             </Button>
-            <Button variant="outline" className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600">
-              Sort by: New to old
-            </Button>
+            {hasActiveDateFilters && (
+              <button className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                {filterText}
+              </button>
+            )}
           </div>
         </div>
 
@@ -113,7 +183,7 @@ const BankingSPOsPage: React.FC = () => {
             <span>{error}</span>
             <button
               type="button"
-              onClick={fetchSpos}
+              onClick={() => dispatch(fetchBankSpos(filters) as any)}
               className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
             >
               Retry
@@ -248,7 +318,7 @@ const BankingSPOsPage: React.FC = () => {
                               title="View"
                               type="button"
                               onClick={() => {
-                                dispatch(setSelectedAdminSpo(item.raw));
+                                dispatch(setSelectedBankingSpo(item.raw));
                                 navigate(`/banking/spos/${item.raw.id}`);
                               }}
                             >
@@ -328,6 +398,13 @@ const BankingSPOsPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      
+      <BankingSPOsFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        onApply={handleApplyFilters}
+        currentFilters={filters}
+      />
     </BankingLayoutWrapper>
   );
 };

@@ -6,7 +6,11 @@ export interface AdminReviewUser {
 
 export interface AdminReviewEntry {
   id: number;
+  assessment_id?: number;
+  date?: string;
   created_at?: string;
+  user_id?: number;
+  user_email?: string;
   status?: string;
   review?: string;
   organization_name?: string;
@@ -16,6 +20,13 @@ export interface AdminReviewEntry {
   user_name?: string;
   user?: AdminReviewUser;
   [key: string]: unknown;
+}
+
+export interface AdminReviewsPaginatedResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: AdminReviewEntry[];
 }
 
 export interface AdminReviewsState {

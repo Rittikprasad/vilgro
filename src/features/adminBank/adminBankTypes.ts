@@ -2,7 +2,7 @@ export type AdminBankStatus = "ACTIVE" | "INACTIVE";
 
 export interface AdminBankPayload {
   name: string;
-  contact_person: string;
+  password?: string;
   contact_email: string;
   contact_phone: string;
   status: AdminBankStatus;

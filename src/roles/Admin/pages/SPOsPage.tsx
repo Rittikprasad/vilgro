@@ -6,7 +6,7 @@ import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import ViewIcon from "../../../assets/svg/view.svg";
-import EmailIcon from "../../../assets/svg/email.svg";
+// import EmailIcon from "../../../assets/svg/email.svg";
 import SPOsFilterModal from "../components/SPOsFilterModal";
 import type { AppDispatch, RootState } from "../../../app/store";
 import {
@@ -50,6 +50,40 @@ const SPOsPage: React.FC = () => {
   };
 
   const hasActiveDateFilters = !!(filters.start_date || filters.end_date);
+
+  // Format date range for display
+  const formatDateRange = (from?: string, to?: string) => {
+    if (!from || !to) {
+      return "All Time";
+    }
+    const formatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+      return "All Time";
+    }
+
+    return `${formatter.format(fromDate)} - ${formatter.format(toDate)}`;
+  };
+
+  const filterText = useMemo(() => {
+    if (filters.start_date && filters.end_date) {
+      return formatDateRange(filters.start_date, filters.end_date);
+    }
+    if (filters.start_date || filters.end_date) {
+      // If only one date is selected, show it
+      const date = filters.start_date || filters.end_date;
+      if (date) {
+        const formatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
+        const dateObj = new Date(date);
+        if (!Number.isNaN(dateObj.getTime())) {
+          return formatter.format(dateObj);
+        }
+      }
+    }
+    return "All Time";
+  }, [filters.start_date, filters.end_date]);
 
   const formattedRows = useMemo(() => {
     return items.map((item: AdminSpoEntry) => ({
@@ -135,14 +169,16 @@ const SPOsPage: React.FC = () => {
             </div>
             <Button 
               variant="outline" 
-              className={cn(
-                "px-4 py-2",
-                hasActiveDateFilters && "bg-green-50 border-green-300 text-green-700"
-              )}
+              className="px-4 py-2"
               onClick={() => setIsFilterModalOpen(true)}
             >
-              Filters {hasActiveDateFilters && "(Date Range)"}
+              Filters
             </Button>
+            {hasActiveDateFilters && (
+              <button className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                {filterText}
+              </button>
+            )}
             <Button
               variant="gradient"
               className="px-4 py-2"
@@ -339,12 +375,12 @@ const SPOsPage: React.FC = () => {
                           >
                             <img src={ViewIcon} alt="View" className="w-5 h-5" />
                           </button>
-                          <button 
+                          {/* <button 
                             className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50 transition-colors"
                             title="Email"
                           >
                             <img src={EmailIcon} alt="Email" className="w-5 h-5" />
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>

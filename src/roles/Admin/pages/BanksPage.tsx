@@ -4,8 +4,9 @@ import LayoutWrapper from "../layout/LayoutWrapper";
 import { Input } from "../../../components/ui/Input";
 import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
+import { cn } from "../../../lib/utils";
 import ViewIcon from "../../../assets/svg/view.svg";
-import EmailIcon from "../../../assets/svg/email.svg";
+// import EmailIcon from "../../../assets/svg/email.svg";
 import type { AppDispatch, RootState } from "../../../app/store";
 import {
   clearAdminBankError,
@@ -44,19 +45,18 @@ const BanksPage: React.FC = () => {
   } = useSelector((state: RootState) => state.adminBank);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState<"new_to_old" | "old_to_new">("new_to_old");
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const initialFormState: {
     name: string;
-    contactPerson: string;
+    password: string;
     contactEmail: string;
     contactPhone: string;
     status: AdminBankStatus;
   } = {
     name: "",
-    contactPerson: "",
+    password: "",
     contactEmail: "",
     contactPhone: "",
     status: "ACTIVE",
@@ -85,16 +85,12 @@ const BanksPage: React.FC = () => {
       return (
         bank.name.toLowerCase().includes(term) ||
         bank.contact_email.toLowerCase().includes(term) ||
-        (bank.contact_person ?? "").toLowerCase().includes(term) ||
         bank.id.toString().includes(term)
       );
     });
 
     const sorted = [...filtered].sort((a, b) => {
-      if (sortOrder === "new_to_old") {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
     return sorted.map((bank) => ({
@@ -104,7 +100,7 @@ const BanksPage: React.FC = () => {
       contact: bank.contact_email || "N/A",
       emailUpdates: bank.status === "ACTIVE",
     }));
-  }, [items, searchTerm, sortOrder]);
+  }, [items, searchTerm]);
 
   const totalItems = processedBanks.length;
   const totalPages = useMemo(
@@ -187,22 +183,18 @@ const BanksPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              className="px-4 py-2"
-              onClick={() => setSearchTerm("")}
-            >
-              Search
-            </Button>
-            <Button
-              variant="outline"
-              className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600"
-              onClick={() =>
-                setSortOrder((prev) => (prev === "new_to_old" ? "old_to_new" : "new_to_old"))
-              }
-            >
-              Sort by: {sortOrder === "new_to_old" ? "New to old" : "Old to new"}
-            </Button>
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={cn(
+                  "w-64 h-10 px-4 py-2 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-white",
+                  "gradient-border"
+                )}
+              />
+            </div>
             <Button
               variant="gradient"
               className="px-4 py-2"
@@ -317,7 +309,6 @@ const BanksPage: React.FC = () => {
                                   id: row.raw.id,
                                   data: {
                                     name: row.raw.name ?? "",
-                                    contact_person: row.raw.contact_person ?? "",
                                     contact_email: row.raw.contact_email ?? "",
                                     contact_phone: row.raw.contact_phone ?? "",
                                     status: newStatus,
@@ -351,7 +342,7 @@ const BanksPage: React.FC = () => {
                             setEditingBank(row.raw.id);
                             setFormState({
                               name: row.raw.name ?? "",
-                              contactPerson: row.raw.contact_person ?? "",
+                              password: "",
                               contactEmail: row.raw.contact_email ?? "",
                               contactPhone: row.raw.contact_phone ?? "",
                               status: row.raw.status ?? "ACTIVE",
@@ -361,13 +352,13 @@ const BanksPage: React.FC = () => {
                             >
                           <img src={ViewIcon} alt="View" className="h-5 w-5" />
                             </button>
-                            <button
+                            {/* <button
                               type="button"
                           className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50 transition-colors"
                               title="Email"
                             >
                           <img src={EmailIcon} alt="Email" className="h-5 w-5" />
-                            </button>
+                            </button> */}
                             <button
                               type="button"
                               className="text-[#FF6B55] hover:text-[#d95340] p-1 rounded hover:bg-red-50 transition-colors"
@@ -473,23 +464,26 @@ const BanksPage: React.FC = () => {
                 setLocalError(null);
                 try {
                   if (editingBank !== null) {
+                    const updateData: any = {
+                      name: formState.name.trim(),
+                      contact_email: formState.contactEmail.trim(),
+                      contact_phone: formState.contactPhone.trim(),
+                      status: formState.status,
+                    };
+                    if (formState.password.trim()) {
+                      updateData.password = formState.password.trim();
+                    }
                     await dispatch(
                       updateAdminBank({
                         id: editingBank,
-                        data: {
-                          name: formState.name.trim(),
-                          contact_person: formState.contactPerson.trim(),
-                          contact_email: formState.contactEmail.trim(),
-                          contact_phone: formState.contactPhone.trim(),
-                          status: formState.status,
-                        },
+                        data: updateData,
                       })
                     ).unwrap();
                   } else {
                     await dispatch(
                       createAdminBank({
                         name: formState.name.trim(),
-                        contact_person: formState.contactPerson.trim(),
+                        password: formState.password.trim(),
                         contact_email: formState.contactEmail.trim(),
                         contact_phone: formState.contactPhone.trim(),
                         status: formState.status,
@@ -521,15 +515,16 @@ const BanksPage: React.FC = () => {
 
               <div>
                 <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
-                  Contact Person
+                  Password
                 </label>
                 <Input
-                  required
-                  value={formState.contactPerson}
+                  type="password"
+                  required={editingBank === null}
+                  value={formState.password}
                   onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, contactPerson: event.target.value }))
+                    setFormState((prev) => ({ ...prev, password: event.target.value }))
                   }
-                  placeholder="Enter contact person"
+                  placeholder={editingBank !== null ? "Leave blank to keep current password" : "Enter password"}
                   className="gradient-border h-11 bg-white px-4 text-sm"
                 />
               </div>

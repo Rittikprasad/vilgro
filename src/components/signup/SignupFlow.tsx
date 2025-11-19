@@ -26,14 +26,24 @@ const SignupFlow: React.FC = () => {
   const currentStep = Number(location.pathname.split("/").pop()) || 1;
 
   const { progress } = useSelector((state: RootState) => state.onboarding);
-  const { isAuthenticated, has_completed_profile } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, has_completed_profile, user } = useSelector((state: RootState) => state.auth);
 
-  // Redirect users with completed profiles to assessment
+  // Redirect users with completed profiles to assessment (only for SPO role)
   useEffect(() => {
-    if (isAuthenticated && has_completed_profile) {
+    if (isAuthenticated && has_completed_profile && user) {
+      const userRole = user.role?.toUpperCase();
+      // Only allow SPO role to access signup flow
+      if (userRole !== 'SPO') {
+        if (userRole === 'ADMIN') {
+          navigate("/admin/dashboard", { replace: true });
+        } else if (userRole === 'BANK_USER') {
+          navigate("/banking/dashboard", { replace: true });
+        }
+        return;
+      }
       navigate("/assessment", { replace: true });
     }
-  }, [isAuthenticated, has_completed_profile, navigate]);
+  }, [isAuthenticated, has_completed_profile, user, navigate]);
 
   // Redirect if not logged in (except for step 1 - account creation)
   useEffect(() => {
@@ -41,6 +51,22 @@ const SignupFlow: React.FC = () => {
       navigate("/login");
     }
   }, [isAuthenticated, navigate, currentStep]);
+
+  // Redirect non-SPO users away from signup flow (except step 1)
+  useEffect(() => {
+    if (isAuthenticated && user && currentStep > 1) {
+      const userRole = user.role?.toUpperCase();
+      if (userRole !== 'SPO') {
+        if (userRole === 'ADMIN') {
+          navigate("/admin/dashboard", { replace: true });
+        } else if (userRole === 'BANK_USER') {
+          navigate("/banking/dashboard", { replace: true });
+        } else {
+          navigate("/login", { replace: true });
+        }
+      }
+    }
+  }, [isAuthenticated, user, currentStep, navigate]);
 
   // Fetch onboarding progress only if user is authenticated and we don't have local data
   useEffect(() => {

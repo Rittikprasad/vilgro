@@ -42,6 +42,23 @@ const BankingLogin: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
+      const userRole = user.role?.toUpperCase();
+      console.log("User authenticated, checking role:", userRole);
+      
+      // Only allow BANK_USER role to access banking routes
+      if (userRole !== 'BANK_USER') {
+        console.error("Non-banking user attempted to login via banking portal");
+        if (userRole === 'ADMIN') {
+          navigate("/admin/dashboard", { replace: true });
+        } else if (userRole === 'SPO') {
+          navigate("/assessment", { replace: true });
+        } else {
+          navigate("/signin/banking", { replace: true });
+        }
+        return;
+      }
+      
+      console.log("Banking user authenticated, navigating to banking dashboard");
       navigate("/banking/dashboard", { replace: true });
     }
   }, [isAuthenticated, user, navigate]);

@@ -85,6 +85,13 @@ export const endpoints = {
     submit: `${BASE_URL}/loan/`,
   },
 
+  // Banking endpoints
+  bank: {
+    spos: `${BASE_URL}/bank/spos/`,
+    spoById: (id: number | string) => `${BASE_URL}/bank/spos/${id}/`,
+    spoReport: (id: number | string) => `${BASE_URL}/bank/spos/${id}/report/`,
+  },
+
   // Add more endpoint categories as needed
   // Example:
   // posts: {

@@ -2,11 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import LayoutWrapper from "../layout/LayoutWrapper";
 import { Card, CardContent } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
-import EmailIcon from "../../../assets/svg/email.svg";
+import { Input } from "../../../components/ui/Input";
 import type { AppDispatch, RootState } from "../../../app/store";
+import { cn } from "../../../lib/utils";
 import {
-  clearAdminReviewsError,
   fetchAdminReviews,
 } from "../../../features/adminReviews/adminReviewsSlice";
 import type { AdminReviewEntry } from "../../../features/adminReviews/adminReviewsTypes";
@@ -26,7 +25,7 @@ const ReviewsPage: React.FC = () => {
   const { items, isLoading, error } = useSelector(
     (state: RootState) => state.adminReviews
   );
-  const [sortOrder, setSortOrder] = useState<"new_to_old" | "old_to_new">("new_to_old");
+  const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -41,17 +40,24 @@ const ReviewsPage: React.FC = () => {
   }, [fetchReviews, items]);
 
   const mapReviewEntry = (entry: AdminReviewEntry): ReviewRecord => {
-    const createdDate = entry?.created_at ? new Date(entry.created_at) : null;
-    const dateLabel = createdDate
+    // Use date field from API, fallback to created_at
+    const dateValue = entry?.date || entry?.created_at;
+    const createdDate = dateValue ? new Date(dateValue) : null;
+    const dateLabel = createdDate && !isNaN(createdDate.getTime())
       ? createdDate.toLocaleDateString("en-GB")
       : "-";
+    
     const statusNormalized = (entry?.status ?? "").toLowerCase();
     const statusLabel = statusNormalized === "completed" ? "Completed" : "Incomplete";
+    
+    // Use user_email from API, fallback to other fields
     const userLabel =
+      entry?.user_email ??
       entry?.user_name ??
-      entry?.user?.name ??
       entry?.user?.email ??
+      entry?.user?.name ??
       "Unknown user";
+    
     const organizationLabel =
       entry?.organization_name ??
       entry?.organization?.name ??
@@ -77,25 +83,34 @@ const ReviewsPage: React.FC = () => {
     [items]
   );
 
-  const sortedReviews = useMemo(() => {
-    const sorted = [...mappedReviews].sort((a, b) => {
-      const dateA = new Date(a.raw.created_at ?? "").getTime() || 0;
-      const dateB = new Date(b.raw.created_at ?? "").getTime() || 0;
-      if (sortOrder === "new_to_old") {
-        return dateB - dateA;
-      }
-      return dateA - dateB;
+  const filteredAndSortedReviews = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = mappedReviews.filter((review) => {
+      if (!term) return true;
+      return (
+        review.id.toLowerCase().includes(term) ||
+        review.user.toLowerCase().includes(term) ||
+        review.organization.toLowerCase().includes(term) ||
+        review.review.toLowerCase().includes(term) ||
+        review.date.toLowerCase().includes(term)
+      );
+    });
+
+    const sorted = [...filtered].sort((a, b) => {
+      const dateA = new Date(a.raw.date ?? a.raw.created_at ?? "").getTime() || 0;
+      const dateB = new Date(b.raw.date ?? b.raw.created_at ?? "").getTime() || 0;
+      return dateB - dateA;
     });
     return sorted;
-  }, [mappedReviews, sortOrder]);
+  }, [mappedReviews, searchTerm]);
 
-  const totalItems = sortedReviews.length;
+  const totalItems = filteredAndSortedReviews.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   const paginatedRows = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
-    return sortedReviews.slice(startIndex, startIndex + pageSize);
-  }, [sortedReviews, currentPage, pageSize]);
+    return filteredAndSortedReviews.slice(startIndex, startIndex + pageSize);
+  }, [filteredAndSortedReviews, currentPage, pageSize]);
 
   const handlePrev = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
@@ -130,22 +145,18 @@ const ReviewsPage: React.FC = () => {
           </h1>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600"
-              onClick={() => dispatch(clearAdminReviewsError())}
-            >
-              Filters
-            </Button>
-            <Button
-              variant="outline"
-              className="px-4 py-2 bg-gray-700 text-white hover:bg-gray-600"
-              onClick={() =>
-                setSortOrder((prev) => (prev === "new_to_old" ? "old_to_new" : "new_to_old"))
-              }
-            >
-              Sort by: {sortOrder === "new_to_old" ? "New to old" : "Old to new"}
-            </Button>
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={cn(
+                  "w-64 h-10 px-4 py-2 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-white",
+                  "gradient-border"
+                )}
+              />
+            </div>
           </div>
         </div>
 
@@ -193,9 +204,6 @@ const ReviewsPage: React.FC = () => {
                     </th>
                     <th className="px-6 text-left text-[10px] font-[400] font-golos uppercase tracking-wider text-gray-500">
                       Review
-                    </th>
-                    <th className="px-6 text-center text-[12px] font-[400] font-golos uppercase tracking-wider text-gray-500">
-                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -268,19 +276,7 @@ const ReviewsPage: React.FC = () => {
                           paddingBottom: "16px",
                         }}
                         >
-                        {row.review}
-                      </td>
-                        <td
-                          className="px-6 whitespace-nowrap text-center"
-                          style={{ paddingTop: "16px", paddingBottom: "16px" }}
-                        >
-                        <button
-                          type="button"
-                          className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50 transition-colors"
-                          title="Email"
-                        >
-                          <img src={EmailIcon} alt="Email" className="h-5 w-5" />
-                        </button>
+                        {row.review || "-"}
                       </td>
                     </tr>
                   ))}

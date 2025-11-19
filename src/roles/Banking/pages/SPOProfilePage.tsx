@@ -6,12 +6,12 @@ import BackIcon from "../../../assets/svg/BackIcon.svg";
 import BankingLayoutWrapper from "../layout/LayoutWrapper";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
-  clearAdminSpoDetailError,
-  fetchAdminSpoById,
-  fetchAdminSpoReport,
-  clearAdminSpoReportError,
-} from "../../../features/adminSpo/adminSpoSlice";
-import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
+  clearBankingSpoDetailError,
+  fetchBankSpoById,
+  fetchBankSpoReport,
+  clearBankingSpoReportError,
+} from "../../../features/bankingSpo/bankingSpoSlice";
+import type { BankingSpoEntry } from "../../../features/bankingSpo/bankingSpoTypes";
 
 const formatDate = (value: string | null | undefined) => {
   if (!value) return "-";
@@ -33,59 +33,57 @@ const BankingSPOProfilePage: React.FC = () => {
   const numericId = spoId ? Number(spoId) : NaN;
 
   const { selected, isDetailLoading, detailError, isReportDownloading, reportError } =
-    useAppSelector((state) => state.adminSpo);
+    useAppSelector((state) => state.bankingSpo);
 
-  const activeSpo: AdminSpoEntry | null =
+  const activeSpo: BankingSpoEntry | null =
     selected && !Number.isNaN(numericId) && selected.id === numericId ? selected : null;
 
   useEffect(() => {
     if (Number.isNaN(numericId)) return;
     if (!activeSpo) {
-      void dispatch(fetchAdminSpoById(numericId));
+      void dispatch(fetchBankSpoById(numericId));
     }
   }, [dispatch, numericId, activeSpo]);
 
   const assessmentRows = useMemo(() => {
     if (!activeSpo) return [];
-    const incorporationDate = formatDate(activeSpo.organization?.date_of_incorporation);
-    const loanStatus = activeSpo.loan_eligible ? "Eligible" : "Not eligible";
+    const incorporationDate = formatDate(activeSpo.org_created_at);
+    const loanStatus = activeSpo.last_loan_request_submitted_at ? "Submitted" : "Not Submitted";
     return [
       {
         id: `assessment-${activeSpo.id}`,
         date: incorporationDate,
         score: "Impact: –  Risk: –  Return: –",
-        instrument: activeSpo.organization?.type_of_innovation ?? "Not specified",
+        instrument: "-", // Not available in banking API response
         loanRequest: loanStatus,
       },
     ];
   }, [activeSpo]);
 
-  const organization = activeSpo?.organization;
   const displayName =
-    organization?.name ??
+    activeSpo?.organization_name ??
     ([activeSpo?.first_name, activeSpo?.last_name].filter(Boolean).join(" ").trim() ||
       activeSpo?.email ||
       "SPO Profile");
 
   const handleRetry = () => {
     if (Number.isNaN(numericId)) return;
-    dispatch(clearAdminSpoDetailError());
-    void dispatch(fetchAdminSpoById(numericId));
+    dispatch(clearBankingSpoDetailError());
+    void dispatch(fetchBankSpoById(numericId));
   };
 
   const handleGenerateReport = async () => {
     if (!activeSpo) return;
     try {
-      const result = await dispatch(fetchAdminSpoReport(activeSpo.id)).unwrap();
-      const blobUrl = window.URL.createObjectURL(result.blob);
+      const result = await dispatch(fetchBankSpoReport(activeSpo.id)).unwrap();
       const link = document.createElement("a");
-      link.href = blobUrl;
+      link.href = result.url;
       link.setAttribute("download", result.filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(blobUrl);
-      dispatch(clearAdminSpoReportError());
+      window.URL.revokeObjectURL(result.url);
+      dispatch(clearBankingSpoReportError());
     } catch (error) {
       console.error("Banking SPO report generation failed", error);
     }
@@ -218,33 +216,31 @@ const BankingSPOProfilePage: React.FC = () => {
                 <div className="mt-4 space-y-3 text-[13px] font-[400] font-golos text-gray-600">
                   <div className="flex justify-between gap-4">
                     <span className="font-[400] font-golos text-gray-700">Name of Organisation</span>
-                    <span className="text-right text-gray-500">{organization?.name ?? "Not provided"}</span>
+                    <span className="text-right text-gray-500">{activeSpo?.organization_name ?? "Not provided"}</span>
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="font-[400] font-golos text-gray-700">Date of incorporation</span>
                     <span className="text-right text-gray-500">
-                      {formatDate(organization?.date_of_incorporation)}
+                      {formatDate(activeSpo?.org_created_at)}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="font-[400] font-golos text-gray-700">Focus Sector</span>
                     <span className="text-right text-gray-500">
-                      {organization?.focus_sector ?? "Not provided"}
+                      {activeSpo?.focus_sector ?? "Not provided"}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="font-[400] font-golos text-gray-700">Registration Type</span>
+                    <span className="font-[400] font-golos text-gray-700">Last Assessment</span>
                     <span className="text-right text-gray-500">
-                      {organization?.registration_type ?? "Not provided"}
+                      {formatDate(activeSpo?.last_assessment_submitted_at)}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="font-[400] font-golos text-gray-700">CIN Number</span>
-                    <span className="text-right text-gray-500">{organization?.cin_number ?? "Not provided"}</span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="font-[400] font-golos text-gray-700">GST Number</span>
-                    <span className="text-right text-gray-500">{organization?.gst_number ?? "Not provided"}</span>
+                    <span className="font-[400] font-golos text-gray-700">Last Loan Request</span>
+                    <span className="text-right text-gray-500">
+                      {formatDate(activeSpo?.last_loan_request_submitted_at)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -262,8 +258,8 @@ const BankingSPOProfilePage: React.FC = () => {
                   <span className="text-right text-gray-500">{activeSpo?.email ?? "Not provided"}</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="font-[400] font-golos text-gray-700">Phone</span>
-                  <span className="text-right text-gray-500">{activeSpo?.phone ?? "Not provided"}</span>
+                  <span className="font-[400] font-golos text-gray-700">Date Joined</span>
+                  <span className="text-right text-gray-500">{formatDate(activeSpo?.date_joined)}</span>
                 </div>
               </div>
 

@@ -16,14 +16,11 @@ export interface CreateQuestionPayload {
   required: boolean;
   order: number;
   weight: string;
+  is_active?: boolean;
   options?: Array<{ label: string; value: string; points: string }>;
   dimensions?: Array<{ code: string; label: string; min_value: number; max_value: number; points_per_unit: number; weight: number }>;
   conditions?: Array<{
-    logic: {
-      q: string;
-      op: string;
-      val: string;
-    };
+    logic: Record<string, any>;
   }>;
 }
 
@@ -36,6 +33,7 @@ export interface CreateQuestionResponse {
   required: boolean;
   order: number;
   weight: string;
+  is_active?: boolean;
   options?: Array<{ label: string; value: string; points: string }>;
   dimensions?: Array<{ code: string; label: string; min_value: number; max_value: number; points_per_unit: number; weight: number }>;
   created_at: string;

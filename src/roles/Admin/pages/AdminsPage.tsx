@@ -13,6 +13,7 @@ import {
   updateAdminDetail,
 } from "../../../features/adminDetails/adminDetailsSlice";
 import type { AdminDetailsEntry } from "../../../features/adminDetails/adminDetailsTypes";
+import { showNotification } from "../../../services/notificationService";
 
 const AdminsPage: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(10);
@@ -42,6 +43,42 @@ const AdminsPage: React.FC = () => {
   );
   const [formState, setFormState] = useState(initialFormState);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const handleToggleAccess = useCallback(
+    async (admin: AdminDetailsEntry) => {
+      const nextStatus = !admin.is_active;
+      setTogglingId(admin.id);
+      try {
+        await dispatch(
+          updateAdminDetail({
+            id: admin.id,
+            data: { is_active: nextStatus },
+          })
+        ).unwrap();
+
+        showNotification({
+          type: "success",
+          title: "Admin Updated",
+          message: `${admin.email} is now ${nextStatus ? "active" : "inactive"}.`,
+          duration: 4000,
+        });
+      } catch (err) {
+        showNotification({
+          type: "error",
+          title: "Status Update Failed",
+          message:
+            typeof err === "string"
+              ? err
+              : "We could not update the admin status. Please try again.",
+          duration: 5000,
+        });
+      } finally {
+        setTogglingId(null);
+      }
+    },
+    [dispatch]
+  );
+
 
   // Keep pagination parameters aligned with server state.
   const fetchAdmins = useCallback(() => {
@@ -238,17 +275,25 @@ const AdminsPage: React.FC = () => {
                           className="px-6 whitespace-nowrap text-sm"
                           style={{ paddingTop: "16px", paddingBottom: "16px" }}
                         >
-                          <div
-                            className={`flex h-5 w-10 items-center rounded-full px-1 transition-colors ${
-                              admin.access ? "bg-[#46B753]" : "bg-gray-300"
-                            }`}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleAccess(admin.raw)}
+                            disabled={togglingId === admin.raw.id || isUpdating}
+                            className={cn(
+                              "flex h-5 w-10 items-center rounded-full px-1 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
+                              admin.raw.is_active ? "bg-[#46B753] focus:ring-[#46B753]" : "bg-gray-300 focus:ring-gray-400",
+                              (togglingId === admin.raw.id || isUpdating) && "opacity-60 cursor-not-allowed"
+                            )}
+                            aria-pressed={admin.raw.is_active}
+                            aria-label={`Toggle access for ${admin.name}`}
                           >
                             <span
-                              className={`h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
-                                admin.access ? "translate-x-4" : "translate-x-0"
-                              }`}
+                              className={cn(
+                                "h-3.5 w-3.5 rounded-full bg-white shadow transition-transform",
+                                admin.raw.is_active ? "translate-x-4" : "translate-x-0"
+                              )}
                             />
-                          </div>
+                          </button>
                         </td>
                         <td
                           className="px-6 whitespace-nowrap text-center"
@@ -442,11 +487,15 @@ const AdminsPage: React.FC = () => {
                   required
                   type="email"
                   value={formState.email}
+                  disabled={editingAdmin !== null}
                   onChange={(event) =>
                     setFormState((prev) => ({ ...prev, email: event.target.value }))
                   }
                   placeholder="Enter admin email"
-                  className="gradient-border h-11 bg-white px-4 text-sm"
+                  className={cn(
+                    "gradient-border h-11 px-4 text-sm",
+                    editingAdmin !== null ? "bg-gray-100 cursor-not-allowed text-gray-500" : "bg-white"
+                  )}
                 />
               </div>
 

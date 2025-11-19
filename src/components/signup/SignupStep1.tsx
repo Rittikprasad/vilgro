@@ -39,13 +39,15 @@ interface SignupStep1Props {
  */
 const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
   const dispatch = useDispatch()
-  const { isLoading, error } = useSelector((state: RootState) => state.signup)
+  const { isLoading, error, fieldErrors } = useSelector((state: RootState) => state.signup)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -64,6 +66,9 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
    */
   const onSubmit = async (data: SignupFormData) => {
     try {
+      // Remove previously applied server-side errors before submitting again
+      clearErrors()
+
       const signupData = {
         email: data.email,
         password: data.password,
@@ -95,6 +100,30 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
     }
   }
 
+  // Map server-side errors to react-hook-form fields for highlighting
+  React.useEffect(() => {
+    if (!fieldErrors) {
+      return
+    }
+
+    const apiToFormFieldMap: Record<string, keyof SignupFormData> = {
+      email: "email",
+      password: "password",
+      confirm_password: "confirmPassword",
+      agree_to_terms: "termsAccepted"
+    }
+
+    Object.entries(fieldErrors).forEach(([apiField, messages]) => {
+      const formField = apiToFormFieldMap[apiField]
+      if (!formField) {
+        return
+      }
+
+      const message = messages?.length ? messages.join(" ") : "Please check this field"
+      setError(formField, { type: "server", message })
+    })
+  }, [fieldErrors, setError])
+
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
       {/* Background decorative elements */}
@@ -124,8 +153,8 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
                 type="email"
                 placeholder="Email ID"
                 className={cn(
-                  "w-full h-12 px-4 py-3 rounded-lg bg-white ",
-                  errors.email ? "border-red-500" : "gradient-border"
+                  "w-full h-12 px-4 py-3 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                  errors.email && "border border-red-500"
                 )}
               />
               {errors.email && (
@@ -141,8 +170,8 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   className={cn(
-                    "w-full h-12 px-4 py-3 pr-12 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
-                    errors.password ? "border-red-500" : "gradient-border"
+                    "w-full h-12 px-4 py-3 pr-12 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                    errors.password && "border border-red-500"
                   )}
                 />
                 <button
@@ -171,8 +200,8 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm Password"
                   className={cn(
-                    "w-full h-12 px-4 py-3 pr-12 rounded-lg bg-white focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
-                    errors.confirmPassword ? "border-red-500" : "gradient-border"
+                    "w-full h-12 px-4 py-3 pr-12 rounded-lg bg-white gradient-border focus:outline-none focus:ring-0 focus:border-transparent transition-colors",
+                    errors.confirmPassword && "border border-red-500"
                   )}
                 />
                 <button

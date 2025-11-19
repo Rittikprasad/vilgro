@@ -72,7 +72,7 @@ export const createAdminDetail = createAsyncThunk<
 
 export const updateAdminDetail = createAsyncThunk<
   AdminDetailsResponse["results"][number],
-  { id: number | string; data: AdminDetailsPayload },
+  { id: number | string; data: Partial<AdminDetailsPayload> },
   { rejectValue: string }
 >("adminDetails/update", async ({ id, data }, { rejectWithValue }) => {
   try {

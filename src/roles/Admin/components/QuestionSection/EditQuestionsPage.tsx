@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
 import ConfirmationModal from '../../../../components/ui/ConfirmationModal';
-import type { QuestionItem } from './QuestionListTable';
+import type { QuestionChoiceItem, QuestionConditionItem, QuestionItem } from './QuestionListTable';
 import type { RootState } from '../../../../app/store';
 import { getQuestionTypes, createQuestion, clearError } from '../../../../features/assessment/assessmentSlice';
 import { updateAdminQuestion, deleteAdminQuestion } from '../../../../features/question-builder/questionBuilderSlice';
 import QuestionTypeDropdown from './QuestionTypeDropdown';
 import CreateQuestionModal from './CreateQuestionModal';
 import type { QuestionType, CreateQuestionPayload } from '../../../../services/adminApi';
+import type { QuestionCode } from '../../../../features/question-builder/types';
+import api from '../../../../services/api';
+import { endpoints } from '../../../../services/endpoints';
 
 // Import custom question components
 import SingleChoiceQuestion from '../../../../components/ui/question/SingleChoiceQuestion';
@@ -30,6 +33,25 @@ interface EditQuestionsPageProps {
   sectionId: string; // Add sectionId prop for creating questions
 }
 
+const slugifyLabel = (value: string): string => value.toLowerCase().replace(/\s+/g, '_');
+
+const getChoiceMeta = (choice: string | QuestionChoiceItem) => {
+  if (typeof choice === 'string') {
+    const slug = slugifyLabel(choice);
+    return {
+      label: choice,
+      value: slug,
+      points: undefined,
+    };
+  }
+
+  return {
+    label: choice.label,
+    value: choice.value || slugifyLabel(choice.label),
+    points: choice.points,
+  };
+};
+
 /**
  * EditQuestionsPage Component
  * Displays questions in editable format based on their types
@@ -48,19 +70,26 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
     isCreatingQuestion,
     createQuestionError
   } = useSelector((state: RootState) => state.assessment);
+  const { sections } = useSelector((state: RootState) => state.questionBuilder);
 
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
+  const [questionCodesMap, setQuestionCodesMap] = useState<Record<string, QuestionCode[]>>({});
+  const [questionCodesLoading, setQuestionCodesLoading] = useState(false);
+  const hasLoadedQuestionCodesRef = useRef(false);
   
   // Helper to fix RATING questions that were incorrectly converted
   const fixRatingQuestions = (qList: QuestionItem[]): QuestionItem[] => {
     return qList.map(q => {
       // If it's a RATING question but has the wrong options format
       if (q.type === 'RATING' && q.options?.type === 'multiple-choice' && Array.isArray(q.options.choices)) {
+        const labels = q.options.choices.map((choice: QuestionChoiceItem | string) =>
+          typeof choice === 'string' ? choice : choice.label
+        );
         return {
           ...q,
           options: {
-            maxStars: q.options.choices.length,
-            labels: q.options.choices
+            maxStars: labels.length,
+            labels
           }
         };
       }
@@ -85,6 +114,53 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
     dispatch(getQuestionTypes() as any);
   }, [dispatch]);
 
+  // Preload question codes for all sections so conditional branching can hydrate selections
+  useEffect(() => {
+    if (!sections || sections.length === 0 || hasLoadedQuestionCodesRef.current) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadQuestionCodes = async () => {
+      setQuestionCodesLoading(true);
+      try {
+        const entries: Array<[string, QuestionCode[]]> = [];
+        for (const section of sections) {
+          try {
+            const response = await api.get<QuestionCode[]>(endpoints.admin.questionCodes(section.code));
+            entries.push([section.code, response.data]);
+          } catch (error) {
+            console.error(`Failed to fetch question codes for section ${section.code}`, error);
+          }
+        }
+
+        if (!isCancelled) {
+          setQuestionCodesMap((prev) => {
+            const next = { ...prev };
+            for (const [sectionCode, codes] of entries) {
+              next[sectionCode] = codes;
+            }
+            return next;
+          });
+          hasLoadedQuestionCodesRef.current = true;
+        }
+      } catch (error) {
+        console.error('Failed to preload question codes', error);
+      } finally {
+        if (!isCancelled) {
+          setQuestionCodesLoading(false);
+        }
+      }
+    };
+
+    void loadQuestionCodes();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [sections]);
+
   // Clear errors when component unmounts
   useEffect(() => {
     return () => {
@@ -105,31 +181,42 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
       order: question.order,
       weight: question.weight.toString(),
       required: true, // Default to true, can be made configurable
+      is_active: question.status !== 'Inactive',
     };
 
     // Add type-specific options
     if (question.options) {
       if (question.type === 'single-choice' || (question.type === 'Multi-select' && question.options.type === 'single-choice')) {
         payload.type = 'SINGLE_CHOICE';
-        payload.options = question.options.choices.map((choice: string) => ({
-          label: choice,
-          value: choice.toLowerCase().replace(/\s+/g, '_'),
-          points: '1'
-        }));
+        payload.options = (question.options.choices || []).map((choice: QuestionChoiceItem | string, index: number) => {
+          const meta = getChoiceMeta(choice);
+          const defaultPoints = Math.max(1, 5 - index).toString();
+          return {
+            label: meta.label,
+            value: meta.value.toUpperCase(),
+            points: meta.points || defaultPoints,
+          };
+        });
       } else if (question.type === 'Multi-select' && question.options.type === 'multiple-choice') {
         payload.type = 'MULTI_CHOICE';
-        payload.options = question.options.choices.map((choice: string) => ({
-          label: choice,
-          value: choice.toLowerCase().replace(/\s+/g, '_'),
-          points: '1'
-        }));
+        payload.options = (question.options.choices || []).map((choice: QuestionChoiceItem | string) => {
+          const meta = getChoiceMeta(choice);
+          return {
+            label: meta.label,
+            value: meta.value.toUpperCase(),
+            points: meta.points || '1',
+          };
+        });
       } else if (question.type === 'Checkbox') {
         payload.type = 'MULTI_CHOICE';
-        payload.options = question.options.choices.map((choice: string) => ({
-          label: choice,
-          value: choice.toLowerCase().replace(/\s+/g, '_'),
-          points: '1'
-        }));
+        payload.options = (question.options.choices || []).map((choice: QuestionChoiceItem | string) => {
+          const meta = getChoiceMeta(choice);
+          return {
+            label: meta.label,
+            value: meta.value.toUpperCase(),
+            points: '1',
+          };
+        });
       } else if (question.type === 'Slider' || question.type === 'Linear Scale') {
         payload.type = 'SLIDER';
         payload.dimensions = [{
@@ -182,7 +269,22 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
 
     // Add conditions if they exist
     if (question.conditions && question.conditions.length > 0) {
-      payload.conditions = question.conditions;
+      payload.conditions = question.conditions.map((condition: QuestionConditionItem) => ({
+        logic: {
+          section: condition.sectionCode,
+          question: condition.questionCode,
+          value: condition.expectedValue,
+          if: [
+            {
+              '==': [
+                condition.questionCode,
+                condition.expectedValue
+              ]
+            }
+          ],
+          then: true
+        }
+      }));
     }
 
     console.log('EditQuestionsPage - Final payload:', payload);
@@ -340,8 +442,9 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
             question: createdQuestion.text,
             type: convertApiTypeToDisplayType(createdQuestion.type),
             weight: parseFloat(createdQuestion.weight) || 1,
-            status: 'Active',
-            options: options
+            status: createdQuestion.is_active === false ? 'Inactive' : 'Active',
+            options: options,
+            conditions: convertApiConditionsToQuestionConditions(createdQuestion)
           };
           
           console.log('New question to add:', newQuestion);
@@ -400,11 +503,17 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         return converted;
       }
       
-      // For SINGLE_CHOICE and MULTI_CHOICE, return choices
-      return {
-        type: question.type === 'SINGLE_CHOICE' ? 'single-choice' : 'multiple-choice',
-        choices: question.options.map((opt: any) => opt.label)
-      };
+      // For SINGLE_CHOICE and MULTI_CHOICE, return choices with metadata
+      if (question.type === 'SINGLE_CHOICE' || question.type === 'MULTI_CHOICE') {
+        return {
+          type: question.type === 'SINGLE_CHOICE' ? 'single-choice' : 'multiple-choice',
+          choices: question.options.map((opt: any) => ({
+            label: opt.label,
+            value: opt.value || slugifyLabel(opt.label),
+            points: opt.points
+          }))
+        };
+      }
     } else if (question.dimensions && question.dimensions.length > 0) {
       if (question.type === 'MULTI_SLIDER') {
         return {
@@ -434,50 +543,69 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
     return {};
   };
 
-  // Handle successful question creation
-  const handleQuestionCreated = async (question: QuestionItem) => {
-    try {
-      // Check for order conflicts with existing questions
-      const conflictingQuestion = questionsList.find(q => q.order === question.order);
-      
-      if (conflictingQuestion) {
-        // If there's a conflict, we need to shift all questions with order >= new question's order
-        const updatedQuestionsList = questionsList.map(q => 
-          q.order >= question.order ? { ...q, order: q.order + 1 } : q
-        );
-        
-        // Add the new question
-        updatedQuestionsList.push(question);
-        
-        // Update local state
-        setQuestionsList(updatedQuestionsList);
-        
-        // Update all affected questions via API
-        const updatePromises = updatedQuestionsList
-          .filter(q => q.id !== question.id) // Exclude the new question
-          .map(q => {
-            const payload = convertQuestionItemToPayload(q);
-            return dispatch(updateAdminQuestion({ 
-              id: q.id,
-              data: payload 
-            }) as any);
-          });
-        
-        if (updatePromises.length > 0) {
-          await Promise.all(updatePromises);
-        }
-        
-        console.log('Question created with order conflict resolution');
-      } else {
-        // No conflict, just add the new question
-        setQuestionsList([...questionsList, question]);
-      }
-      
-      setIsCreateModalOpen(false);
-      setSelectedQuestionType(null);
-    } catch (error) {
-      console.error('Error handling question creation:', error);
+  const convertApiConditionsToQuestionConditions = (question: any): QuestionConditionItem[] | undefined => {
+    if (!question.conditions || question.conditions.length === 0) {
+      return undefined;
     }
+
+    const normalized = question.conditions
+      .map((condition: any) => {
+        const { questionCode, expectedValue, sectionCode } = extractConditionParts(condition.logic);
+        if (!questionCode || !expectedValue) {
+          return null;
+        }
+
+        return {
+          id: condition.id,
+          questionCode,
+          expectedValue,
+          sectionCode,
+        } as QuestionConditionItem;
+      })
+      .filter(
+        (item: QuestionConditionItem | null): item is QuestionConditionItem => item !== null
+      );
+
+    return normalized.length > 0 ? normalized : undefined;
+  };
+
+  const extractConditionParts = (logic: Record<string, any> | undefined | null): {
+    questionCode?: string;
+    expectedValue?: string;
+    sectionCode?: string;
+  } => {
+    if (!logic) {
+      return {};
+    }
+
+    if (logic.section || logic.section_code) {
+      return {
+        questionCode: String(logic.question || logic.question_code || logic.q || ''),
+        expectedValue: String(logic.value || logic.expectedValue || logic.val || ''),
+        sectionCode: String(logic.section || logic.section_code || ''),
+      };
+    }
+
+    if (logic.if && Array.isArray(logic.if)) {
+      const equalsCondition = logic.if.find((entry: Record<string, any>) => entry && entry['==']);
+      if (equalsCondition && Array.isArray(equalsCondition['==']) && equalsCondition['=='].length >= 2) {
+        return {
+          questionCode: String(equalsCondition['=='][0] ?? ''),
+          expectedValue: String(equalsCondition['=='][1] ?? ''),
+          sectionCode: logic.section || logic.section_code || undefined,
+        };
+      }
+    }
+
+    if (logic.q && logic.val) {
+      return {
+        questionCode: String(logic.q),
+        expectedValue: String(logic.val),
+        sectionCode: logic.section || logic.section_code || undefined,
+      };
+    }
+
+    return {};
   };
 
   // Handle closing create modal
@@ -497,11 +625,14 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
 
     switch (question.type) {
       case 'single-choice':
-        // Convert string array to {value, label} format
-        const singleChoiceOptions = question.options?.choices?.map((choice: string) => ({
-          value: choice.toLowerCase().replace(/\s+/g, '_'),
-          label: choice
-        })) || [];
+        // Convert choices to {value, label} format
+        const singleChoiceOptions = (question.options?.choices || []).map((choice: QuestionChoiceItem | string) => {
+          const meta = getChoiceMeta(choice);
+          return {
+            value: meta.value,
+            label: meta.label
+          };
+        });
         return (
           <SingleChoiceQuestion
             {...commonProps}
@@ -510,11 +641,13 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         );
       case 'Multi-select':
         if (question.options?.type === 'single-choice') {
-          // Convert string array to {value, label} format
-          const formattedOptions = question.options.choices.map((choice: string) => ({
-            value: choice.toLowerCase().replace(/\s+/g, '_'),
-            label: choice
-          }));
+          const formattedOptions = (question.options?.choices || []).map((choice: QuestionChoiceItem | string) => {
+            const meta = getChoiceMeta(choice);
+            return {
+              value: meta.value,
+              label: meta.label
+            };
+          });
           return (
             <SingleChoiceQuestion
               {...commonProps}
@@ -522,11 +655,13 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
             />
           );
         } else if (question.options?.type === 'multiple-choice') {
-          // Convert string array to {value, label} format
-          const formattedOptions = question.options.choices.map((choice: string) => ({
-            value: choice.toLowerCase().replace(/\s+/g, '_'),
-            label: choice
-          }));
+          const formattedOptions = (question.options?.choices || []).map((choice: QuestionChoiceItem | string) => {
+            const meta = getChoiceMeta(choice);
+            return {
+              value: meta.value,
+              label: meta.label
+            };
+          });
           return (
             <MultipleChoiceQuestion
               {...commonProps}
@@ -626,11 +761,13 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         );
 
       case 'Checkbox':
-        // Convert string array to {value, label} format
-        const checkboxOptions = question.options?.choices?.map((choice: string) => ({
-          value: choice.toLowerCase().replace(/\s+/g, '_'),
-          label: choice
-        })) || [];
+        const checkboxOptions = (question.options?.choices || []).map((choice: QuestionChoiceItem | string) => {
+          const meta = getChoiceMeta(choice);
+          return {
+            value: meta.value,
+            label: meta.label
+          };
+        });
         return (
           <MultipleChoiceQuestion
             {...commonProps}
@@ -683,12 +820,6 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
             disabled={questionTypesLoading}
           />
         </div>
-        <Button 
-          variant="gradient"
-          className="px-6 py-3"
-        >
-          Publish
-        </Button>
       </div>
 
       {/* Questions */}
@@ -704,6 +835,9 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   onCancel={handleCancelEdit}
                   onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
+                  sections={sections}
+                  questionCodesMap={questionCodesMap}
+                  isQuestionCodesLoading={questionCodesLoading}
                 />
               ) : question.type === 'Multi-select' && question.options?.type === 'multiple-choice' ? (
                 <MultipleChoiceQuestionEditor
@@ -712,6 +846,9 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   onCancel={handleCancelEdit}
                   onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
+                  sections={sections}
+                  questionCodesMap={questionCodesMap}
+                  isQuestionCodesLoading={questionCodesLoading}
                 />
               ) : question.type === 'Checkbox' ? (
                 <MultipleChoiceQuestionEditor
@@ -720,6 +857,9 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                   onCancel={handleCancelEdit}
                   onDelete={handleOpenDeleteModal}
                   isLoading={isUpdating}
+                  sections={sections}
+                  questionCodesMap={questionCodesMap}
+                  isQuestionCodesLoading={questionCodesLoading}
                 />
               ) : question.type === 'Slider' || question.type === 'Linear Scale' ? (
                 <SliderQuestionEditor
@@ -833,6 +973,21 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
                         >
                           Question {question.order}
                         </span>
+                        <span
+                          className={`px-3 py-1 text-sm font-medium rounded-full ${
+                            question.status === 'Inactive'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-blue-100 text-blue-700'
+                          }`}
+                          style={{
+                            fontFamily: 'Golos Text',
+                            fontWeight: 500,
+                            fontStyle: 'normal',
+                            fontSize: '12px'
+                          }}
+                        >
+                          {question.status === 'Inactive' ? 'Inactive' : 'Active'}
+                        </span>
                       </div>
                       <span 
                         className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded"
@@ -876,11 +1031,13 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         onClose={handleCloseCreateModal}
         questionType={selectedQuestionType}
         sectionId={sectionId}
-        onQuestionCreated={handleQuestionCreated}
         onCreateQuestion={handleCreateQuestion}
         isCreating={isCreatingQuestion}
         createError={createQuestionError}
         maxOrder={Math.max(...questionsList.map(q => q.order), 0)}
+        sections={sections}
+        questionCodesMap={questionCodesMap}
+        isQuestionCodesLoading={questionCodesLoading}
       />
     </div>
   );

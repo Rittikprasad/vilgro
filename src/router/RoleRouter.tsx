@@ -12,7 +12,7 @@ import {
   ActivityLogPage,
   ProfilePage,
 } from "../roles/Admin"
-import { BankingSPOsPage, BankingSPOProfilePage } from "../roles/Banking"
+import { BankingSPOsPage, BankingSPOProfilePage, BankingProfilePage, BankingSPOResponsesPage } from "../roles/Banking"
 import Assessment from "../components/assessment"
 
 /**
@@ -55,6 +55,8 @@ export const RoleRouter: React.FC = () => {
       <Routes>
         <Route path="/banking/spos" element={<BankingSPOsPage />} />
         <Route path="/banking/spos/:spoId" element={<BankingSPOProfilePage />} />
+        <Route path="/banking/spos/:spoId/responses" element={<BankingSPOResponsesPage />} />
+        <Route path="/banking/profile" element={<BankingProfilePage />} />
         <Route path="*" element={<Navigate to="/banking/spos" replace />} />
       </Routes>
     )

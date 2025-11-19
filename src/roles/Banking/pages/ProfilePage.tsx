@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import LayoutWrapper from "../layout/LayoutWrapper";
+import BankingLayoutWrapper from "../layout/LayoutWrapper";
 import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
@@ -10,7 +10,7 @@ import {
   fetchAdminProfile,
 } from "../../../features/adminProfile/adminProfileSlice";
 
-const ProfilePage: React.FC = () => {
+const BankProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { user, isLoading, error } = useAppSelector(
     (state) => state.adminProfile
@@ -41,7 +41,7 @@ const ProfilePage: React.FC = () => {
     };
 
   return (
-    <LayoutWrapper>
+    <BankingLayoutWrapper>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -122,7 +122,7 @@ const ProfilePage: React.FC = () => {
           </Button>
         </div>
       </div>
-    </LayoutWrapper>
+    </BankingLayoutWrapper>
   );
 };
 
@@ -143,5 +143,5 @@ const EditableField: React.FC<EditableFieldProps> = ({ label, value, onChange })
   </div>
 );
 
-export default ProfilePage;
+export default BankProfilePage;
 

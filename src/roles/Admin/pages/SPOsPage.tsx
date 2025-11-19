@@ -11,7 +11,6 @@ import SPOsFilterModal from "../components/SPOsFilterModal";
 import type { AppDispatch, RootState } from "../../../app/store";
 import {
   fetchAdminSpos,
-  fetchAdminSpoReport,
   setSelectedAdminSpo,
   type AdminSpoFilters,
 } from "../../../features/adminSpo/adminSpoSlice";
@@ -179,28 +178,6 @@ const SPOsPage: React.FC = () => {
                 {filterText}
               </button>
             )}
-            <Button
-              variant="gradient"
-              className="px-4 py-2"
-              onClick={async () => {
-                if (items.length === 0) return;
-                const latestSpo = items[0];
-                try {
-                  const result = await dispatch(fetchAdminSpoReport(latestSpo.id) as any).unwrap();
-                  const link = document.createElement("a");
-                  link.href = result.url;
-                  link.setAttribute("download", result.filename);
-                  document.body.appendChild(link);
-                  link.click();
-                  link.remove();
-                  window.URL.revokeObjectURL(result.url);
-                } catch (err) {
-                  console.error("Failed to generate report", err);
-                }
-              }}
-            >
-              Generate Report
-            </Button>
           </div>
         </div>
 
@@ -375,12 +352,6 @@ const SPOsPage: React.FC = () => {
                           >
                             <img src={ViewIcon} alt="View" className="w-5 h-5" />
                           </button>
-                          {/* <button 
-                            className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50 transition-colors"
-                            title="Email"
-                          >
-                            <img src={EmailIcon} alt="Email" className="w-5 h-5" />
-                          </button> */}
                         </div>
                       </td>
                     </tr>

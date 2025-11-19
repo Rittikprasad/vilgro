@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
 import type { QuestionType, CreateQuestionPayload } from '../../../../services/adminApi';
-import type { QuestionItem } from './QuestionListTable';
+import type { QuestionChoiceItem, QuestionItem } from './QuestionListTable';
+import type { AdminSection, QuestionCode } from '../../../../features/question-builder/types';
 
 // Import question editors for different types
 import SingleChoiceQuestionEditor from './SingleChoiceQuestionEditor';
@@ -16,11 +17,13 @@ interface CreateQuestionModalProps {
   onClose: () => void;
   questionType: QuestionType | null;
   sectionId: string;
-  onQuestionCreated: (question: QuestionItem) => void;
   onCreateQuestion: (payload: CreateQuestionPayload) => void;
   isCreating: boolean;
   createError: string | null;
   maxOrder?: number; // Add max order prop
+  sections: AdminSection[];
+  questionCodesMap: Record<string, QuestionCode[]>;
+  isQuestionCodesLoading?: boolean;
 }
 
 const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
@@ -28,11 +31,13 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
   onClose,
   questionType,
   sectionId,
-  onQuestionCreated,
   onCreateQuestion,
   isCreating,
   createError,
-  maxOrder = 1
+  maxOrder = 1,
+  sections,
+  questionCodesMap,
+  isQuestionCodesLoading = false
 }) => {
   const [questionData, setQuestionData] = useState<Partial<QuestionItem>>({
     question: '',
@@ -60,17 +65,45 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
     }
   }, [questionType]);
 
+  const slugifyLabel = (value: string): string =>
+    value.toLowerCase().trim().replace(/\s+/g, '_');
+
+  const buildDefaultChoice = (label: string): QuestionChoiceItem => ({
+    label,
+    value: slugifyLabel(label),
+    points: '1'
+  });
+
+  const normalizeChoiceArray = (
+    choices?: Array<QuestionChoiceItem | string>
+  ): QuestionChoiceItem[] | undefined => {
+    if (!choices) {
+      return undefined;
+    }
+
+    return choices.map((choice, index) => {
+      if (typeof choice === 'string') {
+        return buildDefaultChoice(choice || `Option ${index + 1}`);
+      }
+      return {
+        label: choice.label,
+        value: choice.value || slugifyLabel(choice.label),
+        points: choice.points || '1'
+      };
+    });
+  };
+
   const getDefaultOptionsForType = (type: string) => {
     switch (type) {
       case 'SINGLE_CHOICE':
         return {
           type: 'single-choice',
-          choices: ['Option 1', 'Option 2']
+          choices: [buildDefaultChoice('Option 1'), buildDefaultChoice('Option 2')]
         };
       case 'MULTI_CHOICE':
         return {
           type: 'multiple-choice',
-          choices: ['Option 1', 'Option 2']
+          choices: [buildDefaultChoice('Option 1'), buildDefaultChoice('Option 2')]
         };
       case 'SLIDER':
         return {
@@ -128,11 +161,21 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
 
     // Add type-specific fields
     if (updatedQuestion.type === 'SINGLE_CHOICE' || updatedQuestion.type === 'MULTI_CHOICE') {
-      payload.options = updatedQuestion.options?.choices?.map((choice: string, index: number) => ({
-        label: choice,
-        value: choice.toUpperCase().replace(/\s+/g, '_'),
-        points: (5 - index).toString() // Default points: 5, 4, 3, 2, 1
-      })) || [];
+      payload.options = updatedQuestion.options?.choices?.map((choice, index: number) => {
+        const label = typeof choice === 'string' ? choice : choice.label;
+        const value = typeof choice === 'string'
+          ? slugifyLabel(choice).toUpperCase()
+          : (choice.value || slugifyLabel(choice.label)).toUpperCase();
+        const defaultPoints = updatedQuestion.type === 'SINGLE_CHOICE'
+          ? Math.max(1, 5 - index).toString()
+          : '1';
+
+        return {
+          label,
+          value,
+          points: typeof choice === 'string' ? defaultPoints : (choice.points || defaultPoints),
+        };
+      }) || [];
     } else if (updatedQuestion.type === 'SLIDER') {
       payload.dimensions = [{
         code: updatedQuestion.options?.dimensionCode || 'slider',
@@ -204,7 +247,14 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
       type: questionData.type || questionType.value,
       weight: questionData.weight || 1,
       status: questionData.status || 'Active',
-      options: questionData.options || {}
+      options: questionData.options
+        ? {
+            ...questionData.options,
+            ...(questionData.options?.choices
+              ? { choices: normalizeChoiceArray(questionData.options.choices) }
+              : {}),
+          }
+        : {}
     };
 
     switch (questionType.value) {
@@ -214,6 +264,10 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
             question={questionItem}
             onSave={handleSave}
             onCancel={handleCancel}
+            isLoading={isCreating}
+            sections={sections}
+            questionCodesMap={questionCodesMap}
+            isQuestionCodesLoading={isQuestionCodesLoading}
           />
         );
       case 'MULTI_CHOICE':
@@ -222,6 +276,10 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
             question={questionItem}
             onSave={handleSave}
             onCancel={handleCancel}
+            isLoading={isCreating}
+            sections={sections}
+            questionCodesMap={questionCodesMap}
+            isQuestionCodesLoading={isQuestionCodesLoading}
           />
         );
       case 'SLIDER':
@@ -231,6 +289,7 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
             question={questionItem}
             onSave={handleSave}
             onCancel={handleCancel}
+            isLoading={isCreating}
           />
         );
       case 'RATING':
@@ -239,6 +298,7 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
             question={questionItem}
             onSave={handleSave}
             onCancel={handleCancel}
+            isLoading={isCreating}
           />
         );
       case 'NPS':
@@ -248,6 +308,7 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
             question={questionItem}
             onSave={handleSave}
             onCancel={handleCancel}
+            isLoading={isCreating}
           />
         );
       default:

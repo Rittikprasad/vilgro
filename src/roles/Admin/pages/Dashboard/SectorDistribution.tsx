@@ -13,7 +13,6 @@ interface SectorDistributionProps {
 }
 
 const SectorDistribution: React.FC<SectorDistributionProps> = ({ data }) => {
-  const topSector = data[0];
   const pieData: Array<Record<string, number | string>> = data.map((sector) => ({
     name: sector.name,
     percentage: sector.percentage,
@@ -34,7 +33,7 @@ const SectorDistribution: React.FC<SectorDistributionProps> = ({ data }) => {
         </div>
       ) : (
         <div className="flex items-center gap-8">
-          <div className="relative flex-shrink-0 w-52 h-52">
+          <div className="flex-shrink-0 w-52 h-52">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -60,21 +59,18 @@ const SectorDistribution: React.FC<SectorDistributionProps> = ({ data }) => {
               </PieChart>
             </ResponsiveContainer>
 
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center space-y-1">
-              <span className="text-sm font-semibold text-gray-800">
-                {topSector ? `${topSector.percentage}%` : "0%"}
-              </span>
-              <span className="text-xs font-medium text-gray-500">
-                {topSector ? `${topSector.count} SPOs` : "0 SPOs"}
-              </span>
-            </div>
           </div>
           
           <div className="flex-1 space-y-3">
             {data.map((sector, index) => (
-              <div key={index} className="flex items-center gap-2">
+              <div key={index} className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sector.color }} />
-                <span className="text-sm font-medium text-gray-700">{sector.name}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {sector.name}
+                </span>
+                <span className="text-xs font-medium text-gray-500">
+                  {sector.count} SPO{sector.count === 1 ? "" : "s"}
+                </span>
               </div>
             ))}
           </div>

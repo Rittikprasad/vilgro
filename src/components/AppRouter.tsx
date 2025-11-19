@@ -27,10 +27,12 @@ import {
   ReviewsPage,
   AdminsPage,
   ActivityLogPage,
-  ProfilePage,
+  ProfilePage as AdminProfilePage,
+  SPOResponsesPage,
 } from '../roles/Admin';
-import { BankingLogin, BankingSPOsPage, BankingSPOProfilePage } from '../roles/Banking';
+import { BankingLogin, BankingSPOsPage, BankingSPOProfilePage, BankingProfilePage, BankingSPOResponsesPage } from '../roles/Banking';
 import { RoleProtectedRoute } from './RoleProtectedRoute';
+import ProfileDetailSpo from './profile-detail/ProfileDetailSpo';
 
 /**
  * Protected Route Component
@@ -127,7 +129,6 @@ const AppRouter: React.FC = () => {
             // But only if we're not in the signup flow or login page (to avoid 404 errors for new users)
             const currentPath = window.location.pathname;
             if (!currentPath.startsWith('/signup') && currentPath !== '/login') {
-                console.log('App loaded with valid token, fetching user profile...');
                 // Add error handling for profile fetch to prevent 404 errors from breaking the app
                 dispatch(fetchUserProfile() as any).catch((error: any) => {
                     console.warn('Profile fetch failed (expected for new users):', error);
@@ -233,6 +234,14 @@ const AppRouter: React.FC = () => {
                         </RoleProtectedRoute>
                     }
                 />
+                <Route
+                    path="/admin/spos/:spoId/responses"
+                    element={
+                        <RoleProtectedRoute allowedRoles={['ADMIN']}>
+                            <SPOResponsesPage />
+                        </RoleProtectedRoute>
+                    }
+                />
 
                 {/* Admin Questions Page - Protected with ADMIN role */}
                 <Route
@@ -287,7 +296,15 @@ const AppRouter: React.FC = () => {
                     path="/admin/profile"
                     element={
                         <RoleProtectedRoute allowedRoles={['ADMIN']}>
-                            <ProfilePage />
+                            <AdminProfilePage />
+                        </RoleProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/profile"
+                    element={
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
+                            <ProfileDetailSpo />
                         </RoleProtectedRoute>
                     }
                 />
@@ -307,6 +324,22 @@ const AppRouter: React.FC = () => {
                     element={
                         <RoleProtectedRoute allowedRoles={['BANK_USER']}>
                             <BankingSPOProfilePage />
+                        </RoleProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/banking/spos/:spoId/responses"
+                    element={
+                        <RoleProtectedRoute allowedRoles={['BANK_USER']}>
+                            <BankingSPOResponsesPage />
+                        </RoleProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/banking/profile"
+                    element={
+                        <RoleProtectedRoute allowedRoles={['BANK_USER']}>
+                            <BankingProfilePage />
                         </RoleProtectedRoute>
                     }
                 />

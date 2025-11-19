@@ -7,6 +7,19 @@ import { fetchQuestionsBySection, deleteAdminQuestion } from '../../../../featur
 import type { RootState } from '../../../../app/store';
 import type { AdminQuestion } from '../../../../features/question-builder/types';
 
+export interface QuestionChoiceItem {
+  label: string;
+  value: string;
+  points?: string;
+}
+
+export interface QuestionConditionItem {
+  id?: number;
+  questionCode: string;
+  expectedValue: string;
+  sectionCode?: string;
+}
+
 // Define a type for a single question item
 export interface QuestionItem {
   id: number;
@@ -15,14 +28,12 @@ export interface QuestionItem {
   type: string;
   weight: number;
   status: string;
-  options?: any; // Options for different question types
-  conditions?: Array<{
-    logic: {
-      q: string;
-      op: string;
-      val: string;
-    };
-  }>;
+  options?: {
+    type?: string;
+    choices?: QuestionChoiceItem[];
+    [key: string]: any;
+  };
+  conditions?: QuestionConditionItem[];
 }
 
 interface QuestionListTableProps {
@@ -40,8 +51,9 @@ const convertApiQuestionsToQuestionItems = (apiQuestions: AdminQuestion[]): Ques
     question: question.text,
     type: convertQuestionType(question.type),
     weight: parseFloat(question.weight),
-    status: 'Active', // Default status since API doesn't provide this
-    options: convertQuestionOptions(question)
+    status: question.is_active === false ? 'Inactive' : 'Active',
+    options: convertQuestionOptions(question),
+    conditions: convertQuestionConditions(question)
   }));
 };
 
@@ -82,7 +94,11 @@ const convertQuestionOptions = (question: AdminQuestion): any => {
     // For choice-based questions
     return {
       type: question.type === 'SINGLE_CHOICE' ? 'single-choice' : 'multiple-choice',
-      choices: question.options.map(option => option.label)
+      choices: question.options.map(option => ({
+        label: option.label,
+        value: option.value || option.label.toLowerCase().replace(/\s+/g, '_'),
+        points: option.points
+      }))
     };
   } else if (question.dimensions && question.dimensions.length > 0) {
     // For slider questions
@@ -111,6 +127,69 @@ const convertQuestionOptions = (question: AdminQuestion): any => {
       };
     }
   }
+  return {};
+};
+
+const convertQuestionConditions = (question: AdminQuestion): QuestionConditionItem[] | undefined => {
+  if (!question.conditions || question.conditions.length === 0) {
+    return undefined;
+  }
+
+  const normalized = question.conditions
+    .map((condition) => {
+      const { questionCode, expectedValue, sectionCode } = extractConditionParts(condition.logic);
+      if (!questionCode || !expectedValue) {
+        return null;
+      }
+
+      return {
+        id: condition.id,
+        questionCode,
+        expectedValue,
+        sectionCode,
+      } as QuestionConditionItem;
+    })
+    .filter((item): item is QuestionConditionItem => item !== null);
+
+  return normalized.length > 0 ? normalized : undefined;
+};
+
+const extractConditionParts = (logic: Record<string, any> | undefined | null): {
+  questionCode?: string;
+  expectedValue?: string;
+  sectionCode?: string;
+} => {
+  if (!logic) {
+    return {};
+  }
+
+  if (logic.section || logic.section_code) {
+    return {
+      questionCode: String(logic.question || logic.question_code || logic.q || ''),
+      expectedValue: String(logic.value || logic.expectedValue || logic.val || ''),
+      sectionCode: String(logic.section || logic.section_code || ''),
+    };
+  }
+
+  if (logic.if && Array.isArray(logic.if)) {
+    const equalsCondition = logic.if.find((entry: Record<string, any>) => entry && entry['==']);
+    if (equalsCondition && Array.isArray(equalsCondition['==']) && equalsCondition['=='].length >= 2) {
+      return {
+        questionCode: String(equalsCondition['=='][0] ?? ''),
+        expectedValue: String(equalsCondition['=='][1] ?? ''),
+        sectionCode: logic.section || logic.section_code || undefined,
+      };
+    }
+  }
+
+  if (logic.q && logic.val) {
+    return {
+      questionCode: String(logic.q),
+      expectedValue: String(logic.val),
+      sectionCode: logic.section || logic.section_code || undefined,
+    };
+  }
+
   return {};
 };
 
@@ -261,7 +340,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                         fontStyle: 'normal',
                         fontSize: '12px',
                         verticalAlign: 'middle',
-                        paddingTop: '12px',
+                        paddingTop: '14px',
                         paddingBottom: '12px'
                       }}
                     >
@@ -274,7 +353,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                         fontFamily: 'Golos Text',
                         fontWeight: 400,
                         fontStyle: 'normal',
-                        fontSize: '12px',
+                        fontSize: '14px',
                         verticalAlign: 'middle',
                         paddingTop: '12px',
                         paddingBottom: '12px'
@@ -289,7 +368,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                         fontFamily: 'Golos Text',
                         fontWeight: 400,
                         fontStyle: 'normal',
-                        fontSize: '12px',
+                        fontSize: '14px',
                         verticalAlign: 'middle',
                         paddingTop: '12px',
                         paddingBottom: '12px'
@@ -304,7 +383,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                         fontFamily: 'Golos Text',
                         fontWeight: 400,
                         fontStyle: 'normal',
-                        fontSize: '12px',
+                        fontSize: '14px',
                         verticalAlign: 'middle',
                         paddingTop: '12px',
                         paddingBottom: '12px'
@@ -319,7 +398,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                         fontFamily: 'Golos Text',
                         fontWeight: 400,
                         fontStyle: 'normal',
-                        fontSize: '12px',
+                        fontSize: '14px',
                         verticalAlign: 'middle',
                         paddingTop: '12px',
                         paddingBottom: '12px'
@@ -334,7 +413,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                         fontFamily: 'Golos Text',
                         fontWeight: 400,
                         fontStyle: 'normal',
-                        fontSize: '12px',
+                        fontSize: '14px',
                         verticalAlign: 'middle',
                         paddingTop: '12px',
                         paddingBottom: '12px'
@@ -354,7 +433,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '10px',
+                            fontSize: '12px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'
@@ -368,7 +447,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '10px',
+                            fontSize: '12px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'
@@ -382,7 +461,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '10px',
+                            fontSize: '12px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'
@@ -396,7 +475,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '10px',
+                            fontSize: '12px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'
@@ -410,7 +489,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '10px',
+                            fontSize: '12px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'

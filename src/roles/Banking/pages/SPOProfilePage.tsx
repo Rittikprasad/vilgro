@@ -196,6 +196,11 @@ const BankingSPOProfilePage: React.FC = () => {
                             <button
                               type="button"
                               className="text-[#69C24E] underline transition-colors hover:text-[#46B753]"
+                              onClick={() => {
+                                if (spoId) {
+                                  navigate(`/banking/spos/${spoId}/responses`);
+                                }
+                              }}
                             >
                               View Answers
                             </button>

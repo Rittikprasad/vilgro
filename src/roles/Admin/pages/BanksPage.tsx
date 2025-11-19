@@ -537,11 +537,15 @@ const BanksPage: React.FC = () => {
                   required
                   type="email"
                   value={formState.contactEmail}
+                  disabled={editingBank !== null}
                   onChange={(event) =>
                     setFormState((prev) => ({ ...prev, contactEmail: event.target.value }))
                   }
                   placeholder="Enter email"
-                  className="gradient-border h-11 bg-white px-4 text-sm"
+                  className={cn(
+                    "gradient-border h-11 px-4 text-sm",
+                    editingBank !== null ? "bg-gray-100 cursor-not-allowed text-gray-500" : "bg-white"
+                  )}
                 />
               </div>
 

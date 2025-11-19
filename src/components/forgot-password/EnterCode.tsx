@@ -101,7 +101,7 @@ const EnterCode: React.FC = () => {
                   onClick={handleResendCode}
                   className="text-[14px] villgro-green-text underline hover:underline cursor-pointer font-golos font-[300]"
                 >
-                  Resent code
+                  Resend code
                 </button>
               </div>
 

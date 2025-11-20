@@ -19,11 +19,19 @@ export interface AdminProfileResponse {
   organization: AdminProfileOrganization | null;
 }
 
+export interface UpdateAdminProfileRequest {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+}
+
 export interface AdminProfileState {
   user: AdminProfileUser | null;
   organization: AdminProfileOrganization | null;
   isLoading: boolean;
   error: string | null;
   lastFetchedAt: string | null;
+  isUpdating: boolean;
+  updateError: string | null;
 }
 

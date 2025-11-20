@@ -82,13 +82,40 @@ const SPOProfilePage: React.FC = () => {
     const incorporationDate = formatDate(activeSpo.organization?.date_of_incorporation);
     const loanStatus = activeSpo.loan_eligible ? "Eligible" : "Not eligible";
 
+    // Format scores - each on a separate line with better styling
+    const impact = activeSpo.scores?.sections?.IMPACT?.toFixed(1) ?? "–";
+    const risk = activeSpo.scores?.sections?.RISK?.toFixed(1) ?? "–";
+    const returnScore = activeSpo.scores?.sections?.RETURN?.toFixed(1) ?? "–";
+
+    const scoreDisplay = (
+      <div className="space-y-1.5 text-sm">
+        <div className="font-golos whitespace-nowrap">
+          <span className="text-gray-600">Impact:</span>{" "}
+          <span className="font-medium text-gray-900">{impact}</span>
+        </div>
+        <div className="font-golos whitespace-nowrap">
+          <span className="text-gray-600">Risk:</span>{" "}
+          <span className="font-medium text-gray-900">{risk}</span>
+        </div>
+        <div className="font-golos whitespace-nowrap">
+          <span className="text-gray-600">Return:</span>{" "}
+          <span className="font-medium text-gray-900">{returnScore}</span>
+        </div>
+      </div>
+    );
+
+    // Get instrument name
+    const instrumentName = activeSpo.instrument?.name ?? 
+                          activeSpo.organization?.type_of_innovation ?? 
+                          "Not specified";
+
     return [
       {
         id: `assessment-${activeSpo.id}`,
-        assessmentId: activeSpo.id,
+        assessmentId: activeSpo.assessment_id ?? activeSpo.id,
         date: incorporationDate,
-        score: "Impact: –  Risk: –  Return: –",
-        instrument: activeSpo.organization?.type_of_innovation ?? "Not specified",
+        score: scoreDisplay,
+        instrument: instrumentName,
         loanRequest: loanStatus,
       },
     ];
@@ -265,7 +292,7 @@ const SPOProfilePage: React.FC = () => {
                     <thead>
                       <tr className="text-left text-[11px] font-[400] font-golos uppercase tracking-wider text-gray-400">
                         <th className="px-4 py-3">Date</th>
-                        <th className="px-4 py-3">Score</th>
+                        <th className="px-4 py-3 min-w-[140px]">Score</th>
                         <th className="px-4 py-3">Instrument</th>
                         <th className="px-4 py-3">Loan Request</th>
                         <th className="px-4 py-3 text-center">Actions</th>
@@ -275,16 +302,23 @@ const SPOProfilePage: React.FC = () => {
                       {assessmentRows.map((row) => (
                         <tr key={row.id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 font-medium">{row.date}</td>
-                          <td className="px-4 py-3">{row.score}</td>
+                          <td className="px-4 py-3 align-top">{row.score}</td>
                           <td className="px-4 py-3">{row.instrument}</td>
                           <td className="px-4 py-3">{row.loanRequest}</td>
                           <td className="px-4 py-3 text-center">
                             <button
                               type="button"
-                              className="text-[#69C24E] underline transition-colors hover:text-[#46B753]"
+                              className={`${
+                                activeSpo?.assessment_id
+                                  ? "text-[#69C24E] underline transition-colors hover:text-[#46B753]"
+                                  : "text-gray-400 cursor-not-allowed"
+                              }`}
                               onClick={() => {
-                                navigate(`/admin/spos/${activeSpo?.id}/responses`);
+                                if (activeSpo?.assessment_id) {
+                                  navigate(`/admin/spos/${activeSpo.id}/responses`);
+                                }
                               }}
+                              disabled={!activeSpo?.assessment_id}
                             >
                               View Answers
                             </button>

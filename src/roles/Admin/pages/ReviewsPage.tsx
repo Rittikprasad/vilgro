@@ -16,9 +16,24 @@ interface ReviewRecord {
   user: string;
   organization: string;
   status: "Completed" | "Incomplete";
+  reasons: string[];
   review: string;
   raw: AdminReviewEntry;
 }
+
+// Format reason codes to readable labels
+const formatReason = (reason: string): string => {
+  const reasonMap: Record<string, string> = {
+    too_long: "Too Long",
+    hard_to_understand: "Hard to Understand",
+    irrelevant: "Irrelevant",
+    not_applicable: "Not Applicable",
+    confusing: "Confusing",
+    repetitive: "Repetitive",
+    unclear: "Unclear",
+  };
+  return reasonMap[reason] || reason.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
 
 const ReviewsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -70,6 +85,7 @@ const ReviewsPage: React.FC = () => {
       user: userLabel,
       organization: organizationLabel,
       status: statusLabel,
+      reasons: entry?.reasons ?? [],
       review: entry?.review ?? "",
       raw: entry,
     };
@@ -87,10 +103,12 @@ const ReviewsPage: React.FC = () => {
     const term = searchTerm.trim().toLowerCase();
     const filtered = mappedReviews.filter((review) => {
       if (!term) return true;
+      const reasonsText = review.reasons.map(formatReason).join(" ").toLowerCase();
       return (
         review.id.toLowerCase().includes(term) ||
         review.user.toLowerCase().includes(term) ||
         review.organization.toLowerCase().includes(term) ||
+        reasonsText.includes(term) ||
         review.review.toLowerCase().includes(term) ||
         review.date.toLowerCase().includes(term)
       );
@@ -127,6 +145,50 @@ const ReviewsPage: React.FC = () => {
 
   const getStatusColor = (status: ReviewRecord["status"]) =>
     status === "Completed" ? "text-green-600" : "text-[#FF6B55]";
+
+// Component to display reasons with badges
+const ReasonsDisplay: React.FC<{ reasons: string[] }> = ({ reasons }) => {
+  const [showAll, setShowAll] = useState(false);
+  const maxVisible = 3;
+  const visibleReasons = showAll ? reasons : reasons.slice(0, maxVisible);
+  const remainingCount = reasons.length - maxVisible;
+
+  if (reasons.length === 0) {
+    return <span className="text-gray-400">-</span>;
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {visibleReasons.map((reason, index) => (
+        <span
+          key={index}
+          className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-[400] font-golos text-gray-700"
+        >
+          {formatReason(reason)}
+        </span>
+      ))}
+      {!showAll && remainingCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="inline-flex items-center rounded-md bg-gray-200 px-2 py-0.5 text-[11px] font-[400] font-golos text-gray-700 hover:bg-gray-300 transition-colors"
+          title={reasons.slice(maxVisible).map(formatReason).join(", ")}
+        >
+          +{remainingCount} more
+        </button>
+      )}
+      {showAll && remainingCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(false)}
+          className="inline-flex items-center rounded-md bg-gray-200 px-2 py-0.5 text-[11px] font-[400] font-golos text-gray-700 hover:bg-gray-300 transition-colors"
+        >
+          Show less
+        </button>
+      )}
+    </div>
+  );
+};
 
   return (
     <LayoutWrapper>
@@ -203,7 +265,10 @@ const ReviewsPage: React.FC = () => {
                       Status
                     </th>
                     <th className="px-6 text-left text-[10px] font-[400] font-golos uppercase tracking-wider text-gray-500">
-                      Review
+                      Reasons
+                    </th>
+                    <th className="px-6 text-left text-[10px] font-[400] font-golos uppercase tracking-wider text-gray-500">
+                      Comment
                     </th>
                   </tr>
                 </thead>
@@ -276,7 +341,26 @@ const ReviewsPage: React.FC = () => {
                           paddingBottom: "16px",
                         }}
                         >
-                        {row.review || "-"}
+                        <ReasonsDisplay reasons={row.reasons} />
+                      </td>
+                        <td
+                        className="px-6 text-sm text-gray-900 break-words"
+                        style={{
+                          fontFamily: "Golos Text",
+                          fontWeight: 400,
+                          fontStyle: "normal",
+                          fontSize: "12px",
+                          verticalAlign: "middle",
+                          paddingTop: "16px",
+                          paddingBottom: "16px",
+                          maxWidth: "300px",
+                        }}
+                        >
+                        {row.review ? (
+                          <span className="break-words">{row.review}</span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </td>
                     </tr>
                   ))}

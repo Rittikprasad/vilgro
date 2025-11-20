@@ -13,6 +13,7 @@ export interface AdminReviewEntry {
   user_email?: string;
   status?: string;
   review?: string;
+  reasons?: string[];
   organization_name?: string;
   organization?: {
     name?: string;

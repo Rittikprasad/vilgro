@@ -7,12 +7,15 @@ import BackIcon from "../../../assets/svg/BackIcon.svg";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
   clearAdminProfileError,
+  clearUpdateError,
   fetchAdminProfile,
+  updateAdminProfile,
 } from "../../../features/adminProfile/adminProfileSlice";
+import { showNotification } from "../../../services/notificationService";
 
 const BankProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { user, isLoading, error } = useAppSelector(
+  const { user, isLoading, error, isUpdating, updateError } = useAppSelector(
     (state) => state.adminProfile
   );
   const [formState, setFormState] = useState({
@@ -39,6 +42,28 @@ const BankProfilePage: React.FC = () => {
     (key: keyof typeof formState) => (event: React.ChangeEvent<HTMLInputElement>) => {
       setFormState((prev) => ({ ...prev, [key]: event.target.value }));
     };
+
+  const handleUpdate = async () => {
+    try {
+      await dispatch(
+        updateAdminProfile({
+          first_name: formState.first_name,
+          last_name: formState.last_name,
+          phone: formState.phone,
+        })
+      ).unwrap();
+      
+      // Show success notification
+      showNotification({
+        type: 'success',
+        title: 'Profile Updated',
+        message: 'Your profile has been updated successfully.',
+        duration: 4000,
+      });
+    } catch (err) {
+      console.error("Failed to update profile", err);
+    }
+  };
 
   return (
     <BankingLayoutWrapper>
@@ -79,6 +104,21 @@ const BankProfilePage: React.FC = () => {
           </div>
         )}
 
+        {updateError && (
+          <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <span>{updateError}</span>
+            <button
+              type="button"
+              onClick={() => {
+                dispatch(clearUpdateError());
+              }}
+              className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         <Card className="overflow-hidden shadow-lg">
           <CardContent className="p-8">
             {isLoading && !user ? (
@@ -100,10 +140,9 @@ const BankProfilePage: React.FC = () => {
                   />
                 </div>
                 <div className="grid gap-6 md:grid-cols-2">
-                  <EditableField
+                  <ReadOnlyField
                     label="Email"
                     value={formState.email}
-                    onChange={handleInputChange("email")}
                   />
                   <EditableField
                     label="Phone Number"
@@ -117,8 +156,12 @@ const BankProfilePage: React.FC = () => {
         </Card>
 
         <div className="flex justify-start">
-          <Button variant="gradient">
-            Update Profile
+          <Button 
+            variant="gradient" 
+            onClick={handleUpdate}
+            disabled={isUpdating}
+          >
+            {isUpdating ? "Updating..." : "Update Profile"}
           </Button>
         </div>
       </div>
@@ -140,6 +183,20 @@ const EditableField: React.FC<EditableFieldProps> = ({ label, value, onChange })
       onChange={onChange}
       className="flex-1 rounded-none border-0 border-b border-[#69C24E] bg-transparent font-golos text-sm text-gray-900 focus:border-[#46B753] focus:outline-none focus:ring-0"
     />
+  </div>
+);
+
+interface ReadOnlyFieldProps {
+  label: string;
+  value: string;
+}
+
+const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, value }) => (
+  <div className="flex items-center gap-2">
+    <span className="w-40 font-golos text-[14px] font-[500] text-gray-600">{label}</span>
+    <div className="flex-1 rounded-none border-0 border-b border-gray-300 bg-transparent font-golos text-sm text-gray-500 py-2">
+      {value}
+    </div>
   </div>
 );
 

@@ -21,6 +21,20 @@ export interface AdminSpoOrganization {
   received_philanthropy_before: boolean | null;
 }
 
+export interface AdminSpoInstrument {
+  id: number;
+  name: string;
+}
+
+export interface AdminSpoScores {
+  overall: number;
+  sections: {
+    IMPACT: number;
+    RISK: number;
+    RETURN: number;
+  };
+}
+
 export interface AdminSpoEntry {
   id: number;
   email: string;
@@ -31,6 +45,9 @@ export interface AdminSpoEntry {
   date_joined: string;
   organization: AdminSpoOrganization | null;
   loan_eligible: boolean;
+  instrument: AdminSpoInstrument | null;
+  scores: AdminSpoScores | null;
+  assessment_id: number | null;
 }
 
 export interface AdminSpoState {

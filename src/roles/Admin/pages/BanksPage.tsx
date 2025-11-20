@@ -252,7 +252,7 @@ const BanksPage: React.FC = () => {
                         Contact
                       </th>
                       <th className="px-6 text-left text-[10px] font-[400] font-golos uppercase tracking-wider text-gray-500">
-                        Email Updates
+                        ACCESS
                       </th>
                       <th className="px-6 text-center text-[12px] font-[400] font-golos uppercase tracking-wider text-gray-500">
                         Actions

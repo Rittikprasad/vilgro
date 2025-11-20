@@ -273,7 +273,7 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
         {/* Options */}
         <div className="space-y-4 mb-6">
           {options.map((option, index) => (
-            <div key={option.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+            <div key={option.id} className="flex flex-wrap items-center gap-2 p-3 bg-gray-50 rounded-lg">
               {/* Checkbox indicator */}
               <div className="w-4 h-4 border-2 border-gray-300 rounded flex-shrink-0 flex items-center justify-center">
                 {/* Empty checkbox - will be filled when selected */}
@@ -285,18 +285,18 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
                 type="text"
                 value={option.text}
                 onChange={(e) => handleOptionTextChange(option.id, e.target.value)}
-                className="flex-1 p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
+                className="flex-1 min-w-[150px] p-2 border border-gray-200 rounded focus:border-green-500 focus:outline-none"
                 placeholder={`Option ${index + 1}...`}
               />
               
               {/* Conditional Branching Controls */}
               {showConditionalBranching && (
-                <>
-                  <span className="text-sm text-gray-700">Go to</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm text-gray-700 whitespace-nowrap">Go to</span>
                   <select
                     value={option.conditionalBranching?.goTo || ''}
                     onChange={(e) => handleGoToChange(option.id, e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded focus:border-green-500 focus:outline-none text-sm"
+                    className="px-3 py-2 border border-gray-300 rounded focus:border-green-500 focus:outline-none text-sm flex-shrink-0"
                   >
                     <option value="">Select Section</option>
                     {sections.map((section) => (
@@ -306,11 +306,11 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
                     ))}
                   </select>
 
-                  <span className="text-sm text-gray-700">Question</span>
+                  <span className="text-sm text-gray-700 whitespace-nowrap">Question</span>
                   <select
                     value={option.conditionalBranching?.questionId || ''}
                     onChange={(e) => handleQuestionChange(option.id, e.target.value as any)}
-                    className="px-3 py-2 border border-gray-300 rounded focus:border-green-500 focus:outline-none text-sm"
+                    className="px-3 py-2 border border-gray-300 rounded focus:border-green-500 focus:outline-none text-sm max-w-[300px] min-w-[200px] flex-shrink-0"
                     disabled={
                       isQuestionCodesLoading || !option.conditionalBranching?.goTo
                     }
@@ -320,12 +320,12 @@ const MultipleChoiceQuestionEditor: React.FC<MultipleChoiceQuestionEditorProps> 
                       ? questionCodesMap[option.conditionalBranching.goTo] || []
                       : []
                     ).map((questionCode) => (
-                      <option key={questionCode.code} value={questionCode.code}>
-                        {questionCode.code}
+                      <option key={questionCode.code} value={questionCode.code} title={questionCode.text || questionCode.code}>
+                        {questionCode.text || questionCode.code}
                       </option>
                     ))}
                   </select>
-                </>
+                </div>
               )}
               
               {/* Delete option button */}

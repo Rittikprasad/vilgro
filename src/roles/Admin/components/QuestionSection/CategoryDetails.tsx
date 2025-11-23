@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardHeader, CardContent, CardFooter } from '../../../../components/ui/Card';
+import BackIcon from '../../../../assets/svg/BackIcon.svg';
 import type { QuestionCategory } from './SectorCategories';
 import QuestionListTable from './QuestionListTable';
 import EditQuestionsPage from './EditQuestionsPage';
@@ -122,16 +123,13 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
     <div className="space-y-6">
       {/* Back button and header */}
       <div className="flex items-center space-x-4">
-        <Button 
-          variant="outline" 
+        <button
+          type="button"
           onClick={onBackToList}
-          className="flex items-center space-x-2"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          <span>Back</span>
-        </Button>
+          <img src={BackIcon} alt="Back" className="w-8 h-8" />
+        </button>
         <div>
           <h1 
             className="text-gray-800"
@@ -180,7 +178,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
                   fontFamily: 'Golos Text',
                   fontWeight: 500,
                   fontStyle: 'normal',
-                  fontSize: '16px'
+                  fontSize: '18px'
                 }}
               >
                 {subCategory.title}
@@ -191,7 +189,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
                   fontFamily: 'Golos Text',
                   fontWeight: 400,
                   fontStyle: 'normal',
-                  fontSize: '12px'
+                  fontSize: '14px'
                 }}
               >
                 Weightage: {subCategory.weightage}%
@@ -206,7 +204,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
                     fontFamily: 'Golos Text',
                     fontWeight: 600,
                     fontStyle: 'normal',
-                    fontSize: '12px'
+                    fontSize: '14px'
                   }}
                 >
                   Total Questions: {subCategory.totalQuestions}
@@ -217,7 +215,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
                     fontFamily: 'Golos Text',
                     fontWeight: 400,
                     fontStyle: 'normal',
-                    fontSize: '12px'
+                    fontSize: '14px'
                   }}
                 >
                   Active Questions: {subCategory.activeQuestions}
@@ -228,7 +226,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
                     fontFamily: 'Golos Text',
                     fontWeight: 400,
                     fontStyle: 'normal',
-                    fontSize: '12px'
+                    fontSize: '14px'
                   }}
                 >
                   Inactive Questions: {subCategory.inactiveQuestions}

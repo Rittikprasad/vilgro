@@ -18,7 +18,6 @@ import EnterEmail from './forgot-password/EnterEmail';
 import EnterCode from './forgot-password/EnterCode';
 import CreateNewPassword from './forgot-password/CreateNewPassword';
 import {
-  AdminLogin,
   AdminDashboard,
   SPOsPage,
   SPOProfilePage,
@@ -30,7 +29,7 @@ import {
   ProfilePage as AdminProfilePage,
   SPOResponsesPage,
 } from '../roles/Admin';
-import { BankingLogin, BankingSPOsPage, BankingSPOProfilePage, BankingProfilePage, BankingSPOResponsesPage } from '../roles/Banking';
+import { BankingSPOsPage, BankingSPOProfilePage, BankingProfilePage, BankingSPOResponsesPage } from '../roles/Banking';
 import { RoleProtectedRoute } from './RoleProtectedRoute';
 import ProfileDetailSpo from './profile-detail/ProfileDetailSpo';
 
@@ -195,16 +194,16 @@ const AppRouter: React.FC = () => {
                 />
 
                 {/* ==================== ADMIN ROUTES ==================== */}
-                {/* Admin Login - Public route */}
+                {/* Admin Login - Public route (uses common Login component) */}
                 <Route
                     path="/signin/admin"
-                    element={<AdminLogin />}
+                    element={<Login />}
                 />
 
-                {/* Banking Login - Public route */}
+                {/* Banking Login - Public route (uses common Login component) */}
                 <Route
                     path="/signin/banking"
-                    element={<BankingLogin />}
+                    element={<Login />}
                 />
 
                 {/* Admin Dashboard - Protected with ADMIN role */}

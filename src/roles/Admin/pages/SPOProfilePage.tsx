@@ -79,7 +79,7 @@ const SPOProfilePage: React.FC = () => {
       return [];
     }
 
-    const incorporationDate = formatDate(activeSpo.organization?.date_of_incorporation);
+    const joinedDate = formatDate(activeSpo.date_joined);
     const loanStatus = activeSpo.loan_eligible ? "Eligible" : "Not eligible";
 
     // Format scores - each on a separate line with better styling
@@ -113,7 +113,7 @@ const SPOProfilePage: React.FC = () => {
       {
         id: `assessment-${activeSpo.id}`,
         assessmentId: activeSpo.assessment_id ?? activeSpo.id,
-        date: incorporationDate,
+        date: joinedDate,
         score: scoreDisplay,
         instrument: instrumentName,
         loanRequest: loanStatus,

@@ -231,7 +231,7 @@ const SignupStep1: React.FC<SignupStep1Props> = ({ onNext }) => {
                   className="custom-checkbox mt-1"
                 />
                 <span className="text-[12px] font-[300] text-gray-900 font-golos">
-                  By checking this box, I consent to the collection and use of my personal data by Villgro for future engagement nd communications.
+                  By checking this box, I consent to the collection and use of my personal data by Villgro for future engagement and communications.
                 </span>
               </label>
               {errors.termsAccepted && (

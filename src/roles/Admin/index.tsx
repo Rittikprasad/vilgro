@@ -1,5 +1,4 @@
 // Admin role exports
-export { default as AdminLogin } from "./components/AdminLogin"
 export { default as AdminDashboard } from "./pages/Dashboard"
 
 // Admin Pages

@@ -94,6 +94,9 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
         cin_number: data.cinNumber,
         date_of_incorporation: data.dateOfIncorporation,
         ...(data.legalRegistrationType && { registration_type: data.legalRegistrationType }),
+        ...(data.firstName && { first_name: data.firstName }),
+        ...(data.lastName && { last_name: data.lastName }),
+        ...(data.phoneNumber && { phone: data.phoneNumber }),
       }
 
       console.log("Calling completeSignup API with:", signupCompleteData)

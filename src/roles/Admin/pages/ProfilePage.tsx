@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import LayoutWrapper from "../layout/LayoutWrapper";
 import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
@@ -24,39 +24,21 @@ const ProfilePage: React.FC = () => {
     email: "",
     phone: "",
   });
-  const [originalValues, setOriginalValues] = useState({
-    first_name: "",
-    last_name: "",
-    phone: "",
-  });
 
   useEffect(() => {
     if (!user) {
       void dispatch(fetchAdminProfile());
     } else {
-      const initialValues = {
+      // Strip +91 prefix from phone for display
+      const phoneValue = user.phone?.replace(/^\+91/, '') ?? "";
+      setFormState({
         first_name: user.first_name ?? "",
         last_name: user.last_name ?? "",
         email: user.email ?? "",
-        phone: user.phone ?? "",
-      };
-      setFormState(initialValues);
-      setOriginalValues({
-        first_name: initialValues.first_name,
-        last_name: initialValues.last_name,
-        phone: initialValues.phone,
+        phone: phoneValue,
       });
     }
   }, [dispatch, user]);
-
-  // Check if form has changes
-  const hasChanges = useMemo(() => {
-    return (
-      formState.first_name !== originalValues.first_name ||
-      formState.last_name !== originalValues.last_name ||
-      formState.phone !== originalValues.phone
-    );
-  }, [formState, originalValues]);
 
   const handleInputChange =
     (key: keyof typeof formState) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,16 +51,9 @@ const ProfilePage: React.FC = () => {
         updateAdminProfile({
           first_name: formState.first_name,
           last_name: formState.last_name,
-          phone: formState.phone,
+          phone: formState.phone.trim() ? `+91${formState.phone.trim()}` : formState.phone.trim(),
         })
       ).unwrap();
-      
-      // Update original values to reflect the new state
-      setOriginalValues({
-        first_name: formState.first_name,
-        last_name: formState.last_name,
-        phone: formState.phone,
-      });
       
       // Show success notification
       showNotification({
@@ -171,7 +146,7 @@ const ProfilePage: React.FC = () => {
                     label="Email"
                     value={formState.email}
                   />
-                  <EditableField
+                  <PhoneField
                     label="Phone Number"
                     value={formState.phone}
                     onChange={handleInputChange("phone")}
@@ -223,6 +198,33 @@ const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, value }) => (
     <span className="w-40 font-golos text-[14px] font-[500] text-gray-600">{label}</span>
     <div className="flex-1 rounded-none border-0 border-b border-gray-300 bg-transparent font-golos text-sm text-gray-500 py-2">
       {value}
+    </div>
+  </div>
+);
+
+interface PhoneFieldProps {
+  label: string;
+  value: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const PhoneField: React.FC<PhoneFieldProps> = ({ label, value, onChange }) => (
+  <div className="flex items-center gap-2">
+    <span className="w-40 font-golos text-[14px] font-[500] text-gray-600">{label}</span>
+    <div className="relative flex-1">
+      <span className="absolute left-0 top-1/2 -translate-y-1/2 font-golos text-sm text-gray-600">
+        +91
+      </span>
+      <Input
+        type="tel"
+        value={value}
+        onChange={(e) => {
+          // Remove +91 if user tries to type it, and only allow digits
+          const newValue = e.target.value.replace(/^\+91\s*/, '').replace(/\D/g, '');
+          onChange({ ...e, target: { ...e.target, value: newValue } } as React.ChangeEvent<HTMLInputElement>);
+        }}
+        className="rounded-none border-0 border-b border-[#69C24E] bg-transparent pl-10 pr-0 font-golos text-sm text-gray-900 focus:border-[#46B753] focus:outline-none focus:ring-0"
+      />
     </div>
   </div>
 );

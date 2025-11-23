@@ -7,7 +7,7 @@ import styles from './FAQ.module.css';
  * Uses CSS Modules for styling matching Figma design
  */
 const FAQ: React.FC = () => {
-  const [openItems, setOpenItems] = useState<number[]>([]);
+  const [openItemId, setOpenItemId] = useState<number | null>(null);
 
   const faqData = [
     {
@@ -33,11 +33,7 @@ const FAQ: React.FC = () => {
   ];
 
   const toggleItem = (id: number) => {
-    setOpenItems(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
-    );
+    setOpenItemId(prev => prev === id ? null : id);
   };
 
   return (
@@ -55,7 +51,7 @@ const FAQ: React.FC = () => {
         {/* FAQ Items */}
         <div className={styles.faqContainer}>
           {faqData.map((item, index) => {
-            const isOpen = openItems.includes(item.id);
+            const isOpen = openItemId === item.id;
             
             return (
               <div key={item.id} className={styles.faqItem}>

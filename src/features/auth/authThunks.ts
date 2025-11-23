@@ -46,6 +46,9 @@ export const login = createAsyncThunk<
 
     return response.data;
   } catch (error: any) {
+    // Reset loading state on error
+    dispatch(authSlice.actions.setLoading(false));
+    
     // Handle error with centralized error handler
     ApiResponseHandler.handleError(error, "Login failed");
     

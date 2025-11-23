@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import api from "../../services/api";
 import { endpoints } from "../../services/endpoints";
-import type { AdminSpoEntry, AdminSpoState } from "./adminSpoTypes";
+import type { AdminSpoEntry, AdminSpoState, AssessmentResponsesData } from "./adminSpoTypes";
 
 const initialState: AdminSpoState = {
   items: [],
@@ -15,6 +15,9 @@ const initialState: AdminSpoState = {
   reportError: null,
   isDeleting: false,
   deleteError: null,
+  assessmentResponses: null,
+  isAssessmentResponsesLoading: false,
+  assessmentResponsesError: null,
 };
 
 export interface AdminSpoFilters {
@@ -122,6 +125,31 @@ export const deleteAdminSpo = createAsyncThunk<
   }
 });
 
+export interface FetchAssessmentResponsesParams {
+  spoId: number | string;
+  assessmentId: number | string;
+}
+
+export const fetchAssessmentResponses = createAsyncThunk<
+  AssessmentResponsesData,
+  FetchAssessmentResponsesParams,
+  { rejectValue: string }
+>("adminSpo/fetchAssessmentResponses", async ({ spoId, assessmentId }, { rejectWithValue }) => {
+  try {
+    const response = await api.get<AssessmentResponsesData>(
+      endpoints.admin.spoAssessmentResponses(spoId, assessmentId)
+    );
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ??
+      error?.response?.data?.detail ??
+      error?.message ??
+      "Failed to fetch assessment responses";
+    return rejectWithValue(message);
+  }
+});
+
 const adminSpoSlice = createSlice({
   name: "adminSpo",
   initialState,
@@ -145,6 +173,14 @@ const adminSpoSlice = createSlice({
     },
     clearAdminSpoDeleteError: (state) => {
       state.deleteError = null;
+    },
+    clearAssessmentResponsesError: (state) => {
+      state.assessmentResponsesError = null;
+    },
+    resetAssessmentResponses: (state) => {
+      state.assessmentResponses = null;
+      state.assessmentResponsesError = null;
+      state.isAssessmentResponsesLoading = false;
     },
     resetAdminSpo: () => initialState,
   },
@@ -211,6 +247,19 @@ const adminSpoSlice = createSlice({
         state.isDeleting = false;
         state.deleteError = action.payload ?? "Failed to delete SPO";
       });
+    builder
+      .addCase(fetchAssessmentResponses.pending, (state) => {
+        state.isAssessmentResponsesLoading = true;
+        state.assessmentResponsesError = null;
+      })
+      .addCase(fetchAssessmentResponses.fulfilled, (state, action) => {
+        state.isAssessmentResponsesLoading = false;
+        state.assessmentResponses = action.payload;
+      })
+      .addCase(fetchAssessmentResponses.rejected, (state, action) => {
+        state.isAssessmentResponsesLoading = false;
+        state.assessmentResponsesError = action.payload ?? "Failed to fetch assessment responses";
+      });
   },
 });
 
@@ -219,6 +268,8 @@ export const {
   clearAdminSpoDetailError,
   clearAdminSpoReportError,
   clearAdminSpoDeleteError,
+  clearAssessmentResponsesError,
+  resetAssessmentResponses,
   resetAdminSpo,
   resetSelectedAdminSpo,
   setSelectedAdminSpo,

@@ -34,7 +34,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 const Login: React.FC = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { isLoading, error, isAuthenticated, has_completed_profile, onboarding, user } = useSelector((state: RootState) => state.auth)
+  const { isLoading, isAuthenticated, has_completed_profile, onboarding, user } = useSelector((state: RootState) => state.auth)
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -54,26 +54,26 @@ const Login: React.FC = () => {
       console.log("has_completed_profile:", has_completed_profile)
       console.log("onboarding:", onboarding)
       
-      // Only allow SPO role to access SPO routes
-      if (userRole !== 'SPO') {
-        console.error("Non-SPO user attempted to login via SPO portal")
-        if (userRole === 'ADMIN') {
-          navigate("/admin/dashboard", { replace: true })
-        } else if (userRole === 'BANK_USER') {
-          navigate("/banking/dashboard", { replace: true })
+      // Navigate based on user role
+      if (userRole === 'ADMIN') {
+        console.log("Admin user authenticated, navigating to admin dashboard")
+        navigate("/admin/dashboard", { replace: true })
+      } else if (userRole === 'BANK_USER') {
+        console.log("Banking user authenticated, navigating to banking dashboard")
+        navigate("/banking/dashboard", { replace: true })
+      } else if (userRole === 'SPO') {
+        // SPO users need profile completion check
+        if (has_completed_profile) {
+          console.log("User has completed profile, navigating to assessment")
+          navigate("/assessment", { replace: true })
         } else {
-          navigate("/login", { replace: true })
+          const currentStep = onboarding?.current_step || 1
+          console.log("User hasn't completed profile, navigating to signup step:", currentStep + 1)
+          navigate(`/signup/step/${currentStep + 1}`, { replace: true })
         }
-        return
-      }
-      
-      if (has_completed_profile) {
-        console.log("User has completed profile, navigating to assessment")
-        navigate("/assessment", { replace: true })
       } else {
-        const currentStep = onboarding?.current_step || 1
-        console.log("User hasn't completed profile, navigating to signup step:", currentStep + 1)
-        navigate(`/signup/step/${currentStep + 1}`, { replace: true })
+        console.error("Unknown user role:", userRole)
+        navigate("/login", { replace: true })
       }
     }
   }, [isAuthenticated, user, has_completed_profile, onboarding, navigate])

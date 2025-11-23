@@ -119,9 +119,9 @@
   content: '';
   position: absolute;
   left: 8px;
-  top: 100px;
+  top: 130px;
   width: 4px;
-  height: calc(100% - 350px);
+  height: calc(100% - 340px);
   background: linear-gradient(to bottom, var(--villgro-green) 50%, white 50%);
   z-index: 1;
 }

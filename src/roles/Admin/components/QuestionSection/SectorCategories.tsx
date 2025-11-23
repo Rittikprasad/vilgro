@@ -54,7 +54,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
                   fontFamily: 'Golos Text',
                   fontWeight: 500,
                   fontStyle: 'normal',
-                  fontSize: '16px'
+                  fontSize: '18px'
                 }}
               >
                 {category.title}
@@ -69,7 +69,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
                     fontFamily: 'Golos Text',
                     fontWeight: 600,
                     fontStyle: 'normal',
-                    fontSize: '12px'
+                    fontSize: '14px'
                   }}
                 >
                   Total Questions: {category.totalQuestions}
@@ -80,7 +80,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
                     fontFamily: 'Golos Text',
                     fontWeight: 400,
                     fontStyle: 'normal',
-                    fontSize: '12px'
+                    fontSize: '14px'
                   }}
                 >
                   Impact Questions: {category.impactQuestions}
@@ -91,7 +91,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
                     fontFamily: 'Golos Text',
                     fontWeight: 400,
                     fontStyle: 'normal',
-                    fontSize: '12px'
+                    fontSize: '14px'
                   }}
                 >
                   Risk Questions: {category.riskQuestions}
@@ -102,7 +102,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
                     fontFamily: 'Golos Text',
                     fontWeight: 400,
                     fontStyle: 'normal',
-                    fontSize: '12px'
+                    fontSize: '14px'
                   }}
                 >
                   Return Questions: {category.returnQuestions}
@@ -116,7 +116,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
                 className="w-full"
                 onClick={() => onCategorySelect(category.id)}
               >
-                View all Questions
+                Next
               </Button>
             </CardFooter>
           </Card>

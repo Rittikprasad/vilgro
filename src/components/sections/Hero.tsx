@@ -24,6 +24,42 @@ const Hero: React.FC = () => {
       navigate('/signup');
     }
   };
+
+  /**
+   * Scroll to element helper function
+   */
+  const scrollToElement = (targetId: string) => {
+    setTimeout(() => {
+      const element = document.getElementById(targetId);
+      if (element) {
+        const headerOffset = 120;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: Math.max(0, offsetPosition),
+          behavior: 'smooth'
+        });
+      } else {
+        console.warn(`Element with id "${targetId}" not found`);
+      }
+    }, 100);
+  };
+
+  const handleLearnMore = () => {
+    // If not on home page, navigate first then scroll
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/') {
+      navigate('/');
+      // Wait for navigation to complete, then scroll
+      setTimeout(() => {
+        scrollToElement('how-it-works');
+      }, 300);
+    } else {
+      // Already on home page, scroll immediately
+      scrollToElement('how-it-works');
+    }
+  };
   return (
     <section className={styles.hero}>
       <div className={styles.container}>
@@ -45,7 +81,7 @@ const Hero: React.FC = () => {
               Start Your Assessment Now
             </Button>
             
-            <button className={buttonStyles.btnLink}>
+            <button className={buttonStyles.btnLink} onClick={handleLearnMore}>
               Want to learn more before starting?
             </button>
           </div>

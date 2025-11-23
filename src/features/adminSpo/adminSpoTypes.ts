@@ -50,6 +50,30 @@ export interface AdminSpoEntry {
   assessment_id: number | null;
 }
 
+export interface AssessmentQuestionResponse {
+  code: string;
+  text: string;
+  type: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'SLIDER' | 'MULTI_SLIDER' | 'RATING' | 'NPS' | 'VISUAL_RATING';
+  answer?: {
+    value?: string | number;
+    values?: string[] | Record<string, number>;
+  };
+}
+
+export interface AssessmentSection {
+  code: string;
+  name: string;
+  questions: AssessmentQuestionResponse[];
+}
+
+export interface AssessmentResponsesData {
+  assessment_id: number;
+  status: string;
+  started_at: string;
+  submitted_at: string;
+  sections: AssessmentSection[];
+}
+
 export interface AdminSpoState {
   items: AdminSpoEntry[];
   isLoading: boolean;
@@ -62,5 +86,8 @@ export interface AdminSpoState {
   reportError: string | null;
   isDeleting: boolean;
   deleteError: string | null;
+  assessmentResponses: AssessmentResponsesData | null;
+  isAssessmentResponsesLoading: boolean;
+  assessmentResponsesError: string | null;
 }
 

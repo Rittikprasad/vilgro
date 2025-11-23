@@ -60,13 +60,13 @@ const Header: React.FC = () => {
         {/* Navigation */}
         <nav className={styles.nav}>
           <a href="#how-it-works" className={styles.navLink} onClick={(e) => handleScrollTo(e, 'how-it-works')}>
-            How It Works?
+            How It Works
           </a>
           <a href="#for-who" className={styles.navLink} onClick={(e) => handleScrollTo(e, 'for-who')}>
-            For Who?
+            For Who
           </a>
           <a href="#why-use" className={styles.navLink} onClick={(e) => handleScrollTo(e, 'why-use')}>
-            Why use?
+            Why use
           </a>
           <a href="#testimonials" className={styles.navLink} onClick={(e) => handleScrollTo(e, 'testimonials')}>
             Testimonials

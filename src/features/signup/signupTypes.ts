@@ -28,6 +28,9 @@ export interface SignupCompleteRequest {
   date_of_incorporation: string; // Made mandatory
   gst_number?: string;
   cin_number?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
 }
 
 export interface SignupCompleteResponse {

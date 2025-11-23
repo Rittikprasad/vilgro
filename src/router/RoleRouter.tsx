@@ -5,6 +5,7 @@ import {
   AdminDashboard,
   SPOsPage,
   SPOProfilePage,
+  SPOResponsesPage,
   QuestionsPage,
   BanksPage,
   ReviewsPage,
@@ -39,6 +40,7 @@ export const RoleRouter: React.FC = () => {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/spos" element={<SPOsPage />} />
         <Route path="/admin/spos/:spoId" element={<SPOProfilePage />} />
+        <Route path="/admin/spos/:spoId/responses" element={<SPOResponsesPage />} />
         <Route path="/admin/questions" element={<QuestionsPage />} />
         <Route path="/admin/banks" element={<BanksPage />} />
         <Route path="/admin/reviews" element={<ReviewsPage />} />

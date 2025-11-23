@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent } from '../../../../components/ui/Card';
 import ConfirmationModal from '../../../../components/ui/ConfirmationModal';
+import BackIcon from '../../../../assets/svg/BackIcon.svg';
 import { fetchQuestionsBySection, deleteAdminQuestion } from '../../../../features/question-builder/questionBuilderSlice';
 import type { RootState } from '../../../../app/store';
 import type { AdminQuestion } from '../../../../features/question-builder/types';
@@ -270,16 +271,13 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
       {/* Back button and Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button 
-            variant="outline" 
+          <button
+            type="button"
             onClick={onBackToCategoryDetails}
-            className="flex items-center space-x-2"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span>Back</span>
-          </Button>
+            <img src={BackIcon} alt="Back" className="w-8 h-8" />
+          </button>
           <h1 
             className="text-gray-800"
             style={{
@@ -433,7 +431,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '12px',
+                            fontSize: '14px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'
@@ -447,7 +445,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '12px',
+                            fontSize: '14px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'
@@ -461,7 +459,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '12px',
+                            fontSize: '14px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'
@@ -475,7 +473,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '12px',
+                            fontSize: '14px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'
@@ -489,7 +487,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
                             fontFamily: 'Golos Text',
                             fontWeight: 400,
                             fontStyle: 'normal',
-                            fontSize: '12px',
+                            fontSize: '14px',
                             verticalAlign: 'middle',
                             paddingTop: '16px',
                             paddingBottom: '16px'

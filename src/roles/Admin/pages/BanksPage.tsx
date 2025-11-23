@@ -344,7 +344,7 @@ const BanksPage: React.FC = () => {
                               name: row.raw.name ?? "",
                               password: "",
                               contactEmail: row.raw.contact_email ?? "",
-                              contactPhone: row.raw.contact_phone ?? "",
+                              contactPhone: row.raw.contact_phone?.replace(/^\+91/, '') ?? "",
                               status: row.raw.status ?? "ACTIVE",
                             });
                             setIsModalOpen(true);
@@ -467,7 +467,7 @@ const BanksPage: React.FC = () => {
                     const updateData: any = {
                       name: formState.name.trim(),
                       contact_email: formState.contactEmail.trim(),
-                      contact_phone: formState.contactPhone.trim(),
+                      contact_phone: formState.contactPhone.trim() ? `+91${formState.contactPhone.trim()}` : formState.contactPhone.trim(),
                       status: formState.status,
                     };
                     if (formState.password.trim()) {
@@ -485,7 +485,7 @@ const BanksPage: React.FC = () => {
                         name: formState.name.trim(),
                         password: formState.password.trim(),
                         contact_email: formState.contactEmail.trim(),
-                        contact_phone: formState.contactPhone.trim(),
+                        contact_phone: formState.contactPhone.trim() ? `+91${formState.contactPhone.trim()}` : formState.contactPhone.trim(),
                         status: formState.status,
                       })
                     ).unwrap();
@@ -553,15 +553,22 @@ const BanksPage: React.FC = () => {
                 <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
                   Contact Phone
                 </label>
-                <Input
-                  type="tel"
-                  value={formState.contactPhone}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, contactPhone: event.target.value }))
-                  }
-                  placeholder="Enter phone number"
-                  className="gradient-border h-11 bg-white px-4 text-sm"
-                />
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-600 font-golos">
+                    +91
+                  </span>
+                  <Input
+                    type="tel"
+                    value={formState.contactPhone}
+                    onChange={(event) => {
+                      // Remove +91 if user tries to type it, and only allow digits
+                      const value = event.target.value.replace(/^\+91\s*/, '').replace(/\D/g, '');
+                      setFormState((prev) => ({ ...prev, contactPhone: value }));
+                    }}
+                    placeholder="Enter phone number"
+                    className="gradient-border h-11 bg-white pl-12 pr-4 text-sm"
+                  />
+                </div>
               </div>
 
               <div>

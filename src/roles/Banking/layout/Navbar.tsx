@@ -24,7 +24,7 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
     setIsLogoutModalOpen(false);
     try {
       await dispatch(logoutUser()).unwrap();
-      navigate('/signin/banking');
+      navigate('/login');
     } catch (error) {
       console.error("Failed to logout banking user", error);
     }

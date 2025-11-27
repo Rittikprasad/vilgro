@@ -19,7 +19,13 @@ import type { RootState } from "../../app/store"
 const step2Schema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  phoneNumber: z.string().optional(),
+  phoneNumber: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || /^\+91[6-9]\d{9}$/.test(val),
+      "Phone number must be in format +91 followed by 10 digits (e.g., +91XXXXXXXXXX)"
+    ),
   designation: z.string().email("Please enter a valid email address"),
   companyName: z.string().min(1, "Company name is required"),
   legalRegistrationType: z.string().optional(), // Made optional
@@ -56,6 +62,34 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
   })
 
   const selectedRegistrationType = watch("legalRegistrationType")
+  
+  // Format phone number handler
+  const phoneNumberRegister = register("phoneNumber")
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^+\d]/g, ""); // Keep only + and digits
+    const digitsOnly = value.replace("+", "");
+    
+    // If user starts typing without +91, auto-prepend 91
+    let processedValue = digitsOnly;
+    if (digitsOnly.length > 0 && !digitsOnly.startsWith("91")) {
+      // If starts with 0, remove it
+      if (digitsOnly.startsWith("0")) {
+        processedValue = "91" + digitsOnly.substring(1);
+      } else if (digitsOnly.length <= 10) {
+        processedValue = "91" + digitsOnly;
+      }
+    }
+    
+    // Limit to 12 digits (91 + 10 digits)
+    processedValue = processedValue.substring(0, 12);
+    
+    // Format as +91XXXXXXXXXX
+    const formattedValue = processedValue.length > 0 ? "+" + processedValue : "";
+    
+    // Update the input value and form state
+    e.target.value = formattedValue;
+    setValue("phoneNumber", formattedValue, { shouldValidate: true });
+  }
 
   // Fetch meta options on component mount
   useEffect(() => {
@@ -193,9 +227,11 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
 
                 <div className="space-y-1">
                   <Input
-                    {...register("phoneNumber")}
-                    placeholder="Phone Number"
+                    {...phoneNumberRegister}
+                    onChange={handlePhoneNumberChange}
+                    placeholder="+91 XXXXXXXXXX"
                     type="tel"
+                    maxLength={13}
                     className={cn(
                       "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
                       errors.phoneNumber ? "border-red-500" : "gradient-border"

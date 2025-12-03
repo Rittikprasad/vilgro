@@ -10,6 +10,23 @@ interface DashboardHeaderProps {
   currentFilters?: DashboardFilters;
 }
 
+/**
+ * Returns a time-appropriate greeting based on the current hour
+ */
+const getGreeting = (): string => {
+  const hour = new Date().getHours();
+  
+  if (hour >= 5 && hour < 12) {
+    return "Good Morning";
+  } else if (hour >= 12 && hour < 17) {
+    return "Good Afternoon";
+  } else if (hour >= 17 && hour < 21) {
+    return "Good Evening";
+  } else {
+    return "Good Night";
+  }
+};
+
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ 
   userName = "John Doe", 
   filterText = "last 7 days",
@@ -17,6 +34,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   currentFilters = {}
 }) => {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const greeting = getGreeting();
 
   const hasActiveFilters = !!(currentFilters.start_date || currentFilters.end_date);
 
@@ -29,7 +47,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[30px] font-[500] font-[Baskervville] text-gray-800">Good Morning, {userName}</h1>
+          <h1 className="text-[30px] font-[500] font-[Baskervville] text-gray-800">{greeting}, {userName}</h1>
         </div>
         <div className="flex gap-2">
           <Button 

@@ -462,8 +462,20 @@ const AdminsPage: React.FC = () => {
                         data: payloadBase,
                       })
                     ).unwrap();
+                    showNotification({
+                      type: "success",
+                      title: "Admin Updated",
+                      message: `Admin profile for ${trimmedEmail} has been successfully updated.`,
+                      duration: 4000,
+                    });
                   } else {
                     await dispatch(createAdminDetail(payloadBase)).unwrap();
+                    showNotification({
+                      type: "success",
+                      title: "Admin Created",
+                      message: `Admin profile for ${trimmedEmail} has been successfully created.`,
+                      duration: 4000,
+                    });
                   }
 
                   await dispatch(fetchAdminDetails({ page: currentPage, pageSize }));

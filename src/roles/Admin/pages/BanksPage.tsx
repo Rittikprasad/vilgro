@@ -17,6 +17,7 @@ import {
 } from "../../../features/adminBank/adminBankSlice";
 import type { AdminBankStatus } from "../../../features/adminBank/adminBankTypes";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
+import { showNotification } from "../../../services/notificationService";
 
 const DeleteIcon: React.FC = () => (
   <svg
@@ -479,6 +480,12 @@ const BanksPage: React.FC = () => {
                         data: updateData,
                       })
                     ).unwrap();
+                    showNotification({
+                      type: "success",
+                      title: "Bank Updated",
+                      message: `Bank profile for ${formState.name.trim()} has been successfully updated.`,
+                      duration: 4000,
+                    });
                   } else {
                     await dispatch(
                       createAdminBank({
@@ -489,6 +496,12 @@ const BanksPage: React.FC = () => {
                         status: formState.status,
                       })
                     ).unwrap();
+                    showNotification({
+                      type: "success",
+                      title: "Bank Created",
+                      message: `Bank profile for ${formState.name.trim()} has been successfully created.`,
+                      duration: 4000,
+                    });
                   }
                   setIsModalOpen(false);
                   setFormState(initialFormState);

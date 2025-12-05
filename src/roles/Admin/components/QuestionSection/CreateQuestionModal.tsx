@@ -149,8 +149,18 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
 
   const handleSave = (updatedQuestion: QuestionItem) => {
     // Convert QuestionItem to CreateQuestionPayload
+    // Convert sectionId to number for backend (section ID must be a number)
+    const numericSectionId = typeof sectionId === 'string' 
+      ? (sectionId ? parseInt(sectionId, 10) : 0)
+      : (sectionId || 0);
+    
+    if (!numericSectionId || isNaN(numericSectionId)) {
+      console.error('Invalid section ID:', sectionId);
+      // Could show an error to user here if needed
+    }
+    
     const payload: CreateQuestionPayload = {
-      section: sectionId,
+      section: numericSectionId,
       code: `Q_${Date.now()}`, // Generate unique code
       text: updatedQuestion.question,
       type: updatedQuestion.type as any,

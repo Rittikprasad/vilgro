@@ -16,6 +16,7 @@ import {
 } from "../../../features/adminSpo/adminSpoSlice";
 import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
 import { cn } from "../../../lib/utils";
+import { exportToCSV } from "../../../lib/csvExport";
 
 const SPOsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -137,6 +138,53 @@ const SPOsPage: React.FC = () => {
     return 'text-gray-500';
   };
 
+  // Export all SPO data to CSV
+  const handleExport = () => {
+    if (items.length === 0) {
+      console.warn('No SPO data to export');
+      return;
+    }
+
+    // Prepare data for export with all relevant fields
+    const exportData = items.map((item: AdminSpoEntry) => ({
+      ID: item.id,
+      'First Name': item.first_name || '',
+      'Last Name': item.last_name || '',
+      'Email': item.email || '',
+      'Phone': item.phone || '',
+      'Status': item.is_active ? 'Active' : 'Inactive',
+      'Date Joined': item.date_joined || '',
+      'Organization Name': item.organization?.name || '',
+      'Registration Type': item.organization?.registration_type || '',
+      'Date of Incorporation': item.organization?.date_of_incorporation || '',
+      'GST Number': item.organization?.gst_number || '',
+      'CIN Number': item.organization?.cin_number || '',
+      'Sector': item.organization?.focus_sector || '',
+      'Innovation Type': item.organization?.type_of_innovation || '',
+      'Geographic Scope': item.organization?.geo_scope || '',
+      'Top States': item.organization?.top_states?.join('; ') || '',
+      'Organization Stage': item.organization?.org_stage || '',
+      'Impact Focus': item.organization?.impact_focus || '',
+      'Annual Operating Budget': item.organization?.annual_operating_budget || '',
+      'Use of Questionnaire': item.organization?.use_of_questionnaire || '',
+      'Received Philanthropy Before': item.organization?.received_philanthropy_before ? 'Yes' : 'No',
+      'Loan Eligible': item.loan_eligible ? 'Yes' : 'No',
+      'Instrument': item.instrument?.name || '',
+      'Overall Score': item.scores?.overall || '',
+      'Impact Score': item.scores?.sections?.IMPACT || '',
+      'Risk Score': item.scores?.sections?.RISK || '',
+      'Return Score': item.scores?.sections?.RETURN || '',
+      'Assessment ID': item.assessment_id || '',
+    }));
+
+    // Generate filename with current date
+    const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const filename = `SPOs_Export_${dateStr}`;
+
+    // Export to CSV
+    exportToCSV(exportData, filename);
+  };
+
   return (
     <LayoutWrapper>
       <div className="space-y-6">
@@ -172,6 +220,14 @@ const SPOsPage: React.FC = () => {
               onClick={() => setIsFilterModalOpen(true)}
             >
               Filters
+            </Button>
+            <Button 
+              variant="gradient" 
+              className="px-4 py-2"
+              onClick={handleExport}
+              disabled={isLoading || items.length === 0}
+            >
+              Export
             </Button>
             {hasActiveDateFilters && (
               <button className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">

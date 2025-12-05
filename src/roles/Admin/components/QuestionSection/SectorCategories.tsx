@@ -15,6 +15,9 @@ export interface QuestionCategory {
 interface SectorCategoriesProps {
   categories: QuestionCategory[];
   onCategorySelect: (categoryId: string) => void;
+  isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
 /**
@@ -24,7 +27,10 @@ interface SectorCategoriesProps {
  */
 const SectorCategories: React.FC<SectorCategoriesProps> = ({ 
   categories, 
-  onCategorySelect 
+  onCategorySelect,
+  isLoading = false,
+  error = null,
+  onRetry
 }) => {
   return (
     <div className="space-y-6">
@@ -43,8 +49,32 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
         </h1>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading sectors...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !isLoading && (
+        <div className="text-center py-8">
+          <p className="text-red-600 mb-4">{error}</p>
+          {onRetry && (
+            <Button
+              variant="outline"
+              onClick={onRetry}
+            >
+              Retry
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Question Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {!isLoading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {categories.map((category) => (
           <Card key={category.id} className="hover:shadow-md transition-shadow duration-200">
             <CardHeader>
@@ -121,7 +151,15 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
             </CardFooter>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
+
+      {/* No categories available */}
+      {!isLoading && !error && categories.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-600">No sectors available</p>
+        </div>
+      )}
     </div>
   );
 };

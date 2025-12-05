@@ -176,8 +176,17 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
 
   // Helper function to convert QuestionItem to CreateQuestionPayload format
   const convertQuestionItemToPayload = (question: QuestionItem): Partial<CreateQuestionPayload> => {
+    // Convert sectionId to number for backend (section ID must be a number)
+    const numericSectionId = typeof sectionId === 'string' 
+      ? (sectionId ? parseInt(sectionId, 10) : 0)
+      : (sectionId || 0);
+    
+    if (!numericSectionId || isNaN(numericSectionId)) {
+      console.error('Invalid section ID:', sectionId);
+    }
+    
     const payload: Partial<CreateQuestionPayload> = {
-      section: sectionId,
+      section: numericSectionId,
       text: question.question,
       order: question.order,
       weight: question.weight.toString(),

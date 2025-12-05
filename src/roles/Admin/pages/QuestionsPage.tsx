@@ -1,54 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import LayoutWrapper from '../layout/LayoutWrapper';
 import { SectorCategories, CategoryDetails } from '../components/QuestionSection';
 import type { QuestionCategory } from '../components/QuestionSection';
-
-// Question categories data
-const questionCategories: QuestionCategory[] = [
-  {
-    id: 'agriculture',
-    title: 'Agriculture',
-    totalQuestions: 16,
-    impactQuestions: 16,
-    riskQuestions: 16,
-    returnQuestions: 16,
-  },
-  {
-    id: 'waste-management',
-    title: 'Waste management / recycling',
-    totalQuestions: 16,
-    impactQuestions: 16,
-    riskQuestions: 16,
-    returnQuestions: 16,
-  },
-  {
-    id: 'livelihood',
-    title: 'Livelihood Creation',
-    totalQuestions: 16,
-    impactQuestions: 16,
-    riskQuestions: 16,
-    returnQuestions: 16,
-  },
-  {
-    id: 'health',
-    title: 'Health',
-    totalQuestions: 16,
-    impactQuestions: 16,
-    riskQuestions: 16,
-    returnQuestions: 16,
-  },
-  {
-    id: 'others',
-    title: 'Others',
-    totalQuestions: 16,
-    impactQuestions: 16,
-    riskQuestions: 16,
-    returnQuestions: 16,
-  },
-];
+import { fetchSectorSummary } from '../../../features/question-builder/questionBuilderSlice';
+import type { RootState } from '../../../app/store';
 
 const QuestionsPage: React.FC = () => {
+  const dispatch = useDispatch();
+  const { sectorSummary, sectorSummaryLoading, sectorSummaryError } = useSelector(
+    (state: RootState) => state.questionBuilder
+  );
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
+
+  // Fetch sector summary on component mount
+  useEffect(() => {
+    dispatch(fetchSectorSummary() as any);
+  }, [dispatch]);
+
+  // Transform API response to QuestionCategory format
+  const questionCategories: QuestionCategory[] = useMemo(() => {
+    return (sectorSummary || []).map((summary) => ({
+      id: summary.sector.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-'),
+      title: summary.sector,
+      totalQuestions: summary.total_questions,
+      impactQuestions: summary.impact_questions,
+      riskQuestions: summary.risk_questions,
+      returnQuestions: summary.return_questions,
+    }));
+  }, [sectorSummary]);
 
   // Handle category selection
   const handleViewQuestions = (categoryId: string) => {
@@ -74,6 +54,9 @@ const QuestionsPage: React.FC = () => {
         <SectorCategories 
           categories={questionCategories} 
           onCategorySelect={handleViewQuestions} 
+          isLoading={sectorSummaryLoading}
+          error={sectorSummaryError}
+          onRetry={() => dispatch(fetchSectorSummary() as any)}
         />
       )}
     </LayoutWrapper>

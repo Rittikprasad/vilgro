@@ -168,8 +168,8 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
             <p className="text-gray-900 mb-6 text-[14px] font-[300]">
               You took the last test on{" "}
               <span className="font-medium">{lastTestDate}</span>. <br />
-              You can retake the test again after 6 months on{" "}
-              <span className="text-green-600 font-medium">{retakeDate}</span>
+              You can retake the test again after 15 minutes
+              {/* <span className="text-green-600 font-medium">{retakeDate}</span> */}
             </p>
             <Button
               onClick={handleTakeTestAgain}

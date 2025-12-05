@@ -57,7 +57,7 @@ export const endpoints = {
 
   // Admin endpoints
   admin: {
-    sections: `${BASE_URL}/admin/sections/`,
+    sections: (sector: string) => `${BASE_URL}/admin/sections/?sector=${encodeURIComponent(sector)}`,
     questionsBySection: (sectionCode: string) => `${BASE_URL}/admin/questions/by-section/?section=${sectionCode}`,
     questionTypes: `${BASE_URL}/admin/meta/question-types/`,
     questionCodes: (sectionCode: string) => `${BASE_URL}/admin/meta/question-codes/?section=${sectionCode}`,
@@ -76,6 +76,7 @@ export const endpoints = {
     bankById: (id: number | string) => `${BASE_URL}/admin/banks/${id}/`,
     reviews: `${BASE_URL}/admin/reviews/`,
     audit: `${BASE_URL}/admin/audit/`,
+    sectorSummary: `${BASE_URL}/admin/questions/sector-summary/`,
   },
 
   loan: {

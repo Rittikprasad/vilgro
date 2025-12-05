@@ -9,7 +9,7 @@ export interface QuestionType {
 
 // Types for create question API
 export interface CreateQuestionPayload {
-  section: string;
+  section: number | string;
   code: string;
   text: string;
   type: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'SLIDER' | 'MULTI_SLIDER' | 'RATING' | 'NPS';

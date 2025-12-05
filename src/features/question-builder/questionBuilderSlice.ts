@@ -9,6 +9,7 @@ import type {
   IInitialQuestionBuilderState,
   AdminQuestion,
   QuestionCode,
+  SectorSummary,
 } from "./types";
 
 // Initial state
@@ -17,26 +18,29 @@ const getInitialState = (): IInitialQuestionBuilderState => {
     sections: [],
     questions: [],
     questionCodes: [],
+    sectorSummary: [],
     isLoading: false,
     questionsLoading: false,
     questionCodesLoading: false,
+    sectorSummaryLoading: false,
     error: null,
     questionsError: null,
     questionCodesError: null,
+    sectorSummaryError: null,
   };
 };
 
 // Async thunk to fetch admin sections
 export const fetchAdminSections = createAsyncThunk<
   AdminSection[],
-  void,
+  string,
   { rejectValue: { message: string; status: number } }
 >(
   "questionBuilder/fetchAdminSections",
-  async (_, { rejectWithValue }) => {
+  async (sector, { rejectWithValue }) => {
     try {
       const response = await api.get<AdminSection[]>(
-        endpoints.admin.sections
+        endpoints.admin.sections(sector)
       );
 
       console.log("Admin sections API response:", response.data);
@@ -154,6 +158,31 @@ export const fetchQuestionCodesBySection = createAsyncThunk<
   }
 );
 
+// Async thunk to fetch sector summary
+export const fetchSectorSummary = createAsyncThunk<
+  SectorSummary[],
+  void,
+  { rejectValue: { message: string; status: number } }
+>(
+  "questionBuilder/fetchSectorSummary",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get<SectorSummary[]>(
+        endpoints.admin.sectorSummary
+      );
+      console.log("Sector summary API response:", response.data);
+      return response.data;
+    } catch (error: any) {
+      ApiResponseHandler.handleError(error, "Failed to fetch sector summary");
+      const errorMessage = error.response?.data?.message || "Failed to fetch sector summary";
+      return rejectWithValue({
+        message: errorMessage,
+        status: error.response?.status || 500,
+      });
+    }
+  }
+);
+
 export const questionBuilderSlice = createSlice({
   name: "questionBuilder",
   initialState: getInitialState(),
@@ -243,6 +272,20 @@ export const questionBuilderSlice = createSlice({
       .addCase(fetchQuestionCodesBySection.rejected, (state, action) => {
         state.questionCodesLoading = false;
         state.questionCodesError = action.payload?.message || "Failed to fetch question codes";
+      })
+      // Sector summary reducers
+      .addCase(fetchSectorSummary.pending, (state) => {
+        state.sectorSummaryLoading = true;
+        state.sectorSummaryError = null;
+      })
+      .addCase(fetchSectorSummary.fulfilled, (state, action) => {
+        state.sectorSummaryLoading = false;
+        state.sectorSummary = action.payload;
+        state.sectorSummaryError = null;
+      })
+      .addCase(fetchSectorSummary.rejected, (state, action) => {
+        state.sectorSummaryLoading = false;
+        state.sectorSummaryError = action.payload?.message || "Failed to fetch sector summary";
       });
   },
 });
@@ -262,6 +305,7 @@ export const questionBuilderActionCreator = {
   fetchAdminSections,
   fetchQuestionsBySection,
   fetchQuestionCodesBySection,
+  fetchSectorSummary,
   updateAdminQuestion,
   deleteAdminQuestion,
 };

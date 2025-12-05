@@ -68,12 +68,15 @@ export interface IInitialQuestionBuilderState {
   sections: AdminSection[];
   questions: AdminQuestion[];
   questionCodes: QuestionCode[];
+  sectorSummary: SectorSummary[];
   isLoading: boolean;
   questionsLoading: boolean;
   questionCodesLoading: boolean;
+  sectorSummaryLoading: boolean;
   error: string | null;
   questionsError: string | null;
   questionCodesError: string | null;
+  sectorSummaryError: string | null;
 }
 
 // Question Code interface for conditional branching
@@ -81,6 +84,15 @@ export interface QuestionCode {
   code: string;
   text: string;
   type: string;
+}
+
+// Sector Summary interface for sector-level question statistics
+export interface SectorSummary {
+  sector: string;
+  total_questions: number;
+  impact_questions: number;
+  risk_questions: number;
+  return_questions: number;
 }
 
 // Question Builder Tab enum

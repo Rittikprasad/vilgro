@@ -43,10 +43,12 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
   const [selectedSubCategory, setSelectedSubCategory] = useState<QuestionSubCategory | null>(null);
   const [questionsToEdit, setQuestionsToEdit] = useState<QuestionItem[]>([]);
 
-  // Fetch admin sections on component mount
+  // Fetch admin sections on component mount with the selected sector
   useEffect(() => {
-    dispatch(fetchAdminSections() as any);
-  }, [dispatch]);
+    if (category?.title) {
+      dispatch(fetchAdminSections(category.title) as any);
+    }
+  }, [dispatch, category]);
 
   // Convert API sections to sub-categories using actual API data
   console.log("CategoryDetails - sections from state:", sections);
@@ -159,7 +161,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
           <p className="text-red-600 mb-4">{error}</p>
           <Button
             variant="outline"
-            onClick={() => dispatch(fetchAdminSections() as any)}
+            onClick={() => category?.title && dispatch(fetchAdminSections(category.title) as any)}
           >
             Retry
           </Button>

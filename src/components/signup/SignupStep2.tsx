@@ -14,6 +14,7 @@ import Navbar from "../ui/Navbar"
 import { fetchMetaOptions } from "../../features/meta/metaSlice"
 import { completeSignup, clearError } from "../../features/signup/signupSlice"
 import type { RootState } from "../../app/store"
+import { phoneRegex, formatPhoneNumber } from "../../lib/validations"
 
 // Validation schema for Step 2
 const step2Schema = z.object({
@@ -23,7 +24,7 @@ const step2Schema = z.object({
     .string()
     .optional()
     .refine(
-      (val) => !val || /^\+91[6-9]\d{9}$/.test(val),
+      (val) => !val || phoneRegex.test(val),
       "Phone number must be in format +91 followed by 10 digits (e.g., +91XXXXXXXXXX)"
     ),
   designation: z.string().email("Please enter a valid email address"),
@@ -66,25 +67,8 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
   // Format phone number handler
   const phoneNumberRegister = register("phoneNumber")
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/[^+\d]/g, ""); // Keep only + and digits
-    const digitsOnly = value.replace("+", "");
-    
-    // If user starts typing without +91, auto-prepend 91
-    let processedValue = digitsOnly;
-    if (digitsOnly.length > 0 && !digitsOnly.startsWith("91")) {
-      // If starts with 0, remove it
-      if (digitsOnly.startsWith("0")) {
-        processedValue = "91" + digitsOnly.substring(1);
-      } else if (digitsOnly.length <= 10) {
-        processedValue = "91" + digitsOnly;
-      }
-    }
-    
-    // Limit to 12 digits (91 + 10 digits)
-    processedValue = processedValue.substring(0, 12);
-    
-    // Format as +91XXXXXXXXXX
-    const formattedValue = processedValue.length > 0 ? "+" + processedValue : "";
+    // Use the reusable formatPhoneNumber utility
+    const formattedValue = formatPhoneNumber(e.target.value);
     
     // Update the input value and form state
     e.target.value = formattedValue;
@@ -264,14 +248,14 @@ const SignupStep2: React.FC<SignupStep2Props> = ({ onNext }) => {
                     <div className="relative">
                       <Input
                         {...register("dateOfIncorporation")}
-                        type="text"
+                        type="date"
                         placeholder="Date of Incorporation *"
                         className={cn(
                           "w-full h-11 px-4 py-3 rounded-lg focus:outline-none focus:ring-0 focus:border-transparent transition-colors bg-[#F5F5F5]",
                           errors.dateOfIncorporation ? "border-red-500" : "gradient-border"
                         )}
                         onFocus={(e) => {
-                          e.target.type = 'date';
+                          // e.target.type = 'date';
                           // Set max date to today (no future dates allowed)
                           const today = new Date().toISOString().split('T')[0];
                           e.target.setAttribute('max', today);

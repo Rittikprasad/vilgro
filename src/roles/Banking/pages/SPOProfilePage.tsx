@@ -10,6 +10,7 @@ import {
   fetchBankSpoById,
   fetchBankSpoReport,
   clearBankingSpoReportError,
+  resetSelectedBankingSpo,
 } from "../../../features/bankingSpo/bankingSpoSlice";
 import type { BankingSpoEntry } from "../../../features/bankingSpo/bankingSpoTypes";
 
@@ -45,16 +46,57 @@ const BankingSPOProfilePage: React.FC = () => {
     }
   }, [dispatch, numericId, activeSpo]);
 
+  useEffect(() => {
+    return () => {
+      dispatch(resetSelectedBankingSpo());
+    };
+  }, [dispatch]);
+
   const assessmentRows = useMemo(() => {
     if (!activeSpo) return [];
-    const incorporationDate = formatDate(activeSpo.org_created_at);
+    
+    // Check if we have scores - if not, return empty array to show "not available" message
+    if (!activeSpo.scores) {
+      return [];
+    }
+    
+    // Use last assessment date if available, otherwise use date joined
+    const assessmentDate = formatDate(
+      activeSpo.last_assessment_submitted_at || activeSpo.date_joined
+    );
     const loanStatus = activeSpo.last_loan_request_submitted_at ? "Submitted" : "Not Submitted";
+
+    // Format scores - each on a separate line with better styling
+    const impact = activeSpo.scores?.sections?.IMPACT?.toFixed(1) ?? "–";
+    const risk = activeSpo.scores?.sections?.RISK?.toFixed(1) ?? "–";
+    const returnScore = activeSpo.scores?.sections?.RETURN?.toFixed(1) ?? "–";
+
+    const scoreDisplay = (
+      <div className="space-y-1.5 text-sm">
+        <div className="font-golos whitespace-nowrap">
+          <span className="text-gray-600">Impact:</span>{" "}
+          <span className="font-medium text-gray-900">{impact}</span>
+        </div>
+        <div className="font-golos whitespace-nowrap">
+          <span className="text-gray-600">Risk:</span>{" "}
+          <span className="font-medium text-gray-900">{risk}</span>
+        </div>
+        <div className="font-golos whitespace-nowrap">
+          <span className="text-gray-600">Return:</span>{" "}
+          <span className="font-medium text-gray-900">{returnScore}</span>
+        </div>
+      </div>
+    );
+
+    // Get instrument name
+    const instrumentName = activeSpo.instrument?.name ?? "Not specified";
+
     return [
       {
         id: `assessment-${activeSpo.id}`,
-        date: incorporationDate,
-        score: "Impact: –  Risk: –  Return: –",
-        instrument: "-", // Not available in banking API response
+        date: assessmentDate,
+        score: scoreDisplay,
+        instrument: instrumentName,
         loanRequest: loanStatus,
       },
     ];
@@ -179,7 +221,7 @@ const BankingSPOProfilePage: React.FC = () => {
                     <thead>
                       <tr className="text-left text-[11px] font-[400] font-golos uppercase tracking-wider text-gray-400">
                         <th className="px-4 py-3">Date</th>
-                        <th className="px-4 py-3">Score</th>
+                        <th className="px-4 py-3 min-w-[140px]">Score</th>
                         <th className="px-4 py-3">Instrument</th>
                         <th className="px-4 py-3">Loan Request</th>
                         <th className="px-4 py-3 text-center">Actions</th>
@@ -189,7 +231,7 @@ const BankingSPOProfilePage: React.FC = () => {
                       {assessmentRows.map((row) => (
                         <tr key={row.id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 font-medium">{row.date}</td>
-                          <td className="px-4 py-3">{row.score}</td>
+                          <td className="px-4 py-3 align-top">{row.score}</td>
                           <td className="px-4 py-3">{row.instrument}</td>
                           <td className="px-4 py-3">{row.loanRequest}</td>
                           <td className="px-4 py-3 text-center">

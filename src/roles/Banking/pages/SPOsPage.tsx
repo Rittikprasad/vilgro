@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "../../../components/ui/Card";
 import ViewIcon from "../../../assets/svg/view.svg";
-import EmailIcon from "../../../assets/svg/email.svg";
 import { fetchBankSpos, setSelectedBankingSpo, type BankingSpoFilters } from "../../../features/bankingSpo/bankingSpoSlice";
 import type { BankingSpoEntry } from "../../../features/bankingSpo/bankingSpoTypes";
 import type { AppDispatch, RootState } from "../../../app/store";
@@ -12,6 +11,7 @@ import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { cn } from "../../../lib/utils";
 import BankingSPOsFilterModal from "../components/BankingSPOsFilterModal";
+import { exportToCSV } from "../../../lib/csvExport";
 
 const BankingSPOsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -89,7 +89,7 @@ const BankingSPOsPage: React.FC = () => {
       sector: item.focus_sector ?? "-",
       organizationName: item.organization_name ?? "N/A",
       contactEmail: item.email,
-      instrument: "-", // Not available in banking API response
+      instrument: item.instrument?.name ?? "-",
       loanRequest: item.last_loan_request_submitted_at ? "Submitted" : "Not Submitted",
       raw: item,
     }));
@@ -135,6 +135,41 @@ const BankingSPOsPage: React.FC = () => {
     return "text-gray-500";
   };
 
+  // Export all SPO data to CSV
+  const handleExport = () => {
+    if (items.length === 0) {
+      console.warn('No SPO data to export');
+      return;
+    }
+
+    // Prepare data for export with all relevant fields
+    const exportData = items.map((item: BankingSpoEntry) => ({
+      ID: item.id,
+      'First Name': item.first_name || '',
+      'Last Name': item.last_name || '',
+      'Email': item.email || '',
+      'Status': item.is_active ? 'Active' : 'Inactive',
+      'Date Joined': item.date_joined || '',
+      'Organization Name': item.organization_name || '',
+      'Focus Sector': item.focus_sector || '',
+      'Organization Created At': item.org_created_at || '',
+      'Last Assessment Submitted At': item.last_assessment_submitted_at || '',
+      'Last Loan Request Submitted At': item.last_loan_request_submitted_at || '',
+      'Instrument': item.instrument?.name || '',
+      'Overall Score': item.scores?.overall || '',
+      'Impact Score': item.scores?.sections?.IMPACT || '',
+      'Risk Score': item.scores?.sections?.RISK || '',
+      'Return Score': item.scores?.sections?.RETURN || '',
+    }));
+
+    // Generate filename with current date
+    const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const filename = `Banking_SPOs_Export_${dateStr}`;
+
+    // Export to CSV
+    exportToCSV(exportData, filename);
+  };
+
   return (
     <BankingLayoutWrapper>
       <div className="space-y-6">
@@ -169,6 +204,14 @@ const BankingSPOsPage: React.FC = () => {
               onClick={() => setIsFilterModalOpen(true)}
             >
               Filters
+            </Button>
+            <Button 
+              variant="gradient" 
+              className="px-4 py-2"
+              onClick={handleExport}
+              disabled={isLoading || items.length === 0}
+            >
+              Export
             </Button>
             {hasActiveDateFilters && (
               <button className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">

@@ -25,3 +25,52 @@ export const signupSchema = z.object({
 })
 
 export type SignupFormData = z.infer<typeof signupSchema>
+
+/**
+ * Phone number validation regex
+ * Validates Indian phone numbers: +91 followed by 10 digits, first digit must be 6-9
+ */
+export const phoneRegex = /^\+91[6-9]\d{9}$/;
+
+/**
+ * Validates phone number format
+ * @param phone - Phone number to validate (can be empty string)
+ * @returns Error message if invalid, null if valid
+ */
+export const validatePhoneNumber = (phone: string): string | null => {
+  if (!phone || phone.trim() === '') {
+    return null; // Empty phone is allowed (optional field)
+  }
+  if (!phoneRegex.test(phone)) {
+    return "Phone number must be in format +91 followed by 10 digits (e.g., +91XXXXXXXXXX)";
+  }
+  return null;
+};
+
+/**
+ * Formats and validates phone number input
+ * Auto-formats to +91XXXXXXXXXX format
+ * @param value - Raw input value
+ * @returns Formatted phone number
+ */
+export const formatPhoneNumber = (value: string): string => {
+  let cleaned = value.replace(/[^+\d]/g, ""); // Keep only + and digits
+  const digitsOnly = cleaned.replace("+", "");
+  
+  // If user starts typing without +91, auto-prepend 91
+  let processedValue = digitsOnly;
+  if (digitsOnly.length > 0 && !digitsOnly.startsWith("91")) {
+    // If starts with 0, remove it
+    if (digitsOnly.startsWith("0")) {
+      processedValue = "91" + digitsOnly.substring(1);
+    } else if (digitsOnly.length <= 10) {
+      processedValue = "91" + digitsOnly;
+    }
+  }
+  
+  // Limit to 12 digits (91 + 10 digits)
+  processedValue = processedValue.substring(0, 12);
+  
+  // Format as +91XXXXXXXXXX
+  return processedValue.length > 0 ? "+" + processedValue : "";
+};

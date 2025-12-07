@@ -6,6 +6,7 @@ import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
 import { cn } from "../../../lib/utils";
 import ViewIcon from "../../../assets/svg/view.svg";
+import { Eye, EyeOff } from "lucide-react";
 // import EmailIcon from "../../../assets/svg/email.svg";
 import type { AppDispatch, RootState } from "../../../app/store";
 import {
@@ -18,6 +19,7 @@ import {
 import type { AdminBankStatus } from "../../../features/adminBank/adminBankTypes";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import { showNotification } from "../../../services/notificationService";
+import { validatePhoneNumber } from "../../../lib/validations";
 
 const DeleteIcon: React.FC = () => (
   <svg
@@ -67,6 +69,8 @@ const BanksPage: React.FC = () => {
   const [editingBank, setEditingBank] = useState<number | null>(null);
   const [bankToDelete, setBankToDelete] = useState<number | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const fetchBanks = useCallback(() => {
     void dispatch(fetchAdminBanks());
@@ -202,6 +206,8 @@ const BanksPage: React.FC = () => {
               onClick={() => {
                 dispatch(clearAdminBankError());
                 setLocalError(null);
+                setPhoneError(null);
+                setShowPassword(false);
                 setFormState(initialFormState);
                 setIsModalOpen(true);
               }}
@@ -340,7 +346,9 @@ const BanksPage: React.FC = () => {
                           onClick={() => {
                             dispatch(clearAdminBankError());
                             setLocalError(null);
+                            setPhoneError(null);
                             setEditingBank(row.raw.id);
+                            setShowPassword(false);
                             setFormState({
                               name: row.raw.name ?? "",
                               password: "",
@@ -442,6 +450,8 @@ const BanksPage: React.FC = () => {
           onClick={() => {
             setIsModalOpen(false);
             setLocalError(null);
+            setPhoneError(null);
+            setShowPassword(false);
             setEditingBank(null);
             dispatch(clearAdminBankError());
           }}
@@ -458,17 +468,33 @@ const BanksPage: React.FC = () => {
                 {localError ?? createError ?? updateError}
               </div>
             )}
+            {phoneError && (
+              <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-[400] font-golos text-red-600">
+                {phoneError}
+              </div>
+            )}
             <form
               className="space-y-4"
               onSubmit={async (event) => {
                 event.preventDefault();
                 setLocalError(null);
+                setPhoneError(null);
+                
+                // Validate phone number before submission
+                const fullPhone = formState.contactPhone.trim() ? `+91${formState.contactPhone.trim()}` : '';
+                const phoneValidationError = validatePhoneNumber(fullPhone);
+                
+                if (phoneValidationError) {
+                  setPhoneError(phoneValidationError);
+                  return;
+                }
+                
                 try {
                   if (editingBank !== null) {
                     const updateData: any = {
                       name: formState.name.trim(),
                       contact_email: formState.contactEmail.trim(),
-                      contact_phone: formState.contactPhone.trim() ? `+91${formState.contactPhone.trim()}` : formState.contactPhone.trim(),
+                      contact_phone: fullPhone,
                       status: formState.status,
                     };
                     if (formState.password.trim()) {
@@ -492,7 +518,7 @@ const BanksPage: React.FC = () => {
                         name: formState.name.trim(),
                         password: formState.password.trim(),
                         contact_email: formState.contactEmail.trim(),
-                        contact_phone: formState.contactPhone.trim() ? `+91${formState.contactPhone.trim()}` : formState.contactPhone.trim(),
+                        contact_phone: fullPhone,
                         status: formState.status,
                       })
                     ).unwrap();
@@ -506,6 +532,8 @@ const BanksPage: React.FC = () => {
                   setIsModalOpen(false);
                   setFormState(initialFormState);
                   setEditingBank(null);
+                  setPhoneError(null);
+                  setShowPassword(false);
                 } catch (err) {
                   setLocalError(typeof err === "string" ? err : "Failed to create bank");
                 }
@@ -530,16 +558,30 @@ const BanksPage: React.FC = () => {
                 <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
                   Password
                 </label>
-                <Input
-                  type="password"
-                  required={editingBank === null}
-                  value={formState.password}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, password: event.target.value }))
-                  }
-                  placeholder={editingBank !== null ? "Leave blank to keep current password" : "Enter password"}
-                  className="gradient-border h-11 bg-white px-4 text-sm"
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    required={editingBank === null}
+                    value={formState.password}
+                    onChange={(event) =>
+                      setFormState((prev) => ({ ...prev, password: event.target.value }))
+                    }
+                    placeholder={editingBank !== null ? "Leave blank to keep current password" : "Enter password"}
+                    className="gradient-border h-11 bg-white px-4 pr-12 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#46b753] transition-colors cursor-pointer"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -574,14 +616,48 @@ const BanksPage: React.FC = () => {
                     type="tel"
                     value={formState.contactPhone}
                     onChange={(event) => {
-                      // Remove +91 if user tries to type it, and only allow digits
-                      const value = event.target.value.replace(/^\+91\s*/, '').replace(/\D/g, '');
-                      setFormState((prev) => ({ ...prev, contactPhone: value }));
+                      let inputValue = event.target.value.replace(/[^+\d]/g, ""); // Keep only + and digits
+                      const digitsOnly = inputValue.replace("+", "");
+                      
+                      // If user starts typing without +91, auto-prepend 91
+                      let processedValue = digitsOnly;
+                      if (digitsOnly.length > 0 && !digitsOnly.startsWith("91")) {
+                        // If starts with 0, remove it
+                        if (digitsOnly.startsWith("0")) {
+                          processedValue = "91" + digitsOnly.substring(1);
+                        } else if (digitsOnly.length <= 10) {
+                          processedValue = "91" + digitsOnly;
+                        }
+                      }
+                      
+                      // Limit to 12 digits (91 + 10 digits)
+                      processedValue = processedValue.substring(0, 12);
+                      
+                      // Display only digits after +91
+                      const displayValue = processedValue.length > 2 ? processedValue.substring(2) : processedValue;
+                      
+                      setFormState((prev) => ({ ...prev, contactPhone: displayValue }));
+                      
+                      // Validate on change
+                      if (processedValue.length > 0) {
+                        const fullFormatted = "+" + processedValue;
+                        const validationError = validatePhoneNumber(fullFormatted);
+                        setPhoneError(validationError);
+                      } else {
+                        setPhoneError(null);
+                      }
                     }}
+                    maxLength={10}
                     placeholder="Enter phone number"
-                    className="gradient-border h-11 bg-white pl-12 pr-4 text-sm"
+                    className={cn(
+                      "h-11 bg-white pl-12 pr-4 text-sm",
+                      phoneError ? "border-red-500" : "gradient-border"
+                    )}
                   />
                 </div>
+                {phoneError && (
+                  <p className="mt-1 text-red-500 text-xs">{phoneError}</p>
+                )}
               </div>
 
               <div>
@@ -609,7 +685,9 @@ const BanksPage: React.FC = () => {
                   onClick={() => {
                     setIsModalOpen(false);
                     setLocalError(null);
-                      setEditingBank(null);
+                    setPhoneError(null);
+                    setShowPassword(false);
+                    setEditingBank(null);
                     dispatch(clearAdminBankError());
                   }}
                   className="flex-1 rounded-lg border border-gray-300 bg-white py-2.5 text-[13px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100"

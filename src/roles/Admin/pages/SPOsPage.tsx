@@ -91,7 +91,7 @@ const SPOsPage: React.FC = () => {
       sector: item.organization?.focus_sector ?? '-',
       organizationName: item.organization?.name ?? 'N/A',
       contactEmail: item.email,
-      instrument: item.organization?.type_of_innovation ?? '-',
+      instrument: item.instrument?.name ?? item.organization?.type_of_innovation ?? '-',
       loanRequest: item.loan_eligible ? 'Eligible' : 'Non Eligible',
       raw: item,
     }));

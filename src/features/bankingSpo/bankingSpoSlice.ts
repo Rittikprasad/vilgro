@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import api from "../../services/api";
 import { endpoints } from "../../services/endpoints";
-import type { BankingSpoEntry, BankingSpoState, BankingSpoPaginatedResponse, BankingSpoReportPayload } from "./bankingSpoTypes";
+import type { BankingSpoEntry, BankingSpoState, BankingSpoPaginatedResponse, BankingSpoReportPayload, BankingSpoDetailResponse } from "./bankingSpoTypes";
 
 const initialState: BankingSpoState = {
   items: [],
@@ -96,8 +96,38 @@ export const fetchBankSpoById = createAsyncThunk<
   { rejectValue: string }
 >("bankingSpo/fetchById", async (id, { rejectWithValue }) => {
   try {
-    const response = await api.get<BankingSpoEntry>(endpoints.bank.spoById(id));
-    return response.data;
+    const response = await api.get<BankingSpoDetailResponse>(endpoints.bank.spoById(id));
+    const data = response.data;
+    
+    // Transform the detail response to BankingSpoEntry format
+    const latestAssessment = data.assessments && data.assessments.length > 0 
+      ? data.assessments[data.assessments.length - 1] 
+      : null;
+    
+    const transformed: BankingSpoEntry = {
+      id: data.spo.id,
+      email: data.spo.email,
+      first_name: data.spo.first_name || "",
+      last_name: data.spo.last_name || "",
+      is_active: data.spo.is_active,
+      date_joined: data.spo.date_joined,
+      organization_name: data.organization?.name || null,
+      focus_sector: data.organization?.focus_sector || null,
+      org_created_at: null, // Not in detail response
+      last_assessment_submitted_at: latestAssessment?.submitted_at || null,
+      last_loan_request_submitted_at: latestAssessment?.loan_request_id ? latestAssessment.submitted_at : null,
+      instrument: null, // Not in detail response
+      scores: latestAssessment?.scores ? {
+        overall: latestAssessment.scores.overall,
+        sections: {
+          IMPACT: latestAssessment.scores.sections.IMPACT,
+          RISK: latestAssessment.scores.sections.RISK,
+          RETURN: latestAssessment.scores.sections.RETURN,
+        }
+      } : null,
+    };
+    
+    return transformed;
   } catch (error: any) {
     const message =
       error?.response?.data?.message ??

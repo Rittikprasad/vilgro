@@ -6,6 +6,7 @@ import ViewIcon from "../../../assets/svg/view.svg";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { Input } from "../../../components/ui/Input";
 import { cn } from "../../../lib/utils";
+import { Eye, EyeOff } from "lucide-react";
 import {
   clearAdminDetailsError,
   createAdminDetail,
@@ -44,6 +45,7 @@ const AdminsPage: React.FC = () => {
   const [formState, setFormState] = useState(initialFormState);
   const [localError, setLocalError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const handleToggleAccess = useCallback(
     async (admin: AdminDetailsEntry) => {
       const nextStatus = !admin.is_active;
@@ -80,10 +82,10 @@ const AdminsPage: React.FC = () => {
   );
 
 
-  // Keep pagination parameters aligned with server state.
+  // Fetch all admins once on mount and when needed (no pagination params)
   const fetchAdmins = useCallback(() => {
-    void dispatch(fetchAdminDetails({ page: currentPage, pageSize }));
-  }, [dispatch, currentPage, pageSize]);
+    void dispatch(fetchAdminDetails(undefined));
+  }, [dispatch]);
 
   useEffect(() => {
     fetchAdmins();
@@ -179,6 +181,7 @@ const AdminsPage: React.FC = () => {
                 dispatch(clearAdminDetailsError());
                 setLocalError(null);
                 setEditingAdmin(null);
+                setShowPassword(false);
                 setFormState(initialFormState);
                 setIsModalOpen(true);
               }}
@@ -308,6 +311,7 @@ const AdminsPage: React.FC = () => {
                             dispatch(clearAdminDetailsError());
                             setLocalError(null);
                             setEditingAdmin(admin.raw);
+                            setShowPassword(false);
                             setFormState({
                               email: admin.raw.email ?? "",
                               firstName: admin.raw.first_name ?? "",
@@ -409,6 +413,7 @@ const AdminsPage: React.FC = () => {
             setIsModalOpen(false);
             setLocalError(null);
             setEditingAdmin(null);
+            setShowPassword(false);
             dispatch(clearAdminDetailsError());
             setFormState(initialFormState);
           }}
@@ -478,9 +483,10 @@ const AdminsPage: React.FC = () => {
                     });
                   }
 
-                  await dispatch(fetchAdminDetails({ page: currentPage, pageSize }));
+                  fetchAdmins();
                   setIsModalOpen(false);
                   setEditingAdmin(null);
+                  setShowPassword(false);
                   setFormState(initialFormState);
                 } catch (err) {
                   if (typeof err === "string") {
@@ -545,16 +551,30 @@ const AdminsPage: React.FC = () => {
                 <label className="mb-2 block text-[13px] font-[500] font-golos text-gray-700">
                   Password
                 </label>
-                <Input
-                  type="password"
-                  value={formState.password}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, password: event.target.value }))
-                  }
-                  placeholder={editingAdmin ? "Leave blank to keep current password" : "Enter password"}
-                  className="gradient-border h-11 bg-white px-4 text-sm"
-                  required={!editingAdmin}
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={formState.password}
+                    onChange={(event) =>
+                      setFormState((prev) => ({ ...prev, password: event.target.value }))
+                    }
+                    placeholder={editingAdmin ? "Leave blank to keep current password" : "Enter password"}
+                    className="gradient-border h-11 bg-white px-4 pr-12 text-sm"
+                    required={!editingAdmin}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#46b753] transition-colors cursor-pointer"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="mt-6 flex items-center justify-between gap-3">
@@ -564,6 +584,7 @@ const AdminsPage: React.FC = () => {
                     setIsModalOpen(false);
                     setLocalError(null);
                     setEditingAdmin(null);
+                    setShowPassword(false);
                     dispatch(clearAdminDetailsError());
                     setFormState(initialFormState);
                   }}

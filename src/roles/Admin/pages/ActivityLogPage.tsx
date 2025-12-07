@@ -19,10 +19,10 @@ const formatTimestamp = (isoString: string) => {
 
 const ActivityLogPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<"new_to_old" | "old_to_new">("new_to_old");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(20);
+  const [localPage, setLocalPage] = useState<number>(1);
+  const [localPageSize, setLocalPageSize] = useState<number>(20);
   const dispatch = useAppDispatch();
-  const { items, count, isLoading, error } = useAppSelector(
+  const { items, count, isLoading, error, currentPage, pageSize } = useAppSelector(
     (state) => state.adminActivityLog
   );
 
@@ -33,9 +33,19 @@ const ActivityLogPage: React.FC = () => {
     [dispatch]
   );
 
+  // Sync local state with Redux state on mount
   useEffect(() => {
-    fetchLogs(currentPage, pageSize);
-  }, [fetchLogs, currentPage, pageSize]);
+    if (currentPage && currentPage !== localPage) {
+      setLocalPage(currentPage);
+    }
+    if (pageSize && pageSize !== localPageSize) {
+      setLocalPageSize(pageSize);
+    }
+  }, [currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchLogs(localPage, localPageSize);
+  }, [fetchLogs, localPage, localPageSize]);
 
   const sortedLogs = useMemo(() => {
     const logs = [...items];
@@ -47,37 +57,37 @@ const ActivityLogPage: React.FC = () => {
     return logs;
   }, [items, sortOrder]);
 
-  const totalPages = Math.max(1, Math.ceil(count / pageSize));
+  // Use count from API for total pages calculation
+  const totalPages = Math.max(1, Math.ceil(count / localPageSize));
 
   const handlePrev = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
+    setLocalPage((prev) => Math.max(1, prev - 1));
   };
 
   const handleNext = () => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+    setLocalPage((prev) => Math.min(totalPages, prev + 1));
   };
 
   const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newSize = Number(event.target.value);
-    setPageSize(newSize);
-    setCurrentPage(1);
+    setLocalPageSize(newSize);
+    setLocalPage(1);
   };
 
   const handleRetry = () => {
     dispatch(clearAdminActivityLogError());
-    fetchLogs(currentPage, pageSize);
+    fetchLogs(localPage, localPageSize);
   };
 
-  const paginatedLogs = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return sortedLogs.slice(startIndex, startIndex + pageSize);
-  }, [sortedLogs, currentPage, pageSize]);
+  // The API already handles pagination, so we just use sortedLogs directly
+  // No need for client-side pagination slicing since items already contains only the current page
+  const displayLogs = sortedLogs;
 
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
+    if (localPage > totalPages && totalPages > 0) {
+      setLocalPage(totalPages);
     }
-  }, [currentPage, totalPages]);
+  }, [localPage, totalPages]);
 
   return (
     <LayoutWrapper>
@@ -125,13 +135,13 @@ const ActivityLogPage: React.FC = () => {
               <div className="flex justify-center py-16 text-sm text-gray-500">
                 Loading activity logs...
               </div>
-            ) : paginatedLogs.length === 0 ? (
+            ) : displayLogs.length === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-[13px] font-[400] font-golos text-gray-500">
                 No activity logs found.
               </div>
             ) : (
               <div className="space-y-4">
-                {paginatedLogs.map((entry: AdminActivityLogEntry) => (
+                {displayLogs.map((entry: AdminActivityLogEntry) => (
                   <div
                     key={entry.id}
                     className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm"
@@ -170,11 +180,11 @@ const ActivityLogPage: React.FC = () => {
                   <div className="text-[12px] font-[400] font-golos text-gray-500">
                     Showing{" "}
                     <span className="font-semibold text-gray-700">
-                      {Math.min((currentPage - 1) * pageSize + 1, count)}
+                      {count > 0 ? Math.min((localPage - 1) * localPageSize + 1, count) : 0}
                     </span>{" "}
                     to{" "}
                     <span className="font-semibold text-gray-700">
-                      {Math.min(currentPage * pageSize, count)}
+                      {Math.min(localPage * localPageSize, count)}
                     </span>{" "}
                     of{" "}
                     <span className="font-semibold text-gray-700">{count}</span> results
@@ -184,7 +194,7 @@ const ActivityLogPage: React.FC = () => {
                     <div className="flex items-center gap-2 text-[12px] font-[400] font-golos text-gray-600">
                       Rows per page
                       <select
-                        value={pageSize}
+                        value={localPageSize}
                         onChange={handlePageSizeChange}
                         className="rounded-md border border-gray-300 bg-white px-2 py-1 text-[12px] font-golos text-gray-700 focus:border-[#46B753] focus:outline-none focus:ring-1 focus:ring-[#46B753]"
                       >
@@ -200,19 +210,19 @@ const ActivityLogPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={handlePrev}
-                        disabled={currentPage === 1}
+                        disabled={localPage === 1}
                         className="rounded-md border border-gray-300 px-3 py-1 text-[12px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
                       >
                         Previous
                       </button>
                       <span className="text-[12px] font-[400] font-golos text-gray-600">
-                        Page <span className="font-semibold text-gray-800">{currentPage}</span> of{" "}
+                        Page <span className="font-semibold text-gray-800">{localPage}</span> of{" "}
                         <span className="font-semibold text-gray-800">{totalPages}</span>
                       </span>
                       <button
                         type="button"
                         onClick={handleNext}
-                        disabled={currentPage === totalPages}
+                        disabled={localPage === totalPages}
                         className="rounded-md border border-gray-300 px-3 py-1 text-[12px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
                       >
                         Next

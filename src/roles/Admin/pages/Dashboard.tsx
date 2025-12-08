@@ -134,16 +134,16 @@ const AdminDashboard: React.FC = () => {
   const statsData = useMemo(() => {
     if (!summary) {
       return [
-        { title: "Total SPOs registered", value: "0" },
-        { title: "New SPOs", value: "0" },
+        { title: "Total Social Enterprises registered", value: "0" },
+        { title: "New Social Enterprises", value: "0" },
         { title: "Completion Rate", value: "0%" },
         { title: "Loan Request Submission", value: "0" },
       ];
     }
 
     return [
-      { title: "Total SPOs registered", value: formatNumber(summary.kpi.total_spos) },
-      { title: "New SPOs", value: formatNumber(summary.kpi.new_spos) },
+      { title: "Total Social Enterprises registered", value: formatNumber(summary.kpi.total_spos) },
+      { title: "New Social Enterprises", value: formatNumber(summary.kpi.new_spos) },
       { title: "Completion Rate", value: formatPercentage(summary.kpi.completion_rate) },
       { title: "Loan Request Submission", value: formatNumber(summary.kpi.loan_requests) },
     ];

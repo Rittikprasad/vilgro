@@ -96,10 +96,6 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
       )
     : '-';
 
-  const retakeDate = latestAssessment
-    ? formatDate((latestAssessment as any).cooldown_until)
-    : '-';
-
   // Enable retake button only when cooldown has passed and we have an assessment
   const canRetake =
     !!latestAssessment &&
@@ -121,6 +117,11 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
   const handleViewResult = (assessment: any) => {
     if (!assessment?.id) return;
     navigate(`/assessment/${assessment.id}/success`);
+  };
+
+  const handleViewAnswers = (assessment: any) => {
+    if (!assessment?.id) return;
+    navigate(`/assessment/${assessment.id}/responses`);
   };
 
   const handleDownloadResult = async (assessment: any) => {
@@ -300,6 +301,18 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
                             alt="View"
                             className="w-5 h-5"
                           />
+                        </button>
+                        <button
+                          onClick={() => handleViewAnswers(item)}
+                          className={`${
+                            item?.id
+                              ? "text-[#69C24E] underline transition-colors hover:text-[#46B753]"
+                              : "text-gray-400 cursor-not-allowed"
+                          } text-sm font-medium`}
+                          disabled={!item?.id}
+                          title="View Answers"
+                        >
+                          View Answers
                         </button>
                         <button
                           onClick={() => handleDownloadResult(item)}

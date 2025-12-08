@@ -559,16 +559,16 @@ const BanksPage: React.FC = () => {
                   Password
                 </label>
                 <div className="relative">
-                  <Input
+                <Input
                     type={showPassword ? "text" : "password"}
-                    required={editingBank === null}
-                    value={formState.password}
-                    onChange={(event) =>
-                      setFormState((prev) => ({ ...prev, password: event.target.value }))
-                    }
-                    placeholder={editingBank !== null ? "Leave blank to keep current password" : "Enter password"}
+                  required={editingBank === null}
+                  value={formState.password}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, password: event.target.value }))
+                  }
+                  placeholder={editingBank !== null ? "Leave blank to keep current password" : "Enter password"}
                     className="gradient-border h-11 bg-white px-4 pr-12 text-sm"
-                  />
+                />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -687,7 +687,7 @@ const BanksPage: React.FC = () => {
                     setLocalError(null);
                     setPhoneError(null);
                     setShowPassword(false);
-                    setEditingBank(null);
+                      setEditingBank(null);
                     dispatch(clearAdminBankError());
                   }}
                   className="flex-1 rounded-lg border border-gray-300 bg-white py-2.5 text-[13px] font-[500] font-golos text-gray-700 transition-colors hover:bg-gray-100"

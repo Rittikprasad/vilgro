@@ -32,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
 
   const navItems: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: DashboardSvg, path: '/admin/dashboard' },
-    { id: 'spos', label: 'SPOs', icon: SPOsSvg, path: '/admin/spos' },
+    { id: 'spos', label: 'Social Enterprises', icon: SPOsSvg, path: '/admin/spos' },
     { id: 'questions', label: 'Questions', icon: QuestionsSvg, path: '/admin/questions' },
     { id: 'banks', label: 'Banks', icon: BanksSvg, path: '/admin/banks' },
     { id: 'reviews', label: 'Reviews', icon: ReviewsSvg, path: '/admin/reviews' },

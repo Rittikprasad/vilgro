@@ -30,7 +30,7 @@ const AssessmentFunnel: React.FC<AssessmentFunnelProps> = ({ data }) => {
         Assessment Completion Funnel
       </h3>
       <p className="text-[14px] font-[400] font-golos text-gray-400 mb-6">
-        Track where SPO's drop off during the assessment process
+        Track where Social Enterprises drop off during the assessment process
       </p>
       
       {data.length === 0 ? (

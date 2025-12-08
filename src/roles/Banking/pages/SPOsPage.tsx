@@ -183,7 +183,7 @@ const BankingSPOsPage: React.FC = () => {
               fontSize: "35px",
             }}
           >
-            SPOs Management
+            Social Enterprises Management
           </h1>
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -238,11 +238,11 @@ const BankingSPOsPage: React.FC = () => {
           <CardContent className="p-6">
             {isLoading ? (
               <div className="flex justify-center py-16 text-sm text-gray-500">
-                Loading SPOs...
+                Loading Social Enterprises...
               </div>
             ) : totalItems === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-[13px] font-[400] font-golos text-gray-500">
-                No SPO records found.
+                No Social Enterprises records found.
               </div>
             ) : (
               <div className="overflow-x-auto">

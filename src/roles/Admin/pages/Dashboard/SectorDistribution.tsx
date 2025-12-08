@@ -24,7 +24,7 @@ const SectorDistribution: React.FC<SectorDistributionProps> = ({ data }) => {
     <div className="bg-white rounded-lg p-6 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-800 mb-1">Sector Distribution</h3>
       <p className="text-[14px] font-[400] font-golos text-gray-400 mb-6">
-        Breakdown of SPO's by Focus Area
+        Breakdown of Social Enterprises by Focus Area
       </p>
       
       {data.length === 0 ? (

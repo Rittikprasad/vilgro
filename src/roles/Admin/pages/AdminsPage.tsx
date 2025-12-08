@@ -552,16 +552,16 @@ const AdminsPage: React.FC = () => {
                   Password
                 </label>
                 <div className="relative">
-                  <Input
+                <Input
                     type={showPassword ? "text" : "password"}
-                    value={formState.password}
-                    onChange={(event) =>
-                      setFormState((prev) => ({ ...prev, password: event.target.value }))
-                    }
-                    placeholder={editingAdmin ? "Leave blank to keep current password" : "Enter password"}
+                  value={formState.password}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, password: event.target.value }))
+                  }
+                  placeholder={editingAdmin ? "Leave blank to keep current password" : "Enter password"}
                     className="gradient-border h-11 bg-white px-4 pr-12 text-sm"
-                    required={!editingAdmin}
-                  />
+                  required={!editingAdmin}
+                />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}

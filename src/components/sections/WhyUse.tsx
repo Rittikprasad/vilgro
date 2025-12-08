@@ -90,7 +90,7 @@ const WhyUse: React.FC = () => {
             </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitDot}></div>
-                <p className={styles.benefitText}>Built by funders & experts in SPO evaluation</p>
+                <p className={styles.benefitText}>Built by funders & experts in Social Enterprises evaluation</p>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitDot}></div>
@@ -98,7 +98,7 @@ const WhyUse: React.FC = () => {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitDot}></div>
-                <p className={styles.benefitText}>Used by 200+ SPOs across India</p>
+                <p className={styles.benefitText}>Used by 200+ Social Enterprises across India</p>
               </div>
             </div>
           </div>

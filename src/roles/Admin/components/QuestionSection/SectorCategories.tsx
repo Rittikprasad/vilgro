@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter } from '../../../../components/ui/Card';
 import { Button } from '../../../../components/ui/Button';
+import AddSectorModal from './AddSectorModal';
 
 // Types for the question categories
 export interface QuestionCategory {
@@ -18,6 +19,7 @@ interface SectorCategoriesProps {
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  onAddSector?: (sectorName: string) => void;
 }
 
 /**
@@ -30,12 +32,29 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
   onCategorySelect,
   isLoading = false,
   error = null,
-  onRetry
+  onRetry,
+  onAddSector
 }) => {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleAddSector = async (sectorName: string) => {
+    if (!onAddSector) return;
+    
+    setIsAdding(true);
+    try {
+      await onAddSector(sectorName);
+      setIsAddModalOpen(false);
+    } catch (err) {
+      console.error('Failed to add sector:', err);
+    } finally {
+      setIsAdding(false);
+    }
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
+      <div className="flex items-center justify-between">
         <h1 
           className="text-gray-800"
           style={{
@@ -47,6 +66,15 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
         >
           List of Questions
         </h1>
+        {onAddSector && (
+          <Button
+            variant="gradient"
+            onClick={() => setIsAddModalOpen(true)}
+            disabled={isLoading}
+          >
+            + Add Sector
+          </Button>
+        )}
       </div>
 
       {/* Loading State */}
@@ -74,7 +102,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
 
       {/* Question Categories Grid */}
       {!isLoading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {categories.map((category) => (
           <Card key={category.id} className="hover:shadow-md transition-shadow duration-200">
             <CardHeader>
@@ -151,7 +179,7 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
             </CardFooter>
           </Card>
         ))}
-        </div>
+      </div>
       )}
 
       {/* No categories available */}
@@ -159,6 +187,16 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
         <div className="text-center py-8">
           <p className="text-gray-600">No sectors available</p>
         </div>
+      )}
+
+      {/* Add Sector Modal */}
+      {onAddSector && (
+        <AddSectorModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAddSector={handleAddSector}
+          isAdding={isAdding}
+        />
       )}
     </div>
   );

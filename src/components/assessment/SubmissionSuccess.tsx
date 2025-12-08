@@ -325,11 +325,55 @@ const SubmissionSuccess: React.FC = () => {
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
             {/* Next Steps Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Next Steps</h3>
-              <p className="text-gray-600 mb-6 text-[14px] font-[300]">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              </p>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Recommendations</h3>
+              {eligibility?.details ? (
+                <div className="space-y-4 mb-6">
+                  {/* {eligibility.details.reason && (
+                    <div className="mb-4">
+                      <p className="text-[14px] font-[500] text-gray-800 mb-2">Overall Assessment:</p>
+                      <p className="text-[14px] font-[300] text-gray-600">
+                        {eligibility.details.reason}
+                      </p>
+                    </div>
+                  )} */}
+                  
+                  {eligibility.details.sections && (
+                    <div className="space-y-4">
+                      {Object.entries(eligibility.details.sections).map(([sectionName, sectionData]) => (
+                        <div key={sectionName} className="border-l-4 border-green-500 pl-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="text-[14px] font-[600] text-gray-800 capitalize">
+                              {sectionName}
+                            </h4>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded ${
+                                sectionData.gate_pass
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-red-100 text-red-700'
+                              }`}
+                            >
+                              {sectionData.gate_pass ? 'Pass' : 'Fail'}
+                            </span>
+                          </div>
+                          <p className="text-[13px] font-[300] text-gray-600">
+                            {sectionData.recommendation}
+                          </p>
+                          {sectionData.criteria?.notes && (
+                            <p className="text-[12px] font-[300] text-gray-500 mt-1 italic">
+                              {sectionData.criteria.notes}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-600 mb-6 text-[14px] font-[300]">
+                  Loading recommendations...
+                </p>
+              )}
               <div className="space-y-3">
                 <Button
                   variant={isEligible ? "gradient" : "outline"}

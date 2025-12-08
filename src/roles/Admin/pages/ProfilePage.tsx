@@ -251,28 +251,28 @@ const PhoneField: React.FC<PhoneFieldProps & { error?: string | null }> = ({ lab
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        <span className="w-40 font-golos text-[14px] font-[500] text-gray-600">{label}</span>
-        <div className="relative flex-1">
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 font-golos text-sm text-gray-600">
-            +91
-          </span>
-          <Input
-            type="tel"
-            value={value}
+  <div className="flex items-center gap-2">
+    <span className="w-40 font-golos text-[14px] font-[500] text-gray-600">{label}</span>
+    <div className="relative flex-1">
+      <span className="absolute left-0 top-1/2 -translate-y-1/2 font-golos text-sm text-gray-600">
+        +91
+      </span>
+      <Input
+        type="tel"
+        value={value}
             onChange={handlePhoneChange}
             maxLength={10}
             className={`rounded-none border-0 border-b bg-transparent pl-10 pr-0 font-golos text-sm text-gray-900 focus:outline-none focus:ring-0 ${
               error ? "border-red-500" : "border-[#69C24E] focus:border-[#46B753]"
             }`}
-          />
-        </div>
+      />
+    </div>
       </div>
       {error && (
         <p className="ml-[168px] text-red-500 text-xs">{error}</p>
       )}
-    </div>
-  );
+  </div>
+);
 };
 
 export default ProfilePage;

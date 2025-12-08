@@ -301,7 +301,7 @@ const BankingSPOResponsesPage: React.FC = () => {
                 fontSize: "32px",
               }}
             >
-              SPO Assessment Responses
+              Social Enterprises Assessment Responses
             </h1>
             <p className="text-sm text-gray-500">Showing recorded answers for SPO #{spoId ?? "—"}</p>
           </div>

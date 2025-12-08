@@ -396,14 +396,14 @@ const SPOResponsesPage: React.FC = () => {
                   fontSize: "32px",
                 }}
               >
-                SPO Assessment
+                Social Enterprises Assessment
               </h1>
             </div>
           </div>
           <div className="flex justify-center py-16">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-              <p className="text-sm text-gray-500">Loading SPO details...</p>
+              <p className="text-sm text-gray-500">Loading Social Enterprises details...</p>
             </div>
           </div>
         </div>
@@ -434,12 +434,12 @@ const SPOResponsesPage: React.FC = () => {
                   fontSize: "32px",
                 }}
               >
-                SPO Assessment
+                Social Enterprises Assessment
               </h1>
             </div>
           </div>
           <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-sm text-yellow-800">
-            No assessment found for this SPO. Assessment responses are only available for SPOs who have completed an assessment.
+            No assessment found for this Social Enterprises. Assessment responses are only available for Social Enterprises who have completed an assessment.
           </div>
         </div>
       </LayoutWrapper>
@@ -467,7 +467,7 @@ const SPOResponsesPage: React.FC = () => {
                 fontSize: "32px",
               }}
             >
-              SPO Assessment
+              Social Enterprises Assessment
             </h1>
           </div>
         </div>

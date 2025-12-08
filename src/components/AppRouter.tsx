@@ -12,6 +12,7 @@ import Home from './Home';
 import type { RootState } from '../app/store';
 import Assessment from './assessment';
 import SubmissionSuccess from './assessment/SubmissionSuccess';
+import AssessmentResponsesPage from './assessment/AssessmentResponsesPage';
 import LoanRequestForm from './loan/LoanRequestForm';
 import AssessmentDashboard from './assessment/AssessmentDashboard';
 import EnterEmail from './forgot-password/EnterEmail';
@@ -411,6 +412,15 @@ const AppRouter: React.FC = () => {
                     element={
                         <RoleProtectedRoute allowedRoles={['SPO']}>
                             <SubmissionSuccess />
+                        </RoleProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/assessment/:assessmentId/responses"
+                    element={
+                        <RoleProtectedRoute allowedRoles={['SPO']}>
+                            <AssessmentResponsesPage />
                         </RoleProtectedRoute>
                     }
                 />

@@ -118,6 +118,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
         categoryTitle={selectedSubCategory.title}
         onEditQuestions={handleEditQuestions}
         sectionCode={sectionCode}
+        sector={category.title}
       />
     );
   }

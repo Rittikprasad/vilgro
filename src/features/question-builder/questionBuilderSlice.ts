@@ -62,14 +62,14 @@ export const fetchAdminSections = createAsyncThunk<
 // Async thunk to fetch questions by section
 export const fetchQuestionsBySection = createAsyncThunk<
   AdminQuestion[],
-  string,
+  { sectionCode: string; sector: string },
   { rejectValue: { message: string; status: number } }
 >(
   "questionBuilder/fetchQuestionsBySection",
-  async (sectionCode, { rejectWithValue }) => {
+  async ({ sectionCode, sector }, { rejectWithValue }) => {
     try {
       const response = await api.get<AdminQuestion[]>(
-        endpoints.admin.questionsBySection(sectionCode)
+        endpoints.admin.questionsBySection(sectionCode, sector)
       );
 
       console.log("Questions API response:", response.data);

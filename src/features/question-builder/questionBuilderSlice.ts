@@ -183,6 +183,32 @@ export const fetchSectorSummary = createAsyncThunk<
   }
 );
 
+// Async thunk to add a new sector
+export const addSector = createAsyncThunk<
+  { message: string },
+  { sector: string },
+  { rejectValue: { message: string; status: number } }
+>(
+  "questionBuilder/addSector",
+  async ({ sector }, { rejectWithValue }) => {
+    try {
+      const response = await api.post<{ message: string }>(
+        endpoints.admin.addSector,
+        { sector }
+      );
+      console.log("Add sector API response:", response.data);
+      return response.data;
+    } catch (error: any) {
+      ApiResponseHandler.handleError(error, "Failed to add sector");
+      const errorMessage = error.response?.data?.message || "Failed to add sector";
+      return rejectWithValue({
+        message: errorMessage,
+        status: error.response?.status || 500,
+      });
+    }
+  }
+);
+
 export const questionBuilderSlice = createSlice({
   name: "questionBuilder",
   initialState: getInitialState(),
@@ -286,6 +312,19 @@ export const questionBuilderSlice = createSlice({
       .addCase(fetchSectorSummary.rejected, (state, action) => {
         state.sectorSummaryLoading = false;
         state.sectorSummaryError = action.payload?.message || "Failed to fetch sector summary";
+      })
+      // Add sector reducers
+      .addCase(addSector.pending, (state) => {
+        state.sectorSummaryLoading = true;
+        state.sectorSummaryError = null;
+      })
+      .addCase(addSector.fulfilled, (state) => {
+        state.sectorSummaryLoading = false;
+        state.sectorSummaryError = null;
+      })
+      .addCase(addSector.rejected, (state, action) => {
+        state.sectorSummaryLoading = false;
+        state.sectorSummaryError = action.payload?.message || "Failed to add sector";
       });
   },
 });
@@ -306,6 +345,7 @@ export const questionBuilderActionCreator = {
   fetchQuestionsBySection,
   fetchQuestionCodesBySection,
   fetchSectorSummary,
+  addSector,
   updateAdminQuestion,
   deleteAdminQuestion,
 };

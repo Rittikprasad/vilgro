@@ -20,6 +20,7 @@ interface SectorCategoriesProps {
   error?: string | null;
   onRetry?: () => void;
   onAddSector?: (sectorName: string) => void;
+  addSectorError?: string | null;
 }
 
 /**
@@ -33,7 +34,8 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
   isLoading = false,
   error = null,
   onRetry,
-  onAddSector
+  onAddSector,
+  addSectorError = null
 }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -44,12 +46,19 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
     setIsAdding(true);
     try {
       await onAddSector(sectorName);
+      // Close modal on success - error handling is done in parent
       setIsAddModalOpen(false);
     } catch (err) {
       console.error('Failed to add sector:', err);
+      // Error will be displayed in the modal via addSectorError prop
+      // Don't close modal on error so user can see the error message
     } finally {
       setIsAdding(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    setIsAddModalOpen(false);
   };
   return (
     <div className="space-y-6">
@@ -193,9 +202,10 @@ const SectorCategories: React.FC<SectorCategoriesProps> = ({
       {onAddSector && (
         <AddSectorModal
           isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
+          onClose={handleCloseModal}
           onAddSector={handleAddSector}
           isAdding={isAdding}
+          error={addSectorError}
         />
       )}
     </div>

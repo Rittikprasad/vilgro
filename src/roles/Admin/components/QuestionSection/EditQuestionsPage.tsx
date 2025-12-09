@@ -32,6 +32,7 @@ interface EditQuestionsPageProps {
   categoryTitle: string;
   onBackToQuestionList: () => void;
   sectionId: string; // Add sectionId prop for creating questions
+  sector: string; // Add sector prop for creating questions
 }
 
 const slugifyLabel = (value: string): string => value.toLowerCase().replace(/\s+/g, '_');
@@ -62,7 +63,8 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
   questions, 
   categoryTitle,
   onBackToQuestionList,
-  sectionId
+  sectionId,
+  sector
 }) => {
   const dispatch = useDispatch();
   const { 
@@ -187,6 +189,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
     
     const payload: Partial<CreateQuestionPayload> = {
       section: numericSectionId,
+      sector: sector,
       text: question.question,
       order: question.order,
       weight: question.weight.toString(),
@@ -1038,6 +1041,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
         onClose={handleCloseCreateModal}
         questionType={selectedQuestionType}
         sectionId={sectionId}
+        sector={sector}
         onCreateQuestion={handleCreateQuestion}
         isCreating={isCreatingQuestion}
         createError={createQuestionError}

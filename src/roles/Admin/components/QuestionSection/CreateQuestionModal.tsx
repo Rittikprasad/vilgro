@@ -17,6 +17,7 @@ interface CreateQuestionModalProps {
   onClose: () => void;
   questionType: QuestionType | null;
   sectionId: string;
+  sector: string;
   onCreateQuestion: (payload: CreateQuestionPayload) => void;
   isCreating: boolean;
   createError: string | null;
@@ -31,6 +32,7 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
   onClose,
   questionType,
   sectionId,
+  sector,
   onCreateQuestion,
   isCreating,
   createError,
@@ -161,6 +163,7 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
     
     const payload: CreateQuestionPayload = {
       section: numericSectionId,
+      sector: sector,
       code: `Q_${Date.now()}`, // Generate unique code
       text: updatedQuestion.question,
       type: updatedQuestion.type as any,

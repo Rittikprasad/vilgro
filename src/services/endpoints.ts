@@ -77,6 +77,7 @@ export const endpoints = {
     reviews: `${BASE_URL}/admin/reviews/`,
     audit: `${BASE_URL}/admin/audit/`,
     sectorSummary: `${BASE_URL}/admin/questions/sector-summary/`,
+    addSector: `${BASE_URL}/admin/questions/add-sector/`,
   },
 
   loan: {

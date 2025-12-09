@@ -101,6 +101,7 @@ const CategoryDetails: React.FC<CategoryDetailsProps> = ({
         categoryTitle={selectedSubCategory.title}
         onBackToQuestionList={handleBackToQuestionList}
         sectionId={sectionId}
+        sector={category.title}
       />
     );
   }

@@ -58,7 +58,7 @@ export const endpoints = {
   // Admin endpoints
   admin: {
     sections: (sector: string) => `${BASE_URL}/admin/sections/?sector=${encodeURIComponent(sector)}`,
-    questionsBySection: (sectionCode: string) => `${BASE_URL}/admin/questions/by-section/?section=${sectionCode}`,
+    questionsBySection: (sectionCode: string, sector: string) => `${BASE_URL}/admin/questions/by-section/?section=${sectionCode}&sector=${encodeURIComponent(sector)}`,
     questionTypes: `${BASE_URL}/admin/meta/question-types/`,
     questionCodes: (sectionCode: string) => `${BASE_URL}/admin/meta/question-codes/?section=${sectionCode}`,
     createQuestion: `${BASE_URL}/admin/questions/`,

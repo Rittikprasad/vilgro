@@ -42,6 +42,7 @@ interface QuestionListTableProps {
   categoryTitle: string; // To display which category these questions belong to
   onEditQuestions: (questions: QuestionItem[]) => void; // New prop for editing questions
   sectionCode: string; // Section code to fetch questions
+  sector: string; // Sector name to fetch questions
 }
 
 // Helper function to convert API questions to QuestionItem format
@@ -202,7 +203,8 @@ const extractConditionParts = (logic: Record<string, any> | undefined | null): {
 const QuestionListTable: React.FC<QuestionListTableProps> = ({ 
   onBackToCategoryDetails,
   onEditQuestions,
-  sectionCode
+  sectionCode,
+  sector
 }) => {
   const dispatch = useDispatch();
   const { questions, questionsLoading, questionsError } = useSelector((state: RootState) => state.questionBuilder);
@@ -210,12 +212,12 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
 
-  // Fetch questions when component mounts or sectionCode changes
+  // Fetch questions when component mounts or sectionCode/sector changes
   useEffect(() => {
-    if (sectionCode) {
-      dispatch(fetchQuestionsBySection(sectionCode) as any);
+    if (sectionCode && sector) {
+      dispatch(fetchQuestionsBySection({ sectionCode, sector }) as any);
     }
-  }, [dispatch, sectionCode]);
+  }, [dispatch, sectionCode, sector]);
 
   // Handle opening delete modal
   const handleOpenDeleteModal = (questionId: number) => {
@@ -314,7 +316,7 @@ const QuestionListTable: React.FC<QuestionListTableProps> = ({
           <p className="text-red-600 mb-4">{questionsError}</p>
           <Button
             variant="outline"
-            onClick={() => dispatch(fetchQuestionsBySection(sectionCode) as any)}
+            onClick={() => dispatch(fetchQuestionsBySection({ sectionCode, sector }) as any)}
           >
             Retry
           </Button>

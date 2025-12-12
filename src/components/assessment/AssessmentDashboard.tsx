@@ -42,6 +42,39 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
     return `${day}-${month}-${year}`;
   };
 
+  // Format cooldown date/time: show time if today, date if later
+  const formatCooldownUntil = (cooldownUntil?: string | null): string => {
+    if (!cooldownUntil) return '';
+    
+    const cooldownDate = new Date(cooldownUntil);
+    if (Number.isNaN(cooldownDate.getTime())) return '';
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const cooldownDay = new Date(cooldownDate.getFullYear(), cooldownDate.getMonth(), cooldownDate.getDate());
+    
+    // Check if cooldown is today
+    if (cooldownDay.getTime() === today.getTime()) {
+      // Show time (e.g., "at 3:45 PM")
+      const hours = cooldownDate.getHours();
+      const minutes = cooldownDate.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const displayMinutes = String(minutes).padStart(2, '0');
+      return `at ${displayHours}:${displayMinutes} ${ampm}`;
+    } else {
+      // Show date (e.g., "on 15 January 2025")
+      const day = cooldownDate.getDate();
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const month = monthNames[cooldownDate.getMonth()];
+      const year = cooldownDate.getFullYear();
+      return `on ${day} ${month} ${year}`;
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -96,11 +129,16 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
       )
     : '-';
 
+  // Get cooldown until date for display
+  const cooldownUntil = latestAssessment
+    ? (latestAssessment as any).cooldown_until
+    : null;
+  const cooldownDisplay = formatCooldownUntil(cooldownUntil);
+
   // Enable retake button only when cooldown has passed and we have an assessment
   const canRetake =
     !!latestAssessment &&
-    !!(latestAssessment as any).cooldown_until &&
-    new Date((latestAssessment as any).cooldown_until).getTime() <= Date.now();
+    (!cooldownUntil || new Date(cooldownUntil).getTime() <= Date.now());
 
   const handleTakeTestAgain = () => {
     // TODO: API integration - start a new assessment when cooldown expires
@@ -169,8 +207,14 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
             <p className="text-gray-900 mb-6 text-[14px] font-[300]">
               You took the last test on{" "}
               <span className="font-medium">{lastTestDate}</span>. <br />
-              You can retake the test again after 15 minutes
-              {/* <span className="text-green-600 font-medium">{retakeDate}</span> */}
+              {cooldownUntil && !canRetake ? (
+                <>
+                  You can retake the test again{" "}
+                  <span className="text-green-600 font-medium">{cooldownDisplay}</span>.
+                </>
+              ) : (
+                "You can retake the test now."
+              )}
             </p>
             <Button
               onClick={handleTakeTestAgain}

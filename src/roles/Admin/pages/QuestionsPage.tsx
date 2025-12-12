@@ -12,6 +12,7 @@ const QuestionsPage: React.FC = () => {
     (state: RootState) => state.questionBuilder
   );
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
+  const [addSectorError, setAddSectorError] = useState<string | null>(null);
 
   // Fetch sector summary on component mount
   useEffect(() => {
@@ -45,16 +46,24 @@ const QuestionsPage: React.FC = () => {
 
   // Handle adding a new sector
   const handleAddSector = async (sectorName: string) => {
-    // Call the API to create the sector
-    const result = await dispatch(addSector({ sector: sectorName }) as any);
-    
-    // If successful, refresh the sector summary list
-    if (result.type.endsWith('fulfilled')) {
-      // Clear any previous errors and refresh the list
-      dispatch(fetchSectorSummary() as any);
-    } else {
-      // Error is handled by the Redux state and will be displayed in the modal
-      throw new Error(result.payload?.message || 'Failed to add sector');
+    setAddSectorError(null);
+    try {
+      const result = await dispatch(addSector(sectorName) as any);
+      if (addSector.fulfilled.match(result)) {
+        // Refresh the sector summary list to get updated data
+        dispatch(fetchSectorSummary() as any);
+      } else if (addSector.rejected.match(result)) {
+        // Set error for display in modal
+        setAddSectorError(result.payload?.message || 'Failed to add sector');
+        throw new Error(result.payload?.message || 'Failed to add sector');
+      }
+      return result;
+    } catch (error: any) {
+      console.error('Failed to add sector:', error);
+      if (!addSectorError) {
+        setAddSectorError(error.message || 'Failed to add sector');
+      }
+      throw error;
     }
   };
 
@@ -73,7 +82,7 @@ const QuestionsPage: React.FC = () => {
           error={sectorSummaryError}
           onRetry={() => dispatch(fetchSectorSummary() as any)}
           onAddSector={handleAddSector}
-          addSectorError={sectorSummaryError}
+          addSectorError={addSectorError}
         />
       )}
     </LayoutWrapper>

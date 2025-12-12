@@ -185,22 +185,73 @@ export const fetchSectorSummary = createAsyncThunk<
 
 // Async thunk to add a new sector
 export const addSector = createAsyncThunk<
-  { message: string },
-  { sector: string },
+  SectorSummary,
+  string,
   { rejectValue: { message: string; status: number } }
 >(
   "questionBuilder/addSector",
-  async ({ sector }, { rejectWithValue }) => {
+  async (sectorName, { rejectWithValue }) => {
     try {
-      const response = await api.post<{ message: string }>(
+      const response = await api.post<SectorSummary>(
         endpoints.admin.addSector,
-        { sector }
+        { sector: sectorName }
       );
-      console.log("Add sector API response:", response.data);
+      ApiResponseHandler.handleSuccess({ message: "Sector added successfully!" });
       return response.data;
     } catch (error: any) {
       ApiResponseHandler.handleError(error, "Failed to add sector");
       const errorMessage = error.response?.data?.message || "Failed to add sector";
+      return rejectWithValue({
+        message: errorMessage,
+        status: error.response?.status || 500,
+      });
+    }
+  }
+);
+
+// Async thunk to edit a sector
+export const editSector = createAsyncThunk<
+  SectorSummary,
+  { oldName: string; newName: string },
+  { rejectValue: { message: string; status: number } }
+>(
+  "questionBuilder/editSector",
+  async ({ oldName, newName }, { rejectWithValue }) => {
+    try {
+      const response = await api.post<SectorSummary>(
+        endpoints.admin.editSector,
+        { old_sector: oldName, new_sector: newName }
+      );
+      ApiResponseHandler.handleSuccess({ message: "Sector updated successfully!" });
+      return response.data;
+    } catch (error: any) {
+      ApiResponseHandler.handleError(error, "Failed to edit sector");
+      const errorMessage = error.response?.data?.message || "Failed to edit sector";
+      return rejectWithValue({
+        message: errorMessage,
+        status: error.response?.status || 500,
+      });
+    }
+  }
+);
+
+// Async thunk to delete a sector
+export const deleteSector = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: { message: string; status: number } }
+>(
+  "questionBuilder/deleteSector",
+  async (sectorName, { rejectWithValue }) => {
+    try {
+      await api.post(endpoints.admin.deleteSector, {
+        sector: sectorName
+      });
+      ApiResponseHandler.handleSuccess({ message: "Sector deleted successfully!" });
+      return sectorName;
+    } catch (error: any) {
+      ApiResponseHandler.handleError(error, "Failed to delete sector");
+      const errorMessage = error.response?.data?.message || "Failed to delete sector";
       return rejectWithValue({
         message: errorMessage,
         status: error.response?.status || 500,
@@ -318,13 +369,52 @@ export const questionBuilderSlice = createSlice({
         state.sectorSummaryLoading = true;
         state.sectorSummaryError = null;
       })
-      .addCase(addSector.fulfilled, (state) => {
+      .addCase(addSector.fulfilled, (state, action) => {
         state.sectorSummaryLoading = false;
+        // Add the new sector to the list
+        state.sectorSummary.push(action.payload);
         state.sectorSummaryError = null;
       })
       .addCase(addSector.rejected, (state, action) => {
         state.sectorSummaryLoading = false;
         state.sectorSummaryError = action.payload?.message || "Failed to add sector";
+      })
+      // Edit sector reducers
+      .addCase(editSector.pending, (state) => {
+        state.sectorSummaryLoading = true;
+        state.sectorSummaryError = null;
+      })
+      .addCase(editSector.fulfilled, (state, action) => {
+        state.sectorSummaryLoading = false;
+        // Update the sector in the list
+        const index = state.sectorSummary.findIndex(
+          s => s.sector === action.payload.sector
+        );
+        if (index !== -1) {
+          state.sectorSummary[index] = action.payload;
+        }
+        state.sectorSummaryError = null;
+      })
+      .addCase(editSector.rejected, (state, action) => {
+        state.sectorSummaryLoading = false;
+        state.sectorSummaryError = action.payload?.message || "Failed to edit sector";
+      })
+      // Delete sector reducers
+      .addCase(deleteSector.pending, (state) => {
+        state.sectorSummaryLoading = true;
+        state.sectorSummaryError = null;
+      })
+      .addCase(deleteSector.fulfilled, (state, action) => {
+        state.sectorSummaryLoading = false;
+        // Remove the deleted sector from the list
+        state.sectorSummary = state.sectorSummary.filter(
+          s => s.sector !== action.payload
+        );
+        state.sectorSummaryError = null;
+      })
+      .addCase(deleteSector.rejected, (state, action) => {
+        state.sectorSummaryLoading = false;
+        state.sectorSummaryError = action.payload?.message || "Failed to delete sector";
       });
   },
 });
@@ -345,7 +435,9 @@ export const questionBuilderActionCreator = {
   fetchQuestionsBySection,
   fetchQuestionCodesBySection,
   fetchSectorSummary,
-  addSector,
   updateAdminQuestion,
   deleteAdminQuestion,
+  addSector,
+  editSector,
+  deleteSector,
 };

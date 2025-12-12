@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Button } from '../ui/Button';
 import Navbar from '../ui/Navbar';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   getLoanEligibility,
   getResults,
@@ -70,15 +69,45 @@ const SubmissionSuccess: React.FC = () => {
     );
   }
 
-  // Prepare chart data from assessment result
-  // One bubble: X = Impact, Y = Risk, size = Return
-  const chartData = assessmentResult 
-    ? [{
-        impact: assessmentResult.graph.scores.sections.IMPACT,
-        risk: assessmentResult.graph.scores.sections.RISK,
-        return: assessmentResult.graph.scores.sections.RETURN,
-      }]
-    : [{ impact: 0, risk: 0, return: 0 }];
+  // Get scores for grid visualization
+  const impactScore = assessmentResult?.graph.scores.sections.IMPACT ?? 0;
+  const riskScore = assessmentResult?.graph.scores.sections.RISK ?? 0;
+  const returnScore = assessmentResult?.graph.scores.sections.RETURN ?? 0;
+
+  // Map scores (0-100) to determine how many rows should be filled from bottom
+  // Each row represents a 20-point range: 0-20, 21-40, 41-60, 61-80, 81-100
+  // Higher scores fill more rows from the bottom (row 4) upward
+  const getFilledRowCount = (score: number): number => {
+    if (score === 0) return 0;
+    if (score <= 20) return 1;  // Fill 1 row (bottom row)
+    if (score <= 40) return 2;  // Fill 2 rows (bottom 2 rows)
+    if (score <= 60) return 3;  // Fill 3 rows (bottom 3 rows)
+    if (score <= 80) return 4;  // Fill 4 rows (bottom 4 rows)
+    return 5;  // Fill all 5 rows
+  };
+
+  const impactFilledRows = getFilledRowCount(impactScore);
+  const riskFilledRows = getFilledRowCount(riskScore);
+  const returnFilledRows = getFilledRowCount(returnScore);
+
+  // Determine cell color based on row and column
+  // Row 0 is top, row 4 is bottom. We fill from bottom up.
+  const getCellColor = (row: number, column: 'impact' | 'risk' | 'return'): string => {
+    const filledCount = column === 'impact' ? impactFilledRows : column === 'risk' ? riskFilledRows : returnFilledRows;
+    
+    // Calculate which rows should be filled (from bottom up)
+    // If filledCount is 3, rows 2, 3, 4 should be colored (0-indexed: 2, 3, 4)
+    // Row index from bottom: 4 - row (so row 4 = 0 from bottom, row 0 = 4 from bottom)
+    const rowFromBottom = 4 - row;
+    
+    // If this row is within the filled range (from bottom), color it
+    if (rowFromBottom < filledCount) {
+      if (column === 'impact') return '#60C460'; // Green
+      if (column === 'risk') return '#D2DC64'; // Light yellow/Chartreuse
+      if (column === 'return') return '#F0AA32'; // Orange/Amber
+    }
+    return '#F0F0F0'; // Light grey for inactive cells
+  };
 
   // Get overall score
   const overallScore = eligibility?.overall_score ?? assessmentResult?.scores.overall ?? 0;
@@ -197,126 +226,37 @@ const SubmissionSuccess: React.FC = () => {
                 </p>
               </div>
 
-              {/* Scatter Plot - Impact (X) vs Risk (Y), Bubble size = Return */}
-              <div className="bg-white border border-gray-200 rounded-lg p-2">
-                <div className="w-full h-80 relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart
-                      data={chartData}
-                      margin={{
-                        top: 20,
-                        right: 40,
-                        bottom: 40,
-                        left: 40,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      
-                      {/* X-Axis: Impact */}
-                      <XAxis 
-                        type="number" 
-                        dataKey="impact" 
-                        name="Impact"
-                        domain={[0, 100]}
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
-                        axisLine={{ stroke: '#6b7280' }}
-                        tickLine={{ stroke: '#6b7280' }}
-                        label={{ value: 'Impact', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: '#374151' } }}
-                      />
-                      
-                      {/* Y-Axis: Risk */}
-                      <YAxis 
-                        type="number" 
-                        dataKey="risk" 
-                        name="Risk"
-                        domain={[0, 100]}
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
-                        axisLine={{ stroke: '#6b7280' }}
-                        tickLine={{ stroke: '#6b7280' }}
-                        label={{ value: 'Risk', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151' } }}
-                      />
-                      
-                      {/* Single Bubble: Position at (Impact, Risk), Size based on Return value */}
-                      <Scatter 
-                        data={chartData}
-                        fill="#10b981" 
-                        stroke="#059669"
-                        strokeWidth={2}
-                        shape={(props: any) => {
-                          const { cx, cy, payload } = props;
-                          // Calculate bubble size based on return value (0-100 maps to radius 5-30)
-                          const minRadius = 5;
-                          const maxRadius = 30;
-                          const returnValue = payload?.return || 0;
-                          const radius = minRadius + (returnValue / 100) * (maxRadius - minRadius);
-                          return (
-                            <g>
-                              {/* Bubble (larger circle, size based on return) */}
-                              <circle
-                                cx={cx}
-                                cy={cy}
-                                r={radius}
-                                fill="#10b981"
-                                stroke="#059669"
-                                strokeWidth={2}
-                                opacity={0.7}
-                              />
-                              {/* Point (smaller dot at center) */}
-                              <circle
-                                cx={cx}
-                                cy={cy}
-                                r={4}
-                                fill="#059669"
-                                stroke="#ffffff"
-                                strokeWidth={1.5}
-                              />
-                            </g>
-                          );
-                        }}
-                      />
-                      
-                      {/* Vertical reference lines at 25, 50, 75 for Impact */}
-                      <ReferenceLine 
-                        x={25} 
-                        stroke="#d1d5db" 
-                        strokeDasharray="3 3" 
-                        strokeWidth={1}
-                      />
-                      <ReferenceLine 
-                        x={50} 
-                        stroke="#d1d5db" 
-                        strokeDasharray="3 3" 
-                        strokeWidth={1}
-                      />
-                      <ReferenceLine 
-                        x={75} 
-                        stroke="#d1d5db" 
-                        strokeDasharray="3 3" 
-                        strokeWidth={1}
-                      />
-                      
-                      {/* Horizontal reference lines at 25, 50, 75 for Risk */}
-                      <ReferenceLine 
-                        y={25} 
-                        stroke="#d1d5db" 
-                        strokeDasharray="3 3" 
-                        strokeWidth={1}
-                      />
-                      <ReferenceLine 
-                        y={50} 
-                        stroke="#d1d5db" 
-                        strokeDasharray="3 3" 
-                        strokeWidth={1}
-                      />
-                      <ReferenceLine 
-                        y={75} 
-                        stroke="#d1d5db" 
-                        strokeDasharray="3 3" 
-                        strokeWidth={1}
-                      />
-                    </ScatterChart>
-                  </ResponsiveContainer>
-                  
+              {/* Grid Visualization - Impact, Risk, Return */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <div className="w-full">
+                  {/* Grid Container */}
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* Column Headers */}
+                    <div className="text-center font-semibold text-gray-800 text-sm">Impact</div>
+                    <div className="text-center font-semibold text-gray-800 text-sm">Risk</div>
+                    <div className="text-center font-semibold text-gray-800 text-sm">Return</div>
+                    
+                    {/* Grid Cells - 5 rows x 3 columns */}
+                    {[0, 1, 2, 3, 4].map((row) => (
+                      <React.Fragment key={row}>
+                        {/* Impact Column */}
+                        <div
+                          className="h-16 rounded-lg transition-colors duration-200"
+                          style={{ backgroundColor: getCellColor(row, 'impact') }}
+                        />
+                        {/* Risk Column */}
+                        <div
+                          className="h-16 rounded-lg transition-colors duration-200"
+                          style={{ backgroundColor: getCellColor(row, 'risk') }}
+                        />
+                        {/* Return Column */}
+                        <div
+                          className="h-16 rounded-lg transition-colors duration-200"
+                          style={{ backgroundColor: getCellColor(row, 'return') }}
+                        />
+                      </React.Fragment>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

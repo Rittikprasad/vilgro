@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 
 interface AddSectorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddSector: (sectorName: string) => void;
+  onAddSector?: (sectorName: string) => void;
   isAdding?: boolean;
   error?: string | null;
+  editMode?: boolean;
+  initialSectorName?: string;
+  onEditSector?: (sectorName: string) => void;
 }
 
 const AddSectorModal: React.FC<AddSectorModalProps> = ({
@@ -16,9 +19,21 @@ const AddSectorModal: React.FC<AddSectorModalProps> = ({
   onAddSector,
   isAdding = false,
   error = null,
+  editMode = false,
+  initialSectorName = '',
+  onEditSector,
 }) => {
-  const [sectorName, setSectorName] = useState('');
+  const [sectorName, setSectorName] = useState(initialSectorName);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Update sector name when initialSectorName changes (for edit mode)
+  useEffect(() => {
+    if (isOpen && editMode) {
+      setSectorName(initialSectorName);
+    } else if (isOpen && !editMode) {
+      setSectorName('');
+    }
+  }, [isOpen, editMode, initialSectorName]);
 
   if (!isOpen) return null;
 
@@ -37,7 +52,11 @@ const AddSectorModal: React.FC<AddSectorModalProps> = ({
     }
 
     setValidationError(null);
-    onAddSector(sectorName.trim());
+    if (editMode && onEditSector) {
+      onEditSector(sectorName.trim());
+    } else if (onAddSector) {
+      onAddSector(sectorName.trim());
+    }
   };
 
   const handleClose = () => {
@@ -67,7 +86,7 @@ const AddSectorModal: React.FC<AddSectorModalProps> = ({
               fontSize: '24px'
             }}
           >
-            Add New Sector
+            {editMode ? 'Edit Sector' : 'Add New Sector'}
           </h2>
           <button
             onClick={handleClose}
@@ -135,7 +154,7 @@ const AddSectorModal: React.FC<AddSectorModalProps> = ({
               variant="gradient"
               disabled={isAdding || !sectorName.trim()}
             >
-              {isAdding ? 'Adding...' : 'Add Sector'}
+              {isAdding ? (editMode ? 'Updating...' : 'Adding...') : (editMode ? 'Update Sector' : 'Add Sector')}
             </Button>
           </div>
         </form>

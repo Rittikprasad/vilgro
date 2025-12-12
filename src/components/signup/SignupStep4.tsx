@@ -5,17 +5,13 @@ import { z } from "zod"
 import { useDispatch, useSelector } from "react-redux"
 import { Button } from "../ui/Button"
 import { RadioGroup, RadioGroupItem } from "../ui/RadioGroup"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/Select"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import ProgressTracker from "../ui/ProgressTracker"
 import Navbar from "../ui/Navbar"
 import { fetchMetaOptions } from "../../features/meta/metaSlice"
 import type { RootState } from "../../app/store"
-import AgricultureIcon from '../../assets/Agriculture.svg'
-import RecyclingIcon from '../../assets/Recycling.svg'
-import HealthcareIcon from '../../assets/Healthcare.svg'
-import EnvelopeIcon from '../../assets/Envelope.svg'
-import OthersIcon from '../../assets/others.svg'
 import { Input } from "../ui/Input"
 
 // Validation schema for Step 4
@@ -53,6 +49,9 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
   const selectedStage = watch("stage")
   const selectedImpactFocus = watch("impactFocus")
 
+  // Get sectors from meta options
+  const sectors = options?.focus_sectors || []
+
   // Fetch meta options on component mount
   useEffect(() => {
     if (!options) {
@@ -71,15 +70,6 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
     } catch (error) {
       console.error("Step 4 error:", error)
     }
-  }
-
-  // Icon mapping for focus sectors
-  const sectorIcons: Record<string, string> = {
-    AGRICULTURE: AgricultureIcon,
-    WASTE: RecyclingIcon,
-    HEALTH: HealthcareIcon,
-    LIVELIHOOD: EnvelopeIcon,
-    OTHERS: OthersIcon
   }
 
   return (
@@ -106,48 +96,35 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
               {/* Focus Sector Selection */}
               <div className="space-y-4 pb-6 border-b border-gray-200">
-                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-4">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
                   Which is your main focus sector?<span className="text-red-500">*</span>
                 </label>
                 {metaLoading ? (
                   <div className="text-sm text-gray-500">Loading focus sectors...</div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {options?.focus_sectors?.map((sector) => {
-                      const isSelected = selectedFocusSector === sector.key
-                      const hasSelection = selectedFocusSector !== undefined
-                      
-                      return (
-                      <div
-                        key={sector.key}
-                        className={cn(
-                          "relative cursor-pointer rounded-lg border-2 p-2 text-center transition-all flex flex-col items-center justify-center",
-                          !hasSelection || isSelected ? "sector-card-gradient-border" : "",
-                          isSelected ? "bg-green-50" : "bg-white",
-                          hasSelection && !isSelected && "border-white"
-                        )}
-                        style={
-                          hasSelection && !isSelected
-                            ? {
-                                boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)"
-                              }
-                            : undefined
-                        }
-                        onClick={() => setValue("focusSector", sector.key)}
-                      >
-                        <div className="text-4xl mb-3 flex items-center justify-center">
-                          <img src={sectorIcons[sector.key]} alt={sector.label} className="w-10 h-10" />
-                        </div>
-                        <p className="text-[13px] font-[300] font-golos text-gray-900">
-                          {sector.label}
-                        </p>
-                      </div>
-                      )
-                    })}
+                  <div className="space-y-1">
+                    <Select 
+                      value={selectedFocusSector || ""} 
+                      onValueChange={(value) => setValue("focusSector", value)}
+                    >
+                      <SelectTrigger className={cn(
+                        "w-full h-12 rounded-lg bg-white",
+                        errors.focusSector ? "border-red-500" : "gradient-border"
+                      )}>
+                        <SelectValue placeholder="Select your main focus sector" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sectors.map((sector) => (
+                          <SelectItem key={sector.key} value={sector.key}>
+                            {sector.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.focusSector && (
+                      <p className="text-red-500 text-sm">{errors.focusSector.message}</p>
+                    )}
                   </div>
-                )}
-                {errors.focusSector && (
-                  <p className="text-red-500 text-sm">{errors.focusSector.message}</p>
                 )}
               </div>
 

@@ -78,6 +78,8 @@ export const endpoints = {
     audit: `${BASE_URL}/admin/audit/`,
     sectorSummary: `${BASE_URL}/admin/questions/sector-summary/`,
     addSector: `${BASE_URL}/admin/questions/add-sector/`,
+    editSector: `${BASE_URL}/admin/questions/edit-sector/`,
+    deleteSector: `${BASE_URL}/admin/questions/delete-sector/`,
   },
 
   loan: {

@@ -237,12 +237,17 @@ const BankingSPOProfilePage: React.FC = () => {
                           <td className="px-4 py-3 text-center">
                             <button
                               type="button"
-                              className="text-[#69C24E] underline transition-colors hover:text-[#46B753]"
+                              className={`${
+                                activeSpo?.assessment_id
+                                  ? "text-[#69C24E] underline transition-colors hover:text-[#46B753]"
+                                  : "text-gray-400 cursor-not-allowed"
+                              }`}
                               onClick={() => {
-                                if (spoId) {
-                                  navigate(`/banking/spos/${spoId}/responses`);
+                                if (activeSpo?.assessment_id && activeSpo?.id) {
+                                  navigate(`/banking/spos/${activeSpo.id}/responses`);
                                 }
                               }}
+                              disabled={!activeSpo?.assessment_id}
                             >
                               View Answers
                             </button>

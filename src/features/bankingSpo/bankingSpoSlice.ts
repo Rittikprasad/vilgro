@@ -125,6 +125,7 @@ export const fetchBankSpoById = createAsyncThunk<
           RETURN: latestAssessment.scores.sections.RETURN,
         }
       } : null,
+      assessment_id: latestAssessment?.id || null,
     };
     
     return transformed;

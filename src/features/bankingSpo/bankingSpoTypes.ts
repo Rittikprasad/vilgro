@@ -31,6 +31,7 @@ export interface BankingSpoEntry {
   last_loan_request_submitted_at: string | null;
   instrument: BankingSpoInstrument | null;
   scores: BankingSpoScores | null;
+  assessment_id: number | null;
 }
 
 export interface BankingSpoPaginatedResponse {

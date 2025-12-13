@@ -47,6 +47,8 @@ export const endpoints = {
   assessment: {
     report: (assessmentId: string | number) =>
       `${BASE_URL}/assessments/${assessmentId}/report.pdf`,
+    responses: (spoId: string | number, assessmentId: string | number) =>
+      `${BASE_URL}/admin/spos/${spoId}/assessments/${assessmentId}/qa/`,
   },
 
   // Feedback endpoints

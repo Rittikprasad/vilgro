@@ -3,6 +3,9 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { assessmentApi, feedbackApi, type AssessmentStartResponse, type SectionsResponse, type QuestionsResponse, type SaveAnswersResponse, type SubmitResponse, type AssessmentResult, type MissingAnswersError, type FeedbackMetaResponse, type FeedbackReason, type FeedbackSubmitRequest, type FeedbackSubmitResponse } from '../../services/assessmentApi';
 import { adminApi, type QuestionType, type CreateQuestionPayload, type CreateQuestionResponse, type CreateQuestionErrorResponse } from '../../services/adminApi';
 import { ApiResponseHandler } from '../../lib/apiResponseHandler';
+import type { AssessmentResponsesData } from '../adminSpo/adminSpoTypes';
+import api from '../../services/api';
+import { endpoints } from '../../services/endpoints';
 
 // State interface
 interface AssessmentState {
@@ -49,6 +52,11 @@ interface AssessmentState {
   // Loading states
   isLoading: boolean;
   error: string | null;
+  
+  // Assessment responses
+  assessmentResponses: AssessmentResponsesData | null;
+  isAssessmentResponsesLoading: boolean;
+  assessmentResponsesError: string | null;
 }
 
 interface AssessmentQuestion {
@@ -89,6 +97,9 @@ const initialState: AssessmentState = {
   eligibility: null,
   isReportDownloading: false,
   reportError: null,
+  assessmentResponses: null,
+  isAssessmentResponsesLoading: false,
+  assessmentResponsesError: null,
 };
 
 export interface LoanEligibilityResponse {
@@ -237,6 +248,31 @@ export interface AssessmentReportPayload {
   filename: string;
 }
 
+export interface FetchAssessmentResponsesParams {
+  spoId: string | number;
+  assessmentId: string | number;
+}
+
+export const fetchAssessmentResponses = createAsyncThunk<
+  AssessmentResponsesData,
+  FetchAssessmentResponsesParams,
+  { rejectValue: string }
+>('assessment/fetchAssessmentResponses', async ({ spoId, assessmentId }, { rejectWithValue }) => {
+  try {
+    const response = await api.get<AssessmentResponsesData>(
+      endpoints.assessment.responses(spoId, assessmentId)
+    );
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ??
+      error?.response?.data?.detail ??
+      error?.message ??
+      "Failed to fetch assessment responses";
+    return rejectWithValue(message);
+  }
+});
+
 export const getAssessmentReport = createAsyncThunk<
   AssessmentReportPayload,
   string | number,
@@ -350,6 +386,18 @@ const assessmentSlice = createSlice({
       state.error = null;
       state.submitError = null;
       state.eligibility = null;
+    },
+
+    // Reset assessment responses
+    resetAssessmentResponses: (state) => {
+      state.assessmentResponses = null;
+      state.isAssessmentResponsesLoading = false;
+      state.assessmentResponsesError = null;
+    },
+
+    // Clear assessment responses error
+    clearAssessmentResponsesError: (state) => {
+      state.assessmentResponsesError = null;
     },
   },
   extraReducers: (builder) => {
@@ -536,6 +584,21 @@ const assessmentSlice = createSlice({
       .addCase(submitFeedback.rejected, (state, action) => {
         state.isSubmittingFeedback = false;
         state.feedbackSubmitError = action.payload || 'Failed to submit feedback';
+      })
+
+      // Fetch assessment responses
+      .addCase(fetchAssessmentResponses.pending, (state) => {
+        state.isAssessmentResponsesLoading = true;
+        state.assessmentResponsesError = null;
+      })
+      .addCase(fetchAssessmentResponses.fulfilled, (state, action) => {
+        state.isAssessmentResponsesLoading = false;
+        state.assessmentResponses = action.payload;
+        state.assessmentResponsesError = null;
+      })
+      .addCase(fetchAssessmentResponses.rejected, (state, action) => {
+        state.isAssessmentResponsesLoading = false;
+        state.assessmentResponsesError = action.payload || 'Failed to fetch assessment responses';
       });
   },
 });
@@ -546,6 +609,8 @@ export const {
   updateLocalAnswer,
   clearLocalAnswers,
   resetAssessment,
+  resetAssessmentResponses,
+  clearAssessmentResponsesError,
 } = assessmentSlice.actions;
 
 export default assessmentSlice.reducer;

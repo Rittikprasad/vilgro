@@ -90,7 +90,7 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
       return {
         label: choice.label,
         value: choice.value || slugifyLabel(choice.label),
-        points: choice.points || '1'
+        points: choice.points !== undefined && choice.points !== null ? choice.points : '1'
       };
     });
   };
@@ -186,7 +186,9 @@ const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
         return {
           label,
           value,
-          points: typeof choice === 'string' ? defaultPoints : (choice.points || defaultPoints),
+          points: typeof choice === 'string' 
+            ? defaultPoints 
+            : (choice.points !== undefined && choice.points !== null ? choice.points : defaultPoints),
         };
       }) || [];
     } else if (updatedQuestion.type === 'SLIDER') {

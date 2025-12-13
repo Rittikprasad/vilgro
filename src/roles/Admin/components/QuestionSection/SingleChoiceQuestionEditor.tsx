@@ -22,7 +22,9 @@ const normalizeChoice = (choice: QuestionChoiceItem | string, fallbackIndex: num
     label: choice.label,
     value: choice.value || slugifyLabel(choice.label),
     points: choice.points,
-    score: choice.points ? parseFloat(choice.points) || 1 : Math.max(1, 4 - fallbackIndex),
+    score: choice.points !== undefined && choice.points !== null 
+      ? (isNaN(parseFloat(choice.points)) ? Math.max(1, 4 - fallbackIndex) : parseFloat(choice.points))
+      : Math.max(1, 4 - fallbackIndex),
   };
 };
 

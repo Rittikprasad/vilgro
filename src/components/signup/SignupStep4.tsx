@@ -43,6 +43,12 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
     formState: { errors, isSubmitting },
   } = useForm<Step4FormData>({
     resolver: zodResolver(step4Schema),
+    defaultValues: {
+      focusSector: "",
+      stage: "",
+      impactFocus: "",
+    },
+    mode: "onChange",
   })
 
   const selectedFocusSector = watch("focusSector")
@@ -104,8 +110,10 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                 ) : (
                   <div className="space-y-1">
                     <Select 
-                      value={selectedFocusSector || ""} 
-                      onValueChange={(value) => setValue("focusSector", value)}
+                      value={selectedFocusSector || undefined} 
+                      onValueChange={(value) => {
+                        setValue("focusSector", value, { shouldValidate: true, shouldDirty: true });
+                      }}
                     >
                       <SelectTrigger className={cn(
                         "w-full h-12 rounded-lg bg-white",
@@ -114,11 +122,17 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                         <SelectValue placeholder="Select your main focus sector" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sectors.map((sector) => (
-                          <SelectItem key={sector.key} value={sector.key}>
-                            {sector.label}
-                          </SelectItem>
-                        ))}
+                        {sectors.map((sector: any, index: number) => {
+                          const sectorValue = sector.value || sector.key;
+                          return (
+                            <SelectItem 
+                              key={`${sectorValue}-${index}`} 
+                              value={sectorValue}
+                            >
+                              {sector.label}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                     {errors.focusSector && (

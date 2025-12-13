@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent } from "../ui/Card";
 import type { QuestionChoiceItem, QuestionItem } from "../../roles/Admin/components/QuestionSection/QuestionListTable";
@@ -9,6 +9,9 @@ import StarRatingQuestion from "../ui/question/StarRatingQuestion";
 import VisualRatingQuestion from "../ui/question/VisualRatingQuestion";
 import BackIcon from "../../assets/svg/BackIcon.svg";
 import Navbar from "../ui/Navbar";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { fetchAssessmentResponses, resetAssessmentResponses, clearAssessmentResponsesError } from "../../features/assessment/assessmentSlice";
+import { Button } from "../ui/Button";
 
 interface QuestionResponse extends QuestionItem {
   selectedValue?: string;
@@ -41,123 +44,121 @@ const formatChoiceOptions = (choices?: Array<string | QuestionChoiceItem>) =>
 
 const noop = () => {};
 
-// Dummy data for assessment responses
-// TODO: Replace with actual API integration
-const generateDummyResponses = (assessmentId: string): QuestionResponse[] => {
-  return [
-    {
-      id: 1,
-      order: 1,
-      question: "What is your organization's primary focus sector?",
-      type: "single-choice",
-      weight: 10,
-      status: "Active",
-      options: {
-        type: "single-choice",
-        choices: [
-          { label: "Agriculture", value: "agriculture" },
-          { label: "Healthcare", value: "healthcare" },
-          { label: "Education", value: "education" },
-          { label: "Waste Management", value: "waste_management" },
-        ],
-      },
-      selectedValue: "agriculture",
-    },
-    {
-      id: 2,
-      order: 2,
-      question: "Which of the following impact areas does your organization address?",
-      type: "Multi-select",
-      weight: 15,
-      status: "Active",
-      options: {
-        type: "multiple-choice",
-        choices: [
-          { label: "Environmental Impact", value: "environmental_impact" },
-          { label: "Social Impact", value: "social_impact" },
-          { label: "Economic Impact", value: "economic_impact" },
-          { label: "Health Impact", value: "health_impact" },
-        ],
-      },
-      selectedValues: ["environmental_impact", "social_impact"],
-    },
-    {
-      id: 3,
-      order: 3,
-      question: "Rate your organization's financial stability on a scale of 0-100",
-      type: "Slider",
-      weight: 20,
-      status: "Active",
-      options: {
-        min: 0,
-        max: 100,
-        step: 1,
-      },
-      sliderValue: 75,
-    },
-    {
-      id: 4,
-      order: 4,
-      question: "How would you rate your organization's impact measurement capabilities?",
-      type: "RATING",
-      weight: 15,
-      status: "Active",
-      options: {
-        maxStars: 5,
-        labels: ["Poor", "Fair", "Good", "Very Good", "Excellent"],
-      },
-      ratingValue: 4,
-    },
-    {
-      id: 5,
-      order: 5,
-      question: "Rate the following dimensions of your organization:",
-      type: "Multi-Slider",
-      weight: 25,
-      status: "Active",
-      options: {
-        dimensions: [
-          { code: "dimension1", label: "Operational Efficiency", min_value: 0, max_value: 100 },
-          { code: "dimension2", label: "Market Reach", min_value: 0, max_value: 100 },
-          { code: "dimension3", label: "Innovation Capacity", min_value: 0, max_value: 100 },
-        ],
-      },
-      dimensionValues: {
-        dimension1: 80,
-        dimension2: 65,
-        dimension3: 70,
-      },
-    },
-    {
-      id: 6,
-      order: 6,
-      question: "How likely are you to recommend our platform to other organizations?",
-      type: "NPS",
-      weight: 10,
-      status: "Active",
-      options: {
-        labels: Array.from({ length: 11 }, (_, i) => i.toString()),
-      },
-      npsValue: 8,
-    },
-    {
-      id: 7,
-      order: 7,
-      question: "How satisfied are you with your current impact measurement process?",
-      type: "Smiley face",
-      weight: 5,
-      status: "Active",
-      options: {
-        options: [
-          { value: "1", label: "Not At All Likely" },
-          { value: "2", label: "Slightly Likely" },
-          { value: "3", label: "Somewhat Likely" },
-          { value: "4", label: "Very Likely" },
-        ],
-      },
-      selectedValue: "3",
-    },
-  ];
+// Helper function to convert API question type to display type
+const convertApiQuestionType = (apiType: string): string => {
+  switch (apiType) {
+    case 'SINGLE_CHOICE': return 'single-choice';
+    case 'MULTI_SLIDER': return 'Multi-Slider';
+    case 'MULTI_CHOICE': return 'Multi-select';
+    case 'RATING': return 'RATING';
+    case 'STAR_RATING': return 'RATING';
+    case 'VISUAL_RATING': return 'Smiley face';
+    case 'SLIDER': return 'Slider';
+    case 'NPS': return 'NPS';
+    default: return apiType;
+  }
+};
+
+// Helper function to format answer value to readable text
+const formatAnswerValue = (value: string): string => {
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+};
+
+// Helper function to convert API response to QuestionResponse format
+const convertApiResponseToQuestionResponse = (
+  apiQuestion: any,
+  order: number
+): QuestionResponse => {
+  const displayType = convertApiQuestionType(apiQuestion.type);
+  
+  // Extract answer values based on question type
+  let selectedValue: string | undefined;
+  let selectedValues: string[] | undefined;
+  let sliderValue: number | undefined;
+  let dimensionValues: Record<string, number> | undefined;
+  let ratingValue: number | undefined;
+  let npsValue: number | undefined;
+
+  if (apiQuestion.answer) {
+    if (apiQuestion.answer.value !== undefined) {
+      if (typeof apiQuestion.answer.value === 'string') {
+        selectedValue = apiQuestion.answer.value;
+      } else if (typeof apiQuestion.answer.value === 'number') {
+        if (displayType === 'RATING') {
+          ratingValue = apiQuestion.answer.value;
+        } else if (displayType === 'Slider') {
+          sliderValue = apiQuestion.answer.value;
+        } else if (displayType === 'NPS') {
+          npsValue = apiQuestion.answer.value;
+        }
+      }
+    }
+    
+    if (apiQuestion.answer.values) {
+      if (Array.isArray(apiQuestion.answer.values)) {
+        selectedValues = apiQuestion.answer.values;
+      } else if (typeof apiQuestion.answer.values === 'object') {
+        dimensionValues = apiQuestion.answer.values as Record<string, number>;
+      }
+    }
+  }
+
+  // Since options are not provided in the API response, we create minimal options
+  // based on the answer values for display purposes
+  let options: any = {};
+  
+  if (displayType === 'RATING') {
+    const maxStars = ratingValue && ratingValue > 0 ? Math.max(ratingValue, 5) : 5;
+    options = {
+      maxStars,
+      labels: Array.from({ length: maxStars }, (_, i) => `Option ${i + 1}`)
+    };
+  } else if (displayType === 'single-choice' || displayType === 'Multi-select') {
+    const answerValues = selectedValues || (selectedValue ? [selectedValue] : []);
+    options = {
+      type: displayType === 'single-choice' ? 'single-choice' : 'multiple-choice',
+      choices: answerValues.map((val: string) => ({
+        label: formatAnswerValue(val),
+        value: val
+      }))
+    };
+  } else if (displayType === 'Multi-Slider') {
+    if (dimensionValues) {
+      options = {
+        dimensions: Object.keys(dimensionValues).map((key) => ({
+          code: key,
+          label: formatAnswerValue(key.replace('dimension', 'Dimension ')),
+          min_value: 0,
+          max_value: 100
+        }))
+      };
+    }
+  } else if (displayType === 'Slider') {
+    options = {
+      min: 0,
+      max: sliderValue && sliderValue > 0 ? Math.max(sliderValue, 100) : 100,
+      step: 1
+    };
+  }
+
+  return {
+    id: order,
+    order: order,
+    question: apiQuestion.text,
+    type: displayType,
+    weight: 0,
+    status: 'Active',
+    options,
+    selectedValue,
+    selectedValues,
+    sliderValue,
+    dimensionValues,
+    ratingValue,
+    npsValue,
+  };
 };
 
 const renderQuestionComponent = (question: QuestionResponse) => {
@@ -209,7 +210,7 @@ const renderQuestionComponent = (question: QuestionResponse) => {
           <div className="space-y-4">
             {question.dimensionValues && Object.keys(question.dimensionValues).length > 0 ? (
               Object.entries(question.dimensionValues).map(([key, value], idx) => {
-                const dimension = question.options?.dimensions?.find((d) => d.code === key);
+                const dimension = question.options?.dimensions?.find((d: { code: string; label?: string }) => d.code === key);
                 return (
                   <SliderQuestion
                     key={key}
@@ -276,14 +277,55 @@ const renderQuestionComponent = (question: QuestionResponse) => {
 
 const AssessmentResponsesPage: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { assessmentId } = useParams<{ assessmentId: string }>();
+  const user = useAppSelector((state) => state.auth.user);
+  
+  const {
+    assessmentResponses,
+    isAssessmentResponsesLoading,
+    assessmentResponsesError,
+  } = useAppSelector((state) => state.assessment);
 
-  // Generate dummy responses based on assessmentId
-  // TODO: Replace with actual API call
+  // Convert API response to QuestionResponse format
   const questionResponses: QuestionResponse[] = React.useMemo(() => {
-    if (!assessmentId) return [];
-    return generateDummyResponses(assessmentId);
-  }, [assessmentId]);
+    if (!assessmentResponses?.sections) return [];
+    
+    let order = 1;
+    const responses: QuestionResponse[] = [];
+    
+    for (const section of assessmentResponses.sections) {
+      for (const question of section.questions) {
+        responses.push(convertApiResponseToQuestionResponse(question, order));
+        order++;
+      }
+    }
+    
+    return responses;
+  }, [assessmentResponses]);
+
+  // Fetch assessment responses on mount
+  useEffect(() => {
+    if (!assessmentId || !user?.id) {
+      return;
+    }
+
+    dispatch(fetchAssessmentResponses({ 
+      spoId: user.id, 
+      assessmentId: assessmentId 
+    }));
+
+    return () => {
+      dispatch(resetAssessmentResponses());
+    };
+  }, [dispatch, assessmentId, user?.id]);
+
+  // Clear error on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearAssessmentResponsesError());
+    };
+  }, [dispatch]);
 
   if (!assessmentId) {
     return (
@@ -293,6 +335,21 @@ const AssessmentResponsesPage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-800">
               Invalid assessment identifier.
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user?.id) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-50 pt-30 pb-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-800">
+              User information not available. Please log in again.
             </div>
           </div>
         </div>
@@ -329,7 +386,28 @@ const AssessmentResponsesPage: React.FC = () => {
               </div>
             </div>
 
-            {questionResponses.length === 0 ? (
+            {isAssessmentResponsesLoading ? (
+              <div className="flex justify-center py-16">
+                <div className="text-sm text-gray-500">Loading assessment responses...</div>
+              </div>
+            ) : assessmentResponsesError ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+                <div className="text-sm text-red-800 mb-4">{assessmentResponsesError}</div>
+                <Button
+                  onClick={() => {
+                    if (assessmentId && user?.id) {
+                      dispatch(fetchAssessmentResponses({ 
+                        spoId: user.id, 
+                        assessmentId: assessmentId 
+                      }));
+                    }
+                  }}
+                  variant="outline"
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : questionResponses.length === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
                 No assessment responses found.
               </div>

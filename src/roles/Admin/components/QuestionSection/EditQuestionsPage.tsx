@@ -207,7 +207,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
           return {
             label: meta.label,
             value: meta.value.toUpperCase(),
-            points: meta.points || defaultPoints,
+            points: meta.points !== undefined && meta.points !== null ? meta.points : defaultPoints,
           };
         });
       } else if (question.type === 'Multi-select' && question.options.type === 'multiple-choice') {
@@ -217,7 +217,7 @@ const EditQuestionsPage: React.FC<EditQuestionsPageProps> = ({
           return {
             label: meta.label,
             value: meta.value.toUpperCase(),
-            points: meta.points || '1',
+            points: meta.points !== undefined && meta.points !== null ? meta.points : '1',
           };
         });
       } else if (question.type === 'Checkbox') {

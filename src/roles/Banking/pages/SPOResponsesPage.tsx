@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BankingLayoutWrapper from "../layout/LayoutWrapper";
 import { Card, CardContent } from "../../../components/ui/Card";
@@ -9,6 +9,14 @@ import SliderQuestion from "../../../components/ui/question/SliderQuestion";
 import StarRatingQuestion from "../../../components/ui/question/StarRatingQuestion";
 import VisualRatingQuestion from "../../../components/ui/question/VisualRatingQuestion";
 import BackIcon from "../../../assets/svg/BackIcon.svg";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import {
+  fetchAssessmentResponses,
+  clearAssessmentResponsesError,
+  resetAssessmentResponses,
+} from "../../../features/adminSpo/adminSpoSlice";
+import { fetchBankSpoById } from "../../../features/bankingSpo/bankingSpoSlice";
+import { Button } from "../../../components/ui/Button";
 
 interface QuestionResponse extends QuestionItem {
   selectedValue?: string;
@@ -41,141 +49,142 @@ const formatChoiceOptions = (choices?: Array<string | QuestionChoiceItem>) =>
 
 const noop = () => {};
 
-const sampleResponses: QuestionResponse[] = [
-  {
-    id: 1,
-    order: 1,
-    question: "How well is social impact integrated and aligned with the enterprise’s mission?",
-    type: "single-choice",
-    weight: 3,
-    status: "Active",
-    options: {
-      type: "single-choice",
-      choices: [
-        { label: "Impact is peripheral and not central to the mission.", value: "impact_peripheral" },
-        { label: "Some integration but with gaps; impact is important but not core.", value: "some_integration" },
-        { label: "Impact is mostly integrated with minor gaps, a central objective.", value: "mostly_integrated" },
-        { label: "Fully integrated and mission-aligned, with central focus on impact.", value: "fully_integrated" },
-      ],
-    },
-    selectedValue: "fully_integrated",
-  },
-  {
-    id: 2,
-    order: 2,
-    question: "What is the risk to adoption of innovation?",
-    type: "Multi-select",
-    weight: 2,
-    status: "Active",
-    options: {
-      type: "multiple-choice",
-      choices: [
-        { label: "High likelihood of adoption with minimal hesitation.", value: "high_adoption" },
-        { label: "Some hesitation, but likely to overcome with training.", value: "some_hesitation" },
-        { label: "Significant hesitation with barriers to widespread adoption.", value: "significant_hesitation" },
-        { label: "Very low likelihood without significant changes.", value: "very_low_adoption" },
-      ],
-    },
-    selectedValues: ["high_adoption", "some_hesitation"],
-  },
-  {
-    id: 3,
-    order: 3,
-    question: "On a scale of 0-10, how would you rate the clarity of your impact thesis?",
-    type: "Slider",
-    weight: 1,
-    status: "Active",
-    options: {
+// Helper function to convert API question type to display type
+const convertApiQuestionType = (apiType: string): string => {
+  switch (apiType) {
+    case 'SINGLE_CHOICE': return 'single-choice';
+    case 'MULTI_SLIDER': return 'Multi-Slider';
+    case 'MULTI_CHOICE': return 'Multi-select';
+    case 'RATING': return 'RATING';
+    case 'STAR_RATING': return 'RATING';
+    case 'VISUAL_RATING': return 'Smiley face';
+    case 'SLIDER': return 'Slider';
+    case 'NPS': return 'NPS';
+    default: return apiType;
+  }
+};
+
+// Helper function to format answer value to readable text
+const formatAnswerValue = (value: string): string => {
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+};
+
+// Helper function to convert API response to QuestionResponse format
+const convertApiResponseToQuestionResponse = (
+  apiQuestion: any,
+  order: number
+): QuestionResponse => {
+  const displayType = convertApiQuestionType(apiQuestion.type);
+  
+  // Extract answer values based on question type
+  let selectedValue: string | undefined;
+  let selectedValues: string[] | undefined;
+  let sliderValue: number | undefined;
+  let dimensionValues: Record<string, number> | undefined;
+  let ratingValue: number | undefined;
+  let npsValue: number | undefined;
+
+  if (apiQuestion.answer) {
+    if (apiQuestion.answer.value !== undefined) {
+      if (typeof apiQuestion.answer.value === 'string') {
+        selectedValue = apiQuestion.answer.value;
+      } else if (typeof apiQuestion.answer.value === 'number') {
+        if (displayType === 'RATING') {
+          ratingValue = apiQuestion.answer.value;
+        } else if (displayType === 'Slider') {
+          sliderValue = apiQuestion.answer.value;
+        } else if (displayType === 'NPS') {
+          npsValue = apiQuestion.answer.value;
+        }
+      }
+    }
+    
+    if (apiQuestion.answer.values) {
+      if (Array.isArray(apiQuestion.answer.values)) {
+        selectedValues = apiQuestion.answer.values;
+      } else if (typeof apiQuestion.answer.values === 'object') {
+        dimensionValues = apiQuestion.answer.values as Record<string, number>;
+      }
+    }
+  }
+
+  // Since options are not provided in the API response, we create minimal options
+  // based on the answer values for display purposes
+  let options: any = {};
+  
+  if (displayType === 'RATING') {
+    const maxStars = ratingValue && ratingValue > 0 ? Math.max(ratingValue, 5) : 5;
+    options = {
+      maxStars,
+      labels: Array.from({ length: maxStars }, (_, i) => `Option ${i + 1}`)
+    };
+  } else if (displayType === 'single-choice' || displayType === 'Multi-select') {
+    const answerValues = selectedValues || (selectedValue ? [selectedValue] : []);
+    options = {
+      type: displayType === 'single-choice' ? 'single-choice' : 'multiple-choice',
+      choices: answerValues.map((val: string) => ({
+        label: formatAnswerValue(val),
+        value: val
+      }))
+    };
+  } else if (displayType === 'Multi-Slider') {
+    if (dimensionValues) {
+      options = {
+        dimensions: Object.keys(dimensionValues).map((key) => ({
+          code: key,
+          label: formatAnswerValue(key.replace('dimension', 'Dimension ')),
+          min_value: 0,
+          max_value: 100
+        }))
+      };
+    }
+  } else if (displayType === 'Slider') {
+    options = {
       min: 0,
-      max: 10,
-      step: 1,
-    },
-    sliderValue: 8,
-  },
-  {
-    id: 4,
-    order: 4,
-    question: "Evaluate your performance across the following dimensions.",
-    type: "Multi-Slider",
-    weight: 2,
-    status: "Active",
-    options: {
-      dimensions: [
-        { code: "financial", label: "Financial Health", min_value: 0, max_value: 10 },
-        { code: "social", label: "Social Impact", min_value: 0, max_value: 10 },
-        { code: "risk", label: "Risk Management", min_value: 0, max_value: 10 },
-      ],
-    },
-    dimensionValues: {
-      financial: 7,
-      social: 9,
-      risk: 5,
-    },
-  },
-  {
-    id: 5,
-    order: 5,
-    question: "Rate the overall effectiveness of your intervention.",
-    type: "RATING",
-    weight: 1,
-    status: "Active",
-    options: {
-      maxStars: 5,
-      labels: ["Poor", "Fair", "Good", "Very Good", "Excellent"],
-    },
-    ratingValue: 4,
-  },
-  {
-    id: 6,
-    order: 6,
-    question: "How likely are you to recommend this intervention to other SPOs?",
-    type: "NPS",
-    weight: 1,
-    status: "Active",
-    options: {
-      labels: ["Not at all likely", "Slightly likely", "Somewhat likely", "Very likely"],
-    },
-    npsValue: 2,
-  },
-  {
-    id: 7,
-    order: 7,
-    question: "How would you describe the current team morale?",
-    type: "Smiley face",
-    weight: 1,
-    status: "Active",
-    options: {
-      options: [
-        { label: "Very Low", value: 1 },
-        { label: "Low", value: 2 },
-        { label: "Neutral", value: 3 },
-        { label: "High", value: 4 },
-      ],
-    },
-    selectedValue: "3",
-  },
-  {
-    id: 8,
-    order: 8,
-    question: "Which support services do you currently leverage?",
-    type: "Checkbox",
-    weight: 1,
-    status: "Active",
-    options: {
-      choices: [
-        { label: "Capacity Building", value: "capacity_building" },
-        { label: "Grant Funding", value: "grant_funding" },
-        { label: "Technical Advisory", value: "technical_advisory" },
-      ],
-    },
-    selectedValues: ["capacity_building", "technical_advisory"],
-  },
-];
+      max: sliderValue && sliderValue > 0 ? Math.max(sliderValue, 100) : 100,
+      step: 1
+    };
+  }
+
+  return {
+    id: order,
+    order: order,
+    question: apiQuestion.text,
+    type: displayType,
+    weight: 0,
+    status: 'Active',
+    options,
+    selectedValue,
+    selectedValues,
+    sliderValue,
+    dimensionValues,
+    ratingValue,
+    npsValue,
+  };
+};
 
 const renderQuestionComponent = (question: QuestionResponse) => {
   switch (question.type) {
     case "single-choice": {
       const options = formatChoiceOptions(question.options?.choices);
+      // If no options but we have a selected value, create a simple display
+      if (options.length === 0 && question.selectedValue) {
+        return (
+          <div className="space-y-2">
+            <p className="text-[#46B753] font-golos text-xl font-semibold">
+              {question.order}. {question.question}
+            </p>
+            <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <p className="text-sm font-medium text-gray-900">
+                {formatAnswerValue(question.selectedValue)}
+              </p>
+            </div>
+          </div>
+        );
+      }
       return (
         <SingleChoiceQuestion
           question={question.question}
@@ -188,6 +197,23 @@ const renderQuestionComponent = (question: QuestionResponse) => {
     case "Multi-select":
     case "Checkbox": {
       const options = formatChoiceOptions(question.options?.choices);
+      // If no options but we have selected values, create a simple display
+      if (options.length === 0 && question.selectedValues && question.selectedValues.length > 0) {
+        return (
+          <div className="space-y-2">
+            <p className="text-[#46B753] font-golos text-xl font-semibold">
+              {question.order}. {question.question}
+            </p>
+            <div className="mt-3 space-y-2">
+              {question.selectedValues.map((val, idx) => (
+                <div key={idx} className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2">
+                  <p className="text-sm font-medium text-gray-900">{formatAnswerValue(val)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
       return (
         <MultipleChoiceQuestion
           question={question.question}
@@ -198,7 +224,8 @@ const renderQuestionComponent = (question: QuestionResponse) => {
       );
     }
     case "Slider": {
-      const value = question.sliderValue ?? question.options?.min ?? 0;
+      const min = question.options?.min ?? 0;
+      const value = question.sliderValue ?? min;
       return (
         <SliderQuestion
           question={question.question}
@@ -216,18 +243,25 @@ const renderQuestionComponent = (question: QuestionResponse) => {
         <div className="space-y-4">
           <p className="text-[#46B753] font-golos text-xl font-semibold">{question.question}</p>
           <div className="space-y-4">
-            {question.options?.dimensions?.map((dimension: any, index: number) => (
-              <SliderQuestion
-                key={dimension.code}
-                question={`${index + 1}. ${dimension.label}`}
-                questionNumber={undefined}
-                min={dimension.min_value}
-                max={dimension.max_value}
-                step={dimension.step || 1}
-                value={question.dimensionValues?.[dimension.code] ?? dimension.min_value ?? 0}
-                onChange={noop}
-              />
-            ))}
+            {question.dimensionValues && Object.keys(question.dimensionValues).length > 0 ? (
+              Object.entries(question.dimensionValues).map(([key, value], idx) => {
+                const dimension = question.options?.dimensions?.find((d: { code: string; label?: string }) => d.code === key);
+                return (
+                  <SliderQuestion
+                    key={key}
+                    question={dimension?.label || `Dimension ${idx + 1}`}
+                    questionNumber={undefined}
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={value as number}
+                    onChange={noop}
+                  />
+                );
+              })
+            ) : (
+              <div className="text-sm text-gray-500">No dimension values available</div>
+            )}
           </div>
         </div>
       );
@@ -278,7 +312,150 @@ const renderQuestionComponent = (question: QuestionResponse) => {
 
 const BankingSPOResponsesPage: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { spoId } = useParams<{ spoId: string }>();
+  const numericId = spoId ? Number(spoId) : NaN;
+  
+  const { selected, isDetailLoading } = useAppSelector((state) => state.bankingSpo);
+  const {
+    assessmentResponses,
+    isAssessmentResponsesLoading,
+    assessmentResponsesError,
+  } = useAppSelector((state) => state.adminSpo);
+
+  const activeSpo = selected && !Number.isNaN(numericId) && selected.id === numericId ? selected : null;
+  const assessmentId = activeSpo?.assessment_id;
+
+  // Fetch SPO details if not already loaded
+  useEffect(() => {
+    if (Number.isNaN(numericId)) return;
+    if (!activeSpo) {
+      void dispatch(fetchBankSpoById(numericId));
+    }
+  }, [dispatch, numericId, activeSpo]);
+
+  // Fetch assessment responses when we have both spoId and assessmentId
+  useEffect(() => {
+    if (!assessmentId || Number.isNaN(numericId)) {
+      return;
+    }
+
+    dispatch(fetchAssessmentResponses({ 
+      spoId: numericId, 
+      assessmentId: assessmentId 
+    }));
+
+    return () => {
+      dispatch(resetAssessmentResponses());
+    };
+  }, [dispatch, numericId, assessmentId]);
+
+  // Clear error on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearAssessmentResponsesError());
+    };
+  }, [dispatch]);
+
+  // Convert API response to QuestionResponse format
+  const questionResponses: QuestionResponse[] = React.useMemo(() => {
+    if (!assessmentResponses?.sections) return [];
+    
+    let order = 1;
+    const responses: QuestionResponse[] = [];
+    
+    for (const section of assessmentResponses.sections) {
+      for (const question of section.questions) {
+        responses.push(convertApiResponseToQuestionResponse(question, order));
+        order++;
+      }
+    }
+    
+    return responses;
+  }, [assessmentResponses]);
+
+  if (Number.isNaN(numericId)) {
+    return (
+      <BankingLayoutWrapper>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-600">
+          Invalid SPO identifier.
+        </div>
+      </BankingLayoutWrapper>
+    );
+  }
+
+  // Show loading while fetching SPO details
+  if (isDetailLoading || (!activeSpo && !Number.isNaN(numericId))) {
+    return (
+      <BankingLayoutWrapper>
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <img src={BackIcon} alt="Back" className="w-8 h-8" />
+            </button>
+            <div>
+              <h1
+                className="text-gray-800"
+                style={{
+                  fontFamily: "Baskervville",
+                  fontWeight: 600,
+                  fontStyle: "normal",
+                  fontSize: "32px",
+                }}
+              >
+                Social Enterprises Assessment Responses
+              </h1>
+            </div>
+          </div>
+          <div className="flex justify-center py-16">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-sm text-gray-500">Loading SPO details...</p>
+            </div>
+          </div>
+        </div>
+      </BankingLayoutWrapper>
+    );
+  }
+
+  // Show error if assessment_id is missing (only after SPO is loaded)
+  if (!Number.isNaN(numericId) && activeSpo && !assessmentId) {
+    return (
+      <BankingLayoutWrapper>
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <img src={BackIcon} alt="Back" className="w-8 h-8" />
+            </button>
+            <div>
+              <h1
+                className="text-gray-800"
+                style={{
+                  fontFamily: "Baskervville",
+                  fontWeight: 600,
+                  fontStyle: "normal",
+                  fontSize: "32px",
+                }}
+              >
+                Social Enterprises Assessment Responses
+              </h1>
+            </div>
+          </div>
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-sm text-yellow-800">
+            No assessment found for this SPO. Assessment responses are only available for SPOs who have completed an assessment.
+          </div>
+        </div>
+      </BankingLayoutWrapper>
+    );
+  }
 
   return (
     <BankingLayoutWrapper>
@@ -307,19 +484,51 @@ const BankingSPOResponsesPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="space-y-5">
-          {sampleResponses.map((question) => (
-            <Card key={question.id} className="shadow-sm border border-gray-100">
-              <CardContent className="p-6">
-                <div className="pointer-events-none">{renderQuestionComponent(question)}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {assessmentResponsesError && (
+          <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <span>{assessmentResponsesError}</span>
+            <Button
+              onClick={() => {
+                dispatch(clearAssessmentResponsesError());
+                if (!Number.isNaN(numericId) && assessmentId) {
+                  dispatch(fetchAssessmentResponses({ 
+                    spoId: numericId, 
+                    assessmentId: assessmentId 
+                  }));
+                }
+              }}
+              variant="outline"
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {isAssessmentResponsesLoading ? (
+          <div className="flex justify-center py-16">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-sm text-gray-500">Loading assessment responses...</p>
+            </div>
+          </div>
+        ) : questionResponses.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
+            No assessment responses found.
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {questionResponses.map((question) => (
+              <Card key={question.id} className="shadow-sm border border-gray-100">
+                <CardContent className="p-6">
+                  <div className="pointer-events-none">{renderQuestionComponent(question)}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </BankingLayoutWrapper>
   );
 };
 
 export default BankingSPOResponsesPage;
-

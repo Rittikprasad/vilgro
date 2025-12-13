@@ -22,7 +22,9 @@ const normalizeChoice = (choice: QuestionChoiceItem | string) => {
     label: choice.label,
     value: choice.value || slugifyLabel(choice.label),
     points: choice.points,
-    score: choice.points ? parseFloat(choice.points) || 1 : 1,
+    score: choice.points !== undefined && choice.points !== null 
+      ? (isNaN(parseFloat(choice.points)) ? 1 : parseFloat(choice.points))
+      : 1,
   };
 };
 

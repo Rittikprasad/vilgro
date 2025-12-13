@@ -16,6 +16,7 @@ import {
   clearAdminSpoDeleteError,
 } from "../../../features/adminSpo/adminSpoSlice";
 import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
+import { generatePDFReport } from "../../../utils/generatePDFReport";
 
 const formatDate = (value: string | null | undefined) => {
   if (!value) {
@@ -52,6 +53,7 @@ const SPOProfilePage: React.FC = () => {
   );
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isDeletingOrDeleted, setIsDeletingOrDeleted] = React.useState(false);
 
   const activeSpo: AdminSpoEntry | null =
     selected && !Number.isNaN(numericId) && selected.id === numericId
@@ -63,10 +65,15 @@ const SPOProfilePage: React.FC = () => {
       return;
     }
 
+    // Don't fetch if we're deleting or have already deleted
+    if (isDeletingOrDeleted) {
+      return;
+    }
+
     if (!activeSpo) {
       void dispatch(fetchAdminSpoById(numericId));
     }
-  }, [dispatch, numericId, activeSpo]);
+  }, [dispatch, numericId, activeSpo, isDeletingOrDeleted]);
 
   useEffect(() => {
     return () => {
@@ -156,6 +163,18 @@ const SPOProfilePage: React.FC = () => {
     }
   };
 
+  const handleGeneratePDFReport = () => {
+    if (!activeSpo) {
+      return;
+    }
+
+    try {
+      generatePDFReport(activeSpo);
+    } catch (err) {
+      console.error("Failed to generate PDF report", err);
+    }
+  };
+
   const handleDelete = async () => {
     if (isDeleting) {
       return;
@@ -164,13 +183,20 @@ const SPOProfilePage: React.FC = () => {
       return;
     }
 
+    // Set flag to prevent refetching after deletion
+    setIsDeletingOrDeleted(true);
+
     try {
       await dispatch(deleteAdminSpo(activeSpo.id)).unwrap();
       dispatch(clearAdminSpoDeleteError());
       setIsDeleteModalOpen(false);
+      // Reset selected SPO before navigating to prevent refetch
+      dispatch(resetSelectedAdminSpo());
       navigate("/admin/spos");
     } catch (err) {
       console.error("Failed to delete SPO", err);
+      // Reset flag on error so user can retry
+      setIsDeletingOrDeleted(false);
     }
   };
 
@@ -233,10 +259,10 @@ const SPOProfilePage: React.FC = () => {
             </Button>
             <Button
               variant="gradient"
-              onClick={handleGenerateReport}
-              disabled={isReportDownloading || !activeSpo}
+              onClick={handleGeneratePDFReport}
+              disabled={!activeSpo}
             >
-              {isReportDownloading ? "Generating..." : "Generate Report"}
+              Generate Report
             </Button>
           </div>
         </div>

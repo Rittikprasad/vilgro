@@ -46,5 +46,7 @@ export interface AdminDetailsState {
   createError: string | null;
   isUpdating: boolean;
   updateError: string | null;
+  isDeleting: boolean;
+  deleteError: string | null;
 }
 

@@ -3,6 +3,7 @@ import LayoutWrapper from "../layout/LayoutWrapper";
 import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
 import ViewIcon from "../../../assets/svg/view.svg";
+import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { Input } from "../../../components/ui/Input";
 import { cn } from "../../../lib/utils";
@@ -12,6 +13,7 @@ import {
   createAdminDetail,
   fetchAdminDetails,
   updateAdminDetail,
+  deleteAdminDetail,
 } from "../../../features/adminDetails/adminDetailsSlice";
 import type { AdminDetailsEntry } from "../../../features/adminDetails/adminDetailsTypes";
 import { showNotification } from "../../../services/notificationService";
@@ -30,9 +32,13 @@ const AdminsPage: React.FC = () => {
     createError,
     isUpdating,
     updateError,
+    isDeleting,
+    deleteError,
   } = useAppSelector((state) => state.adminDetails);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<AdminDetailsEntry | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [adminToDelete, setAdminToDelete] = useState<AdminDetailsEntry | null>(null);
   const initialFormState = useMemo(
     () => ({
       email: "",
@@ -81,6 +87,34 @@ const AdminsPage: React.FC = () => {
     [dispatch]
   );
 
+  const handleDelete = async () => {
+    if (!adminToDelete || isDeleting) {
+      return;
+    }
+
+    try {
+      await dispatch(deleteAdminDetail(adminToDelete.id)).unwrap();
+      showNotification({
+        type: "success",
+        title: "Admin Deleted",
+        message: `Admin ${adminToDelete.email} has been successfully deleted.`,
+        duration: 4000,
+      });
+      setIsDeleteModalOpen(false);
+      setAdminToDelete(null);
+      fetchAdmins();
+    } catch (err) {
+      showNotification({
+        type: "error",
+        title: "Delete Failed",
+        message:
+          typeof err === "string"
+            ? err
+            : "We could not delete the admin. Please try again.",
+        duration: 5000,
+      });
+    }
+  };
 
   // Fetch all admins once on mount and when needed (no pagination params)
   const fetchAdmins = useCallback(() => {
@@ -205,6 +239,20 @@ const AdminsPage: React.FC = () => {
                 </button>
               </div>
             )}
+            {deleteError && (
+              <div className="mb-4 flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <span>{deleteError}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    dispatch(clearAdminDetailsError());
+                  }}
+                  className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
             {isLoading ? (
               <div className="flex justify-center py-16 text-sm text-gray-500">
                 Loading admins...
@@ -325,8 +373,13 @@ const AdminsPage: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              className="text-[#FF6B55] hover:text-[#d95340] p-1 rounded hover:bg-red-50 transition-colors"
+                              className="text-[#FF6B55] hover:text-[#d95340] p-1 rounded hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Delete"
+                              onClick={() => {
+                                setAdminToDelete(admin.raw);
+                                setIsDeleteModalOpen(true);
+                              }}
+                              disabled={isDeleting}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -613,6 +666,26 @@ const AdminsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Admin"
+        message={
+          adminToDelete
+            ? `Are you sure you want to delete admin ${adminToDelete.email}? This action cannot be undone.`
+            : "Are you sure you want to delete this admin? This action cannot be undone."
+        }
+        confirmText={isDeleting ? "Deleting..." : "Delete"}
+        cancelText="Cancel"
+        onConfirm={handleDelete}
+        onCancel={() => {
+          if (!isDeleting) {
+            setIsDeleteModalOpen(false);
+            setAdminToDelete(null);
+            dispatch(clearAdminDetailsError());
+          }
+        }}
+      />
     </LayoutWrapper>
   );
 };

@@ -72,6 +72,7 @@ export const endpoints = {
     spoReport: (id: number | string) => `${BASE_URL}/admin/spos/${id}/report/`,
     spoAssessmentResponses: (spoId: number | string, assessmentId: number | string) =>
       `${BASE_URL}/admin/spos/${spoId}/assessments/${assessmentId}/qa/`,
+    assessmentCooldown: `${BASE_URL}/admin/spos/assessment-cooldown/`,
     banks: `${BASE_URL}/admin/banks/`,
     bankById: (id: number | string) => `${BASE_URL}/admin/banks/${id}/`,
     reviews: `${BASE_URL}/admin/reviews/`,

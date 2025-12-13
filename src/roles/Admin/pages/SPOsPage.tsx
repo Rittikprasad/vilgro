@@ -8,6 +8,7 @@ import { Input } from "../../../components/ui/Input";
 import ViewIcon from "../../../assets/svg/view.svg";
 // import EmailIcon from "../../../assets/svg/email.svg";
 import SPOsFilterModal from "../components/SPOsFilterModal";
+import CooldownModal from "../components/CooldownModal";
 import type { AppDispatch, RootState } from "../../../app/store";
 import {
   fetchAdminSpos,
@@ -24,6 +25,7 @@ const SPOsPage: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isCooldownModalOpen, setIsCooldownModalOpen] = useState(false);
   const [filters, setFilters] = useState<AdminSpoFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -220,6 +222,13 @@ const SPOsPage: React.FC = () => {
               onClick={() => setIsFilterModalOpen(true)}
             >
               Filters
+            </Button>
+            <Button 
+              variant="outline" 
+              className="px-4 py-2"
+              onClick={() => setIsCooldownModalOpen(true)}
+            >
+              Cooldown
             </Button>
             <Button 
               variant="gradient" 
@@ -480,6 +489,11 @@ const SPOsPage: React.FC = () => {
         onClose={() => setIsFilterModalOpen(false)}
         onApply={handleApplyFilters}
         currentFilters={filters}
+      />
+      
+      <CooldownModal
+        isOpen={isCooldownModalOpen}
+        onClose={() => setIsCooldownModalOpen(false)}
       />
     </LayoutWrapper>
   );

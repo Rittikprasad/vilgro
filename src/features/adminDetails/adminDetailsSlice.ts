@@ -24,6 +24,8 @@ const initialState: AdminDetailsState = {
   createError: null,
   isUpdating: false,
   updateError: null,
+  isDeleting: false,
+  deleteError: null,
 };
 
 export const fetchAdminDetails = createAsyncThunk<
@@ -90,6 +92,23 @@ export const updateAdminDetail = createAsyncThunk<
   }
 });
 
+export const deleteAdminDetail = createAsyncThunk<
+  number | string,
+  number | string,
+  { rejectValue: string }
+>("adminDetails/delete", async (id, { rejectWithValue }) => {
+  try {
+    await api.delete(endpoints.admin.adminById(id));
+    return id;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ??
+      error?.message ??
+      "Failed to delete admin";
+    return rejectWithValue(message);
+  }
+});
+
 const adminDetailsSlice = createSlice({
   name: "adminDetails",
   initialState,
@@ -99,6 +118,7 @@ const adminDetailsSlice = createSlice({
       state.error = null;
       state.createError = null;
       state.updateError = null;
+      state.deleteError = null;
     },
   },
   extraReducers: (builder) => {
@@ -159,6 +179,21 @@ const adminDetailsSlice = createSlice({
       .addCase(updateAdminDetail.rejected, (state, action) => {
         state.isUpdating = false;
         state.updateError = action.payload ?? "Failed to update admin";
+      });
+    builder
+      .addCase(deleteAdminDetail.pending, (state) => {
+        state.isDeleting = true;
+        state.deleteError = null;
+      })
+      .addCase(deleteAdminDetail.fulfilled, (state, action) => {
+        state.isDeleting = false;
+        const deletedId = Number(action.payload);
+        state.items = state.items.filter((item) => item.id !== deletedId);
+        state.count = Math.max(0, state.count - 1);
+      })
+      .addCase(deleteAdminDetail.rejected, (state, action) => {
+        state.isDeleting = false;
+        state.deleteError = action.payload ?? "Failed to delete admin";
       });
   },
 });

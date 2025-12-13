@@ -74,6 +74,10 @@ export interface AssessmentResponsesData {
   sections: AssessmentSection[];
 }
 
+export interface AssessmentCooldownResponse {
+  days: number;
+}
+
 export interface AdminSpoState {
   items: AdminSpoEntry[];
   isLoading: boolean;
@@ -89,5 +93,9 @@ export interface AdminSpoState {
   assessmentResponses: AssessmentResponsesData | null;
   isAssessmentResponsesLoading: boolean;
   assessmentResponsesError: string | null;
+  assessmentCooldown: number | null;
+  isCooldownLoading: boolean;
+  isCooldownUpdating: boolean;
+  cooldownError: string | null;
 }
 

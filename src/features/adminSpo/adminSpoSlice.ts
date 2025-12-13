@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import api from "../../services/api";
 import { endpoints } from "../../services/endpoints";
-import type { AdminSpoEntry, AdminSpoState, AssessmentResponsesData } from "./adminSpoTypes";
+import type { AdminSpoEntry, AdminSpoState, AssessmentResponsesData, AssessmentCooldownResponse } from "./adminSpoTypes";
 
 const initialState: AdminSpoState = {
   items: [],
@@ -18,6 +18,10 @@ const initialState: AdminSpoState = {
   assessmentResponses: null,
   isAssessmentResponsesLoading: false,
   assessmentResponsesError: null,
+  assessmentCooldown: null,
+  isCooldownLoading: false,
+  isCooldownUpdating: false,
+  cooldownError: null,
 };
 
 export interface AdminSpoFilters {
@@ -150,6 +154,47 @@ export const fetchAssessmentResponses = createAsyncThunk<
   }
 });
 
+export const fetchAssessmentCooldown = createAsyncThunk<
+  AssessmentCooldownResponse,
+  void,
+  { rejectValue: string }
+>("adminSpo/fetchAssessmentCooldown", async (_, { rejectWithValue }) => {
+  try {
+    const response = await api.get<AssessmentCooldownResponse>(
+      endpoints.admin.assessmentCooldown
+    );
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ??
+      error?.response?.data?.detail ??
+      error?.message ??
+      "Failed to fetch assessment cooldown";
+    return rejectWithValue(message);
+  }
+});
+
+export const updateAssessmentCooldown = createAsyncThunk<
+  AssessmentCooldownResponse,
+  number,
+  { rejectValue: string }
+>("adminSpo/updateAssessmentCooldown", async (days, { rejectWithValue }) => {
+  try {
+    const response = await api.patch<AssessmentCooldownResponse>(
+      endpoints.admin.assessmentCooldown,
+      { days }
+    );
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ??
+      error?.response?.data?.detail ??
+      error?.message ??
+      "Failed to update assessment cooldown";
+    return rejectWithValue(message);
+  }
+});
+
 const adminSpoSlice = createSlice({
   name: "adminSpo",
   initialState,
@@ -181,6 +226,9 @@ const adminSpoSlice = createSlice({
       state.assessmentResponses = null;
       state.assessmentResponsesError = null;
       state.isAssessmentResponsesLoading = false;
+    },
+    clearCooldownError: (state) => {
+      state.cooldownError = null;
     },
     resetAdminSpo: () => initialState,
   },
@@ -260,6 +308,32 @@ const adminSpoSlice = createSlice({
         state.isAssessmentResponsesLoading = false;
         state.assessmentResponsesError = action.payload ?? "Failed to fetch assessment responses";
       });
+    builder
+      .addCase(fetchAssessmentCooldown.pending, (state) => {
+        state.isCooldownLoading = true;
+        state.cooldownError = null;
+      })
+      .addCase(fetchAssessmentCooldown.fulfilled, (state, action) => {
+        state.isCooldownLoading = false;
+        state.assessmentCooldown = action.payload.days;
+      })
+      .addCase(fetchAssessmentCooldown.rejected, (state, action) => {
+        state.isCooldownLoading = false;
+        state.cooldownError = action.payload ?? "Failed to fetch assessment cooldown";
+      });
+    builder
+      .addCase(updateAssessmentCooldown.pending, (state) => {
+        state.isCooldownUpdating = true;
+        state.cooldownError = null;
+      })
+      .addCase(updateAssessmentCooldown.fulfilled, (state, action) => {
+        state.isCooldownUpdating = false;
+        state.assessmentCooldown = action.payload.days;
+      })
+      .addCase(updateAssessmentCooldown.rejected, (state, action) => {
+        state.isCooldownUpdating = false;
+        state.cooldownError = action.payload ?? "Failed to update assessment cooldown";
+      });
   },
 });
 
@@ -269,6 +343,7 @@ export const {
   clearAdminSpoReportError,
   clearAdminSpoDeleteError,
   clearAssessmentResponsesError,
+  clearCooldownError,
   resetAssessmentResponses,
   resetAdminSpo,
   resetSelectedAdminSpo,

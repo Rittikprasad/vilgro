@@ -174,15 +174,20 @@ export const fetchAssessmentCooldown = createAsyncThunk<
   }
 });
 
+export interface UpdateCooldownPayload {
+  value: number;
+  type?: "minutes" | "hours" | "days";
+}
+
 export const updateAssessmentCooldown = createAsyncThunk<
   AssessmentCooldownResponse,
-  number,
+  UpdateCooldownPayload,
   { rejectValue: string }
->("adminSpo/updateAssessmentCooldown", async (days, { rejectWithValue }) => {
+>("adminSpo/updateAssessmentCooldown", async (payload, { rejectWithValue }) => {
   try {
     const response = await api.patch<AssessmentCooldownResponse>(
       endpoints.admin.assessmentCooldown,
-      { days }
+      payload
     );
     return response.data;
   } catch (error: any) {
@@ -315,7 +320,7 @@ const adminSpoSlice = createSlice({
       })
       .addCase(fetchAssessmentCooldown.fulfilled, (state, action) => {
         state.isCooldownLoading = false;
-        state.assessmentCooldown = action.payload.days;
+        state.assessmentCooldown = action.payload;
       })
       .addCase(fetchAssessmentCooldown.rejected, (state, action) => {
         state.isCooldownLoading = false;
@@ -328,7 +333,7 @@ const adminSpoSlice = createSlice({
       })
       .addCase(updateAssessmentCooldown.fulfilled, (state, action) => {
         state.isCooldownUpdating = false;
-        state.assessmentCooldown = action.payload.days;
+        state.assessmentCooldown = action.payload;
       })
       .addCase(updateAssessmentCooldown.rejected, (state, action) => {
         state.isCooldownUpdating = false;

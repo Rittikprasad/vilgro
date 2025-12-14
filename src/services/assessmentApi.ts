@@ -130,6 +130,8 @@ export interface AssessmentResult {
       z: string;
     };
   };
+  sector?: string;
+  instrument?: string;
 }
 
 export interface AssessmentHistory {

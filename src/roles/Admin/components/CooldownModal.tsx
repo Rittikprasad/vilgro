@@ -7,6 +7,7 @@ import {
 } from "../../../features/adminSpo/adminSpoSlice";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/Select";
 import { showNotification } from "../../../services/notificationService";
 
 interface CooldownModalProps {
@@ -23,7 +24,8 @@ const CooldownModal: React.FC<CooldownModalProps> = ({ isOpen, onClose }) => {
     cooldownError,
   } = useAppSelector((state) => state.adminSpo);
 
-  const [days, setDays] = useState<string>("");
+  const [value, setValue] = useState<string>("");
+  const [type, setType] = useState<"minutes" | "hours" | "days">("days");
   const [localError, setLocalError] = useState<string | null>(null);
 
   // Fetch current cooldown when modal opens
@@ -37,37 +39,51 @@ const CooldownModal: React.FC<CooldownModalProps> = ({ isOpen, onClose }) => {
   // Update local state when cooldown is fetched
   useEffect(() => {
     if (assessmentCooldown !== null) {
-      setDays(assessmentCooldown.toString());
+      setValue(assessmentCooldown.value.toString());
+      setType(assessmentCooldown.type || "days");
     }
   }, [assessmentCooldown]);
 
-  const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
     // Allow empty string or valid numbers
     // When field is cleared, keep it as empty string (not "0")
-    if (value === "") {
-      setDays("");
+    if (inputValue === "") {
+      setValue("");
       setLocalError(null);
-    } else if (!isNaN(Number(value)) && Number(value) >= 0) {
-      setDays(value);
+    } else if (!isNaN(Number(inputValue)) && Number(inputValue) >= 0) {
+      setValue(inputValue);
       setLocalError(null);
     }
   };
 
+  const handleTypeChange = (newType: string) => {
+    setType(newType as "minutes" | "hours" | "days");
+    setLocalError(null);
+  };
+
   const handleSave = async () => {
-    const daysValue = days === "" ? 0 : parseInt(days, 10);
+    const numericValue = value === "" ? 0 : parseFloat(value);
     
-    if (isNaN(daysValue) || daysValue < 0) {
-      setLocalError("Days must be a positive number");
+    if (isNaN(numericValue) || numericValue < 0) {
+      setLocalError("Value must be a positive number");
+      return;
+    }
+
+    if (value === "") {
+      setLocalError("Please enter a value");
       return;
     }
 
     try {
-      await dispatch(updateAssessmentCooldown(daysValue)).unwrap();
+      const payload = { value: numericValue, type };
+      await dispatch(updateAssessmentCooldown(payload)).unwrap();
+      
+      const typeLabel = type === "minutes" ? "minute" : type === "hours" ? "hour" : "day";
       showNotification({
         type: "success",
         title: "Success",
-        message: `Assessment cooldown period updated to ${daysValue} day${daysValue !== 1 ? 's' : ''}.`,
+        message: `Assessment cooldown period updated to ${numericValue} ${typeLabel}${numericValue !== 1 ? 's' : ''}.`,
       });
       onClose();
     } catch (error) {
@@ -123,13 +139,45 @@ const CooldownModal: React.FC<CooldownModalProps> = ({ isOpen, onClose }) => {
           <div className="space-y-4">
             <div>
               <label
-                htmlFor="cooldown-days"
+                htmlFor="cooldown-type"
                 className="block text-sm font-medium text-gray-700 mb-2 font-golos"
               >
-                Cooldown Period (Days)
+                Cooldown Period Type
               </label>
               <p className="text-xs text-gray-500 mb-3 font-golos">
-                Set the number of days SPOs must wait before they can retake the assessment.
+                Select the time unit for the cooldown period.
+              </p>
+              {isCooldownLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                </div>
+              ) : (
+                <Select
+                  value={type}
+                  onValueChange={handleTypeChange}
+                  disabled={isCooldownUpdating}
+                >
+                  <SelectTrigger className="w-full h-12 rounded-lg bg-white">
+                    <SelectValue placeholder="Select time unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="minutes">Minutes</SelectItem>
+                    <SelectItem value="hours">Hours</SelectItem>
+                    <SelectItem value="days">Days</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="cooldown-value"
+                className="block text-sm font-medium text-gray-700 mb-2 font-golos"
+              >
+                Cooldown Period Value
+              </label>
+              <p className="text-xs text-gray-500 mb-3 font-golos">
+                Set the number of {type} SPOs must wait before they can retake the assessment.
               </p>
               {isCooldownLoading ? (
                 <div className="flex items-center justify-center py-4">
@@ -137,15 +185,15 @@ const CooldownModal: React.FC<CooldownModalProps> = ({ isOpen, onClose }) => {
                 </div>
               ) : (
                 <Input
-                  id="cooldown-days"
+                  id="cooldown-value"
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  value={days}
-                  onChange={handleDaysChange}
+                  value={value}
+                  onChange={handleValueChange}
                   className="w-full"
                   disabled={isCooldownUpdating}
-                  placeholder="Enter number of days"
+                  placeholder={`Enter number of ${type}`}
                 />
               )}
             </div>

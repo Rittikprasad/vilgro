@@ -75,7 +75,8 @@ export interface AssessmentResponsesData {
 }
 
 export interface AssessmentCooldownResponse {
-  days: number;
+  value: number;
+  type?: "minutes" | "hours" | "days";
 }
 
 export interface AdminSpoState {
@@ -93,7 +94,7 @@ export interface AdminSpoState {
   assessmentResponses: AssessmentResponsesData | null;
   isAssessmentResponsesLoading: boolean;
   assessmentResponsesError: string | null;
-  assessmentCooldown: number | null;
+  assessmentCooldown: AssessmentCooldownResponse | null;
   isCooldownLoading: boolean;
   isCooldownUpdating: boolean;
   cooldownError: string | null;

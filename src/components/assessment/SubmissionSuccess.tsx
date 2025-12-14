@@ -6,10 +6,10 @@ import Navbar from '../ui/Navbar';
 import {
   getLoanEligibility,
   getResults,
-  getAssessmentReport,
 } from '../../features/assessment/assessmentSlice';
 import type { RootState } from '../../app/store';
 import { useAppDispatch } from '../../app/hooks';
+import { generateUserAssessmentPDF } from '../../utils/generateUserAssessmentPDF';
 
 const SubmissionSuccess: React.FC = () => {
   const navigate = useNavigate();
@@ -21,10 +21,7 @@ const SubmissionSuccess: React.FC = () => {
   const eligibility = useSelector((state: RootState) => state.assessment.eligibility);
   const isLoading = useSelector((state: RootState) => state.assessment.isLoading);
   const error = useSelector((state: RootState) => state.assessment.error);
-  const isReportDownloading = useSelector(
-    (state: RootState) => state.assessment.isReportDownloading
-  );
-  const reportError = useSelector((state: RootState) => state.assessment.reportError);
+  const user = useSelector((state: RootState) => state.auth.user);
   
   // Fetch results when component mounts
   useEffect(() => {
@@ -119,22 +116,13 @@ const SubmissionSuccess: React.FC = () => {
     : null;
   const isCooldownActive = cooldownUntil ? cooldownUntil > new Date() : false;
 
-  // Generate instrument recommendation based on scores
+  // Get instrument from API response, fallback to default if not available
   const getInstrumentRecommendation = () => {
-    if (!assessmentResult) return "Commercial Debt with Impact Linked Financing";
-    
-    const { RISK, IMPACT, RETURN } = assessmentResult.graph.scores.sections;
-    
-    // Simple logic for instrument recommendation
-    if (RISK < 10 && IMPACT > 50 && RETURN < 30) {
-      return "Grant Funding";
-    } else if (RISK < 30 && RETURN > 50) {
-      return "Commercial Debt with Impact Linked Financing";
-    } else if (RETURN > 70) {
-      return "Equity Investment";
-    } else {
-      return "Mezzanine Financing";
+    if (assessmentResult?.instrument) {
+      return assessmentResult.instrument;
     }
+    // Fallback to default if instrument is not in API response
+    return "Commercial Debt with Impact Linked Financing";
   };
 
   return (
@@ -163,36 +151,22 @@ const SubmissionSuccess: React.FC = () => {
                   </Button>
                   <Button
                     variant="gradient"
-                    onClick={async () => {
-                      if (!assessmentId) return;
+                    onClick={() => {
                       try {
-                        const result = await dispatch(
-                          getAssessmentReport(assessmentId)
-                        ).unwrap();
-                        const link = document.createElement("a");
-                        link.href = result.url;
-                        link.setAttribute("download", result.filename);
-                        document.body.appendChild(link);
-                        link.click();
-                        link.remove();
-                        window.URL.revokeObjectURL(result.url);
+                        generateUserAssessmentPDF({
+                          user,
+                          assessmentResult,
+                        });
                       } catch (err) {
-                        console.error("Failed to download assessment report", err);
+                        console.error("Failed to generate PDF report", err);
                       }
                     }}
-                    disabled={isReportDownloading}
                   >
-                    {isReportDownloading ? "Downloading..." : "Download Result"}
+                    Download Result
                   </Button>
                 </div>
               </div>
 
-              {reportError && (
-                <p className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-700">
-                  {reportError}
-                </p>
-              )}
-              
               {/* Eligibility Message */}
               <div className="flex items-start space-x-4 mb-8">
                 <div className={`w-8 h-8 ${isEligible ? 'bg-green-100' : 'bg-red-100'} rounded-full flex items-center justify-center flex-shrink-0`}>

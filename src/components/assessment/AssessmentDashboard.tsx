@@ -6,8 +6,9 @@ import { Download } from 'lucide-react';
 import { Button } from '../ui/Button';
 import Navbar from '../ui/Navbar';
 import { assessmentApi, type AssessmentHistory } from '../../services/assessmentApi';
-import { getAssessmentReport } from '../../features/assessment/assessmentSlice';
 import type { RootState } from '../../app/store';
+import { generateUserAssessmentPDF } from '../../utils/generateUserAssessmentPDF';
+import { getResults } from '../../features/assessment/assessmentSlice';
 
 interface AssessmentDashboardProps {
   lastTestDate?: string;
@@ -27,9 +28,7 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | number | null>(null);
   
-  const isReportDownloading = useSelector(
-    (state: RootState) => state.assessment.isReportDownloading
-  );
+  const user = useSelector((state: RootState) => state.auth.user);
 
   // Simple date formatter to DD-MM-YYYY, falls back to '-'
   const formatDate = (value?: string | null) => {
@@ -169,19 +168,18 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
     setDownloadingId(assessmentId);
     
     try {
-      const result = await dispatch(
-        getAssessmentReport(assessmentId) as any
+      // Fetch the assessment result data
+      const assessmentResult = await dispatch(
+        getResults(assessmentId) as any
       ).unwrap();
       
-      const link = document.createElement("a");
-      link.href = result.url;
-      link.setAttribute("download", result.filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(result.url);
+      // Generate PDF with user data and assessment result
+      generateUserAssessmentPDF({
+        user,
+        assessmentResult,
+      });
     } catch (err) {
-      console.error("Failed to download assessment report", err);
+      console.error("Failed to generate PDF report", err);
     } finally {
       setDownloadingId(null);
     }
@@ -362,7 +360,7 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
                           onClick={() => handleDownloadResult(item)}
                           className="p-1.5 hover:bg-green-50 rounded transition-colors text-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Download"
-                          disabled={!item?.id || downloadingId === item.id || isReportDownloading}
+                          disabled={!item?.id || downloadingId === item.id}
                         >
                           {downloadingId === item.id ? (
                             <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />

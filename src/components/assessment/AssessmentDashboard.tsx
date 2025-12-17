@@ -140,8 +140,8 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
     (!cooldownUntil || new Date(cooldownUntil).getTime() <= Date.now());
 
   const handleTakeTestAgain = () => {
-    // TODO: API integration - start a new assessment when cooldown expires
-    console.log('Take test again clicked');
+    // Navigate users to the landing page to start a fresh assessment
+    navigate("/");
   };
 
   const handleViewDetails = () => {

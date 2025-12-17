@@ -122,8 +122,9 @@ const SubmissionSuccess: React.FC = () => {
       return assessmentResult.instrument;
     }
     // Fallback to default if instrument is not in API response
-    return "Commercial Debt with Impact Linked Financing";
+    // return "Commercial Debt with Impact Linked Financing";
   };
+  const instrumentDescription = assessmentResult?.instrument_description;
 
   return (
     <>
@@ -197,6 +198,9 @@ const SubmissionSuccess: React.FC = () => {
                 </p>
                 <p className="text-[25px] font-[500] text-green-600 font-golos">
                   {getInstrumentRecommendation()}
+                </p>
+                <p className="text-[13px] font-[400] text-gray-600 mt-2">
+                  {instrumentDescription}
                 </p>
               </div>
 
@@ -308,7 +312,10 @@ const SubmissionSuccess: React.FC = () => {
                   variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={() => {/* TODO: Implement retake test */}}
+                  onClick={() => {
+                    // Send the user back to the landing page to start over
+                    navigate("/");
+                  }}
                   disabled={isCooldownActive}
                 >
                   Take the test again

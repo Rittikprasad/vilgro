@@ -132,6 +132,7 @@ export interface AssessmentResult {
   };
   sector?: string;
   instrument?: string;
+  instrument_description?: string;
 }
 
 export interface AssessmentHistory {

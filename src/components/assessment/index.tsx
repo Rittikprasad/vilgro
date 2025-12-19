@@ -103,10 +103,17 @@ const Assessment: React.FC = () => {
         };
     }, [currentAssessment]);
 
-    // Initialize assessment on mount - only run once
+    // Initialize assessment on mount - load sections/questions if needed
     useEffect(() => {
-        // Prevent multiple initializations
-        if (initializationRef.current || currentAssessment || isLoading) {
+        // Prevent multiple initializations if already initialized
+        if (initializationRef.current) {
+            return;
+        }
+        
+        // If we have a current assessment but no sections loaded, we need to load them
+        const needsInitialization = !currentAssessment || !sections || (currentAssessment.status === 'DRAFT' && !currentSection);
+
+        if (!needsInitialization && (currentAssessment || isLoading)) {
             return;
         }
         
@@ -116,29 +123,49 @@ const Assessment: React.FC = () => {
             try {
                 console.log('Initializing assessment...');
                 
-                // Try to get current assessment first
-                const currentResult = await dispatch(getCurrentAssessment() as any);
-                console.log('getCurrentAssessment result:', currentResult);
+                // If we already have a current assessment, use it; otherwise fetch it
+                let assessment = currentAssessment;
                 
-                if (getCurrentAssessment.fulfilled.match(currentResult) && currentResult.payload) {
-                    // We have an existing assessment
-                    const assessment = currentResult.payload;
-                    console.log('Found existing assessment:', assessment);
+                if (!assessment) {
+                    // Try to get current assessment first
+                    const currentResult = await dispatch(getCurrentAssessment() as any);
+                    console.log('getCurrentAssessment result:', currentResult);
+                    
+                    if (getCurrentAssessment.fulfilled.match(currentResult) && currentResult.payload) {
+                        assessment = currentResult.payload;
+                    }
+                }
+                
+                if (assessment) {
+                    console.log('Using assessment:', assessment);
                     
                     if (assessment.status === 'DRAFT') {
-                        // Load sections for existing draft
-                        console.log('Loading sections for assessment:', assessment.id);
-                        const sectionsResult = await dispatch(getSections(assessment.id) as any);
-                        console.log('getSections result:', sectionsResult);
-                        
-                        if (getSections.fulfilled.match(sectionsResult)) {
-                            // Load first section questions if no current section
+                        // Load sections if not already loaded
+                        if (!sections) {
+                            console.log('Loading sections for assessment:', assessment.id);
+                            const assessmentIdStr = String(assessment.id);
+                            const sectionsResult = await dispatch(getSections(assessmentIdStr) as any);
+                            console.log('getSections result:', sectionsResult);
+                            
+                            if (getSections.fulfilled.match(sectionsResult)) {
+                                // Load first section questions if no current section
                                 if (sectionsResult.payload.sections.length && !currentSection) {
-                                const firstSection = sectionsResult.payload.sections[0].code;
-                                console.log('Loading questions for section:', firstSection);
+                                    const firstSection = sectionsResult.payload.sections[0].code;
+                                    console.log('Loading questions for section:', firstSection);
+                                    dispatch(setCurrentSection(firstSection));
+                                    setCurrentQuestionIndex(0);
+                                    await dispatch(getQuestions({ assessmentId: assessmentIdStr, section: firstSection }) as any);
+                                }
+                            }
+                        } else if (sections && !currentSection) {
+                            // Sections loaded but no current section selected - load first section questions
+                            const assessmentIdStr = String(assessment.id);
+                            const firstSection = sections.sections[0]?.code;
+                            if (firstSection) {
+                                console.log('Loading questions for first section:', firstSection);
                                 dispatch(setCurrentSection(firstSection));
                                 setCurrentQuestionIndex(0);
-                                await dispatch(getQuestions({ assessmentId: assessment.id, section: firstSection }) as any);
+                                await dispatch(getQuestions({ assessmentId: assessmentIdStr, section: firstSection }) as any);
                             }
                         }
                     } else if (assessment.status === 'SUBMITTED') {
@@ -153,13 +180,14 @@ const Assessment: React.FC = () => {
                     console.log('startAssessment result:', startResult);
                     
                     if (startAssessment.fulfilled.match(startResult)) {
-                        const assessment = startResult.payload;
-                        console.log('Started new assessment:', assessment);
+                        const newAssessment = startResult.payload;
+                        console.log('Started new assessment:', newAssessment);
                         
-                        if (assessment.status === 'DRAFT') {
+                        if (newAssessment.status === 'DRAFT') {
                             // Load sections for new draft
-                            console.log('Loading sections for new assessment:', assessment.id);
-                            const sectionsResult = await dispatch(getSections(assessment.id) as any);
+                            console.log('Loading sections for new assessment:', newAssessment.id);
+                            const assessmentIdStr = String(newAssessment.id);
+                            const sectionsResult = await dispatch(getSections(assessmentIdStr) as any);
                             console.log('getSections result:', sectionsResult);
                             
                             if (getSections.fulfilled.match(sectionsResult)) {
@@ -169,7 +197,7 @@ const Assessment: React.FC = () => {
                                     console.log('Loading questions for first section:', firstSection);
                                     dispatch(setCurrentSection(firstSection));
                                     setCurrentQuestionIndex(0);
-                                    await dispatch(getQuestions({ assessmentId: assessment.id, section: firstSection }) as any);
+                                    await dispatch(getQuestions({ assessmentId: assessmentIdStr, section: firstSection }) as any);
                                 }
                             }
                         }
@@ -184,11 +212,16 @@ const Assessment: React.FC = () => {
                 }
             } catch (error) {
                 console.error('Failed to initialize assessment:', error);
+            } finally {
+                // Reset initialization flag after a delay to allow re-initialization if needed
+                setTimeout(() => {
+                    initializationRef.current = false;
+                }, 1000);
             }
         };
 
         initializeAssessment();
-    }, [dispatch, navigate, currentAssessment, isLoading, currentSection]);
+    }, [dispatch, navigate, currentAssessment, isLoading, currentSection, sections]);
 
     // Convert sections to steps for sidebar
     const steps: AssessmentStep[] = sections?.sections.map(section => ({
@@ -270,16 +303,18 @@ const Assessment: React.FC = () => {
             };
             
             // Save the answer and update progress
-            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers: [answer] }) as any);
+            const assessmentIdStr = String(currentAssessment.id);
+            await dispatch(saveAnswers({ assessmentId: assessmentIdStr, answers: [answer] }) as any);
             
             // Refresh sections to get updated progress
-            await dispatch(getSections(currentAssessment.id) as any);
+            await dispatch(getSections(assessmentIdStr) as any);
         }
 
         // Switch to new section
         dispatch(setCurrentSection(sectionCode));
         setCurrentQuestionIndex(0); // Reset to first question
-        await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: sectionCode }) as any);
+        const assessmentIdStr = String(currentAssessment.id);
+        await dispatch(getQuestions({ assessmentId: assessmentIdStr, section: sectionCode }) as any);
     }, [currentAssessment, currentQuestionIndex, questions, localAnswers, dispatch, isAnswerProvided, getAnswerForQuestion, actionableSections]);
 
     // Handle answer changes - only update local state, save happens when navigating
@@ -306,10 +341,11 @@ const Assessment: React.FC = () => {
             };
             
             // Save the answer and update progress
-            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers: [answer] }) as any);
+            const assessmentIdStr = String(currentAssessment.id);
+            await dispatch(saveAnswers({ assessmentId: assessmentIdStr, answers: [answer] }) as any);
             
             // Refresh sections to get updated progress
-            await dispatch(getSections(currentAssessment.id) as any);
+            await dispatch(getSections(assessmentIdStr) as any);
         }
 
         // If not on first question, go to previous question in current section
@@ -324,7 +360,8 @@ const Assessment: React.FC = () => {
         if (currentIndex > 0) {
             const prevSection = actionableSections[currentIndex - 1];
             dispatch(setCurrentSection(prevSection.code));
-            const result = await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: prevSection.code }) as any);
+            const assessmentIdStr = String(currentAssessment.id);
+            const result = await dispatch(getQuestions({ assessmentId: assessmentIdStr, section: prevSection.code }) as any);
             
             // Set to last question of previous section
             if (getQuestions.fulfilled.match(result) && result.payload.questions) {
@@ -357,10 +394,11 @@ const Assessment: React.FC = () => {
             };
             
             // Save the answer and update progress
-            await dispatch(saveAnswers({ assessmentId: currentAssessment.id, answers: [answer] }) as any);
+            const assessmentIdStr = String(currentAssessment.id);
+            await dispatch(saveAnswers({ assessmentId: assessmentIdStr, answers: [answer] }) as any);
             
             // Refresh sections to get updated progress
-            await dispatch(getSections(currentAssessment.id) as any);
+            await dispatch(getSections(assessmentIdStr) as any);
         }
 
         // If not on last question of current section, go to next question
@@ -371,16 +409,17 @@ const Assessment: React.FC = () => {
 
         // We're on the last question of current section - move to next actionable section, otherwise submit.
         const currentIndex = actionableSections.findIndex(s => s.code === currentSection);
+        const assessmentIdStr = String(currentAssessment.id);
         
         if (currentIndex > -1 && currentIndex < actionableSections.length - 1) {
             const nextSection = actionableSections[currentIndex + 1];
             dispatch(setCurrentSection(nextSection.code));
             setCurrentQuestionIndex(0); // Reset to first question
-            await dispatch(getQuestions({ assessmentId: currentAssessment.id, section: nextSection.code }) as any);
+            await dispatch(getQuestions({ assessmentId: assessmentIdStr, section: nextSection.code }) as any);
         } else {
             // Last section - submit assessment
             try {
-                const result = await dispatch(submitAssessment(currentAssessment.id) as any);
+                const result = await dispatch(submitAssessment(assessmentIdStr) as any);
                 
                 if (submitAssessment.fulfilled.match(result)) {
                     // Success - redirect to success page with assessmentId

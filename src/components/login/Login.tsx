@@ -12,6 +12,7 @@ import logo from "../../assets/logo.png"
 import { BackgroundGradients } from "../ui/BackgroundGradients"
 import { login, fetchOnboardingProgress } from "../../features/auth/authThunks"
 import { clearError } from "../../features/auth/authSlice"
+import { getCurrentAssessment } from "../../features/assessment/assessmentSlice"
 import type { RootState } from "../../app/store"
 
 // Validation schema for login form
@@ -64,8 +65,33 @@ const Login: React.FC = () => {
       } else if (userRole === 'SPO') {
         // SPO users need profile completion check
         if (has_completed_profile) {
-          console.log("User has completed profile, navigating to assessment")
-          navigate("/assessment", { replace: true })
+          // Check current assessment's first_time field to determine navigation
+          const checkAssessmentAndNavigate = async () => {
+            try {
+              const currentAssessmentResult = await dispatch(getCurrentAssessment() as any);
+              if (getCurrentAssessment.fulfilled.match(currentAssessmentResult) && currentAssessmentResult.payload) {
+                const assessment = currentAssessmentResult.payload;
+                console.log("Found current assessment:", assessment);
+                
+                // If first_time is false, redirect to dashboard (user has completed assessment before)
+                if (assessment.first_time === false) {
+                  console.log("User has completed assessment before (first_time=false), navigating to dashboard");
+                  navigate("/assessment/dashboard", { replace: true });
+                } else {
+                  console.log("User is taking assessment for first time (first_time=true), navigating to assessment");
+                  navigate("/assessment", { replace: true });
+                }
+              } else {
+                // No current assessment, navigate to assessment to start new one
+                console.log("No current assessment found, navigating to assessment");
+                navigate("/assessment", { replace: true });
+              }
+            } catch (error) {
+              console.warn("Failed to check current assessment, defaulting to assessment page:", error);
+              navigate("/assessment", { replace: true });
+            }
+          };
+          checkAssessmentAndNavigate();
         } else {
           const currentStep = onboarding?.current_step || 1
           console.log("User hasn't completed profile, navigating to signup step:", currentStep + 1)
@@ -76,7 +102,7 @@ const Login: React.FC = () => {
         navigate("/login", { replace: true })
       }
     }
-  }, [isAuthenticated, user, has_completed_profile, onboarding, navigate])
+  }, [isAuthenticated, user, has_completed_profile, onboarding, navigate, dispatch])
 
   /**
    * Handle form submission

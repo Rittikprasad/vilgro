@@ -313,8 +313,8 @@ const SubmissionSuccess: React.FC = () => {
                   size="lg"
                   className="w-full"
                   onClick={() => {
-                    // Send the user back to the landing page to start over
-                    navigate("/");
+                    // Navigate to assessment page to start the test
+                    navigate("/assessment");
                   }}
                   disabled={isCooldownActive}
                 >

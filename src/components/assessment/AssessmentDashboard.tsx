@@ -140,8 +140,8 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
     (!cooldownUntil || new Date(cooldownUntil).getTime() <= Date.now());
 
   const handleTakeTestAgain = () => {
-    // Navigate users to the landing page to start a fresh assessment
-    navigate("/");
+    // Navigate users to the assessment page to start a fresh assessment
+    navigate("/assessment");
   };
 
   const handleViewDetails = () => {

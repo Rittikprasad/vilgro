@@ -19,9 +19,40 @@ export interface AssessmentProgress {
 }
 
 export interface AssessmentStartResponse {
-  id: string;
+  id: string | number;
   status: 'DRAFT' | 'SUBMITTED' | 'COOLDOWN';
-  cooldown_until?: string;
+  started_at?: string;
+  submitted_at?: string | null;
+  cooldown_until?: string | null;
+  progress?: {
+    answered: number;
+    required: number;
+    percent: number;
+    by_section: Record<string, { answered: number; required: number }>;
+  };
+  scores?: Record<string, any>;
+  graph?: {
+    scores: {
+      overall: number | null;
+      sections: {
+        RISK: number | null;
+        IMPACT: number | null;
+        RETURN: number | null;
+      };
+    };
+    plot: {
+      x: string;
+      y: string;
+      z: string;
+    };
+  };
+  sector?: string;
+  instrument?: string | null;
+  instrument_description?: string | null;
+  resume?: {
+    last_section: string | null;
+  };
+  first_time: boolean;
 }
 
 export interface QuestionOption {

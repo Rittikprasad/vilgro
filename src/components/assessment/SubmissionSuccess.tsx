@@ -309,7 +309,7 @@ const SubmissionSuccess: React.FC = () => {
                   Apply for Loan
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="gradient"
                   size="lg"
                   className="w-full"
                   onClick={() => {

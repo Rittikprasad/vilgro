@@ -217,7 +217,7 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = () => {
             <Button
               onClick={handleTakeTestAgain}
               disabled={!canRetake}
-              variant="outline"
+              variant="gradient"
               className="w-full"
             >
               Take the test again

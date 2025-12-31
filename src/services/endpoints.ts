@@ -3,7 +3,7 @@
  * Centralized location for all API endpoint definitions
  */
 
-const BASE_URL = "http://13.222.130.172/api";
+const BASE_URL = "https://blendedfinancetool.villgro.org/api";
 
 /**
  * Authentication endpoints

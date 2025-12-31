@@ -10,7 +10,7 @@ import { refreshToken } from '../features/auth/authThunks';
  * Sets up base URL and default headers
  */
 const api: AxiosInstance = axios.create({
-  baseURL: 'http://13.222.130.172/api',
+  baseURL: 'https://blendedfinancetool.villgro.org/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

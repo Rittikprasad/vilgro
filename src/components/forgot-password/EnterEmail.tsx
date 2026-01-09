@@ -3,11 +3,15 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import { BackgroundGradients } from "../ui/BackgroundGradients"
+import { forgotPassword } from "../../features/auth/authThunks"
+import { clearError } from "../../features/auth/authSlice"
+import type { RootState } from "../../app/store"
 
 // Validation schema for enter email form
 const enterEmailSchema = z.object({
@@ -25,10 +29,13 @@ type EnterEmailFormData = z.infer<typeof enterEmailSchema>
  */
 const EnterEmail: React.FC = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { isLoading, error } = useSelector((state: RootState) => state.auth)
+  
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<EnterEmailFormData>({
     resolver: zodResolver(enterEmailSchema),
   })
@@ -40,8 +47,18 @@ const EnterEmail: React.FC = () => {
   const onSubmit = async (data: EnterEmailFormData) => {
     try {
       console.log("Email submitted:", data)
-      // Navigate to enter code screen
-      navigate("/forgot-password/enter-code")
+      
+      // Clear any previous errors
+      dispatch(clearError())
+
+      // Call forgot password API
+      const result = await dispatch(forgotPassword({ email: data.email }) as any)
+
+      if (forgotPassword.fulfilled.match(result)) {
+        // Navigate to enter code screen on success
+        navigate("/forgot-password/enter-code")
+      }
+      // Error handling is done automatically in the thunk
     } catch (error) {
       console.error("Email submission error:", error)
     }
@@ -86,14 +103,21 @@ const EnterEmail: React.FC = () => {
                 )}
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="text-red-500 text-sm text-center">
+                  {error}
+                </div>
+              )}
+
               {/* Submit Button */}
               <div className="flex justify-center">
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   className="w-[300px] h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
-                  {isSubmitting ? "Sending..." : "Send code to email"}
+                  {isLoading ? "Sending..." : "Send code to email"}
                 </Button>
               </div>
             </form>

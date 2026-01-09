@@ -30,6 +30,8 @@ export interface AuthState {
     current_step: number;
     is_complete: boolean;
   } | null;
+  forgotPasswordEmail: string | null;
+  resetToken: string | null;
 }
 
 // Login request payload
@@ -79,6 +81,53 @@ export interface ApiError {
   message: string;
   status: number;
   code?: string;
+}
+
+// Forgot password request
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+// Forgot password response
+export interface ForgotPasswordResponse {
+  message?: string;
+}
+
+// Verify code request
+export interface VerifyCodeRequest {
+  email: string;
+  code: string;
+}
+
+// Verify code response
+export interface VerifyCodeResponse {
+  message?: string;
+  token?: string; // Some APIs return a token for password reset
+}
+
+// Reset password request
+export interface ResetPasswordRequest {
+  email: string;
+  newPassword: string;
+  confirmPassword?: string;
+  token?: string; // If API requires token from verify code step
+}
+
+// Reset password response
+export interface ResetPasswordResponse {
+  message?: string;
+}
+
+// Change password request
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+// Change password response
+export interface ChangePasswordResponse {
+  message?: string;
 }
 
 // Thunk API types for createAsyncThunk

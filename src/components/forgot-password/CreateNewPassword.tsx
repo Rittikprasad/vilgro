@@ -1,14 +1,18 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
 import { Eye, EyeOff } from "lucide-react"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import { BackgroundGradients } from "../ui/BackgroundGradients"
+import { resetPassword } from "../../features/auth/authThunks"
+import { clearError } from "../../features/auth/authSlice"
+import type { RootState } from "../../app/store"
 
 // Validation schema for create new password form
 const createNewPasswordSchema = z.object({
@@ -36,16 +40,29 @@ type CreateNewPasswordFormData = z.infer<typeof createNewPasswordSchema>
  */
 const CreateNewPassword: React.FC = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { isLoading, error, forgotPasswordEmail } = useSelector((state: RootState) => state.auth)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
+    setValue,
   } = useForm<CreateNewPasswordFormData>({
     resolver: zodResolver(createNewPasswordSchema),
   })
+
+  // Set email from Redux state if available
+  useEffect(() => {
+    if (forgotPasswordEmail) {
+      setValue("email", forgotPasswordEmail)
+    } else {
+      // If no email in state, redirect back to enter email
+      navigate("/forgot-password")
+    }
+  }, [forgotPasswordEmail, setValue, navigate])
 
   /**
    * Handle form submission
@@ -54,8 +71,30 @@ const CreateNewPassword: React.FC = () => {
   const onSubmit = async (data: CreateNewPasswordFormData) => {
     try {
       console.log("New password created:", data)
-      // Navigate back to login screen
-      navigate("/login")
+      
+      if (!forgotPasswordEmail) {
+        // If no email in state, redirect back to enter email
+        navigate("/forgot-password")
+        return
+      }
+
+      // Clear any previous errors
+      dispatch(clearError())
+
+      // Call reset password API
+      const result = await dispatch(
+        resetPassword({
+          email: forgotPasswordEmail,
+          newPassword: data.newPassword,
+          confirmPassword: data.confirmPassword,
+        }) as any
+      )
+
+      if (resetPassword.fulfilled.match(result)) {
+        // Navigate back to login screen on success
+        navigate("/login")
+      }
+      // Error handling is done automatically in the thunk
     } catch (error) {
       console.error("Password creation error:", error)
     }
@@ -77,14 +116,15 @@ const CreateNewPassword: React.FC = () => {
 
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* Email Input */}
+              {/* Email Input - Read only, pre-filled from state */}
               <div className="space-y-1">
                 <Input
                   {...register("email")}
                   type="email"
                   placeholder="Enter Email ID"
+                  disabled
                   className={cn(
-                    "w-full h-12 px-4 py-3 rounded-lg bg-white",
+                    "w-full h-12 px-4 py-3 rounded-lg bg-gray-50 cursor-not-allowed",
                     errors.email ? "border-red-500" : "gradient-border"
                   )}
                 />
@@ -153,14 +193,21 @@ const CreateNewPassword: React.FC = () => {
                 )}
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="text-red-500 text-sm text-center">
+                  {error}
+                </div>
+              )}
+
               {/* Submit Button */}
               <div className="flex justify-center">
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   className="w-[300px] h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
-                  {isSubmitting ? "Creating..." : "Confirm & Login again"}
+                  {isLoading ? "Resetting..." : "Confirm & Login again"}
                 </Button>
               </div>
             </form>

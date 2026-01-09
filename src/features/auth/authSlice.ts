@@ -33,6 +33,19 @@ const getStoredUserData = () => {
  * Defines the default state when the app starts
  */
 const storedData = getStoredUserData();
+// Get forgot password data from sessionStorage (cleared on browser close)
+const getForgotPasswordData = () => {
+  try {
+    return {
+      email: sessionStorage.getItem("forgotPasswordEmail"),
+      token: sessionStorage.getItem("resetToken"),
+    };
+  } catch (error) {
+    return { email: null, token: null };
+  }
+};
+
+const forgotPasswordData = getForgotPasswordData();
 const initialState: AuthState = {
   user: storedData.user,
   accessToken: localStorage.getItem("accessToken"),
@@ -42,6 +55,8 @@ const initialState: AuthState = {
   error: null,
   has_completed_profile: storedData.has_completed_profile,
   onboarding: storedData.onboarding,
+  forgotPasswordEmail: forgotPasswordData.email,
+  resetToken: forgotPasswordData.token,
 };
 
 /**
@@ -190,6 +205,35 @@ export const authSlice = createSlice({
         JSON.stringify(action.payload)
       );
     },
+
+    /**
+     * Sets forgot password email
+     * Stores email during forgot password flow
+     */
+    setForgotPasswordEmail: (state, action: PayloadAction<string>) => {
+      state.forgotPasswordEmail = action.payload;
+      sessionStorage.setItem("forgotPasswordEmail", action.payload);
+    },
+
+    /**
+     * Sets reset token
+     * Stores token from verify code step for password reset
+     */
+    setResetToken: (state, action: PayloadAction<string>) => {
+      state.resetToken = action.payload;
+      sessionStorage.setItem("resetToken", action.payload);
+    },
+
+    /**
+     * Clears forgot password data
+     * Clears email and token after password reset is complete
+     */
+    clearForgotPasswordData: (state) => {
+      state.forgotPasswordEmail = null;
+      state.resetToken = null;
+      sessionStorage.removeItem("forgotPasswordEmail");
+      sessionStorage.removeItem("resetToken");
+    },
   },
 });
 
@@ -205,6 +249,9 @@ export const {
   updateAccessToken,
   updateOnboarding,
   updateProfileCompletion,
+  setForgotPasswordEmail,
+  setResetToken,
+  clearForgotPasswordData,
 } = authSlice.actions;
 
 // Export reducer

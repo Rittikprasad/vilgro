@@ -33,6 +33,7 @@ import {
 import { BankingSPOsPage, BankingSPOProfilePage, BankingProfilePage, BankingSPOResponsesPage } from '../roles/Banking';
 import { RoleProtectedRoute } from './RoleProtectedRoute';
 import ProfileDetailSpo from './profile-detail/ProfileDetailSpo';
+import ChangePassword from './profile-detail/ChangePassword';
 
 /**
  * Protected Route Component
@@ -444,6 +445,16 @@ const AppRouter: React.FC = () => {
                                     <p className="text-gray-600">Your personalized dashboard will be available here.</p>
                                 </div>
                             </div>
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Profile Routes */}
+                <Route
+                    path="/profile/change-password"
+                    element={
+                        <ProtectedRoute>
+                            <ChangePassword />
                         </ProtectedRoute>
                     }
                 />

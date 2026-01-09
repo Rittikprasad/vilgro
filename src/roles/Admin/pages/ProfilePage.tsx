@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import LayoutWrapper from "../layout/LayoutWrapper";
 import { Card, CardContent } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
@@ -16,6 +17,7 @@ import { validatePhoneNumber } from "../../../lib/validations";
 
 const ProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { user, isLoading, error, isUpdating, updateError } = useAppSelector(
     (state) => state.adminProfile
   );
@@ -100,7 +102,12 @@ const ProfilePage: React.FC = () => {
               Profile
             </h1>
           </div>
-          <Button variant="gradient">Change Password</Button>
+          <Button 
+            variant="gradient"
+            onClick={() => navigate("/profile/change-password")}
+          >
+            Change Password
+          </Button>
         </div>
 
         {error && (

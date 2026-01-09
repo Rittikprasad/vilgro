@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../ui/Navbar";
 import { Card, CardContent } from "../ui/Card";
 import { Button } from "../ui/Button";
@@ -15,6 +16,7 @@ import { showNotification } from "../../services/notificationService";
 
 const ProfileDetailSpo: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { user, organization, isLoading, error, isUpdating, updateError } = useAppSelector(
     (state) => state.adminProfile
   );
@@ -102,7 +104,12 @@ const ProfileDetailSpo: React.FC = () => {
               Profile
             </h1>
           </div>
-          <Button variant="gradient">Change Password</Button>
+          <Button 
+            variant="gradient"
+            onClick={() => navigate("/profile/change-password")}
+          >
+            Change Password
+          </Button>
         </div>
 
         {error && (

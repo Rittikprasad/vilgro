@@ -5,6 +5,14 @@ import type {
   UserProfileResponse,
   OnboardingProgressResponse,
   ThunkApiConfig,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
+  VerifyCodeRequest,
+  VerifyCodeResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from "./authTypes";
 import { authSlice } from "./authSlice";
 import { resetOnboarding } from "../onboarding/onboardingSlice";
@@ -256,3 +264,194 @@ export const logoutUser = createAsyncThunk<void, void, ThunkApiConfig>(
     }
   }
 );
+
+/**
+ * Forgot password async thunk
+ * Sends password reset code to user's email
+ */
+export const forgotPassword = createAsyncThunk<
+  ForgotPasswordResponse,
+  ForgotPasswordRequest,
+  ThunkApiConfig
+>("auth/forgotPassword", async (request, { rejectWithValue, dispatch }) => {
+  try {
+    dispatch(authSlice.actions.setLoading(true));
+    dispatch(authSlice.actions.clearError());
+
+    const response = await api.post<ForgotPasswordResponse>(
+      endpoints.auth.forgotPassword,
+      { email: request.email }
+    );
+
+    // Store email in state for next steps
+    dispatch(authSlice.actions.setForgotPasswordEmail(request.email));
+
+    ApiResponseHandler.handleSuccess({
+      message: response.data.message || "Password reset code sent to your email",
+    });
+
+    dispatch(authSlice.actions.setLoading(false));
+    return response.data;
+  } catch (error: any) {
+    dispatch(authSlice.actions.setLoading(false));
+
+    const errorMessage =
+      error.response?.data?.message || error.response?.data?.detail || "Failed to send reset code";
+    ApiResponseHandler.handleError(error, "Failed to send reset code");
+
+    dispatch(authSlice.actions.setError(errorMessage));
+    return rejectWithValue({
+      message: errorMessage,
+      status: error.response?.status || 500,
+      code: error.response?.data?.code,
+    });
+  }
+});
+
+/**
+ * Verify code async thunk
+ * Verifies the password reset code sent to user's email
+ */
+export const verifyCode = createAsyncThunk<
+  VerifyCodeResponse,
+  VerifyCodeRequest,
+  ThunkApiConfig
+>("auth/verifyCode", async (request, { rejectWithValue, dispatch }) => {
+  try {
+    dispatch(authSlice.actions.setLoading(true));
+    dispatch(authSlice.actions.clearError());
+
+    const response = await api.post<VerifyCodeResponse>(
+      endpoints.auth.verifyCode,
+      {
+        email: request.email,
+        code: request.code,
+      }
+    );
+
+    // Store token if provided by API
+    if (response.data.token) {
+      dispatch(authSlice.actions.setResetToken(response.data.token));
+    }
+
+    ApiResponseHandler.handleSuccess({
+      message: response.data.message || "Code verified successfully",
+    });
+
+    dispatch(authSlice.actions.setLoading(false));
+    return response.data;
+  } catch (error: any) {
+    dispatch(authSlice.actions.setLoading(false));
+
+    const errorMessage =
+      error.response?.data?.message || error.response?.data?.detail || "Invalid verification code";
+    ApiResponseHandler.handleError(error, "Code verification failed");
+
+    dispatch(authSlice.actions.setError(errorMessage));
+    return rejectWithValue({
+      message: errorMessage,
+      status: error.response?.status || 500,
+      code: error.response?.data?.code,
+    });
+  }
+});
+
+/**
+ * Reset password async thunk
+ * Resets user password with new password
+ */
+export const resetPassword = createAsyncThunk<
+  ResetPasswordResponse,
+  ResetPasswordRequest,
+  ThunkApiConfig
+>("auth/resetPassword", async (request, { rejectWithValue, dispatch, getState }) => {
+  try {
+    dispatch(authSlice.actions.setLoading(true));
+    dispatch(authSlice.actions.clearError());
+
+    const state = getState();
+    const resetToken = state.auth.resetToken;
+
+    const payload: any = {
+      email: request.email,
+      new_password: request.newPassword,
+    };
+
+    // Include token if available
+    if (resetToken) {
+      payload.token = resetToken;
+    }
+
+    const response = await api.post<ResetPasswordResponse>(
+      endpoints.auth.resetPassword,
+      payload
+    );
+
+    // Clear forgot password data after successful reset
+    dispatch(authSlice.actions.clearForgotPasswordData());
+
+    ApiResponseHandler.handleSuccess({
+      message: response.data.message || "Password reset successfully",
+    });
+
+    dispatch(authSlice.actions.setLoading(false));
+    return response.data;
+  } catch (error: any) {
+    dispatch(authSlice.actions.setLoading(false));
+
+    const errorMessage =
+      error.response?.data?.message || error.response?.data?.detail || "Failed to reset password";
+    ApiResponseHandler.handleError(error, "Password reset failed");
+
+    dispatch(authSlice.actions.setError(errorMessage));
+    return rejectWithValue({
+      message: errorMessage,
+      status: error.response?.status || 500,
+      code: error.response?.data?.code,
+    });
+  }
+});
+
+/**
+ * Change password async thunk
+ * Changes user password when authenticated
+ */
+export const changePassword = createAsyncThunk<
+  ChangePasswordResponse,
+  ChangePasswordRequest,
+  ThunkApiConfig
+>("auth/changePassword", async (request, { rejectWithValue, dispatch }) => {
+  try {
+    dispatch(authSlice.actions.setLoading(true));
+    dispatch(authSlice.actions.clearError());
+
+    const response = await api.post<ChangePasswordResponse>(
+      endpoints.auth.changePassword,
+      {
+        current_password: request.current_password,
+        new_password: request.new_password,
+        confirm_password: request.confirm_password,
+      }
+    );
+
+    ApiResponseHandler.handleSuccess({
+      message: response.data.message || "Password changed successfully",
+    });
+
+    dispatch(authSlice.actions.setLoading(false));
+    return response.data;
+  } catch (error: any) {
+    dispatch(authSlice.actions.setLoading(false));
+
+    const errorMessage =
+      error.response?.data?.message || error.response?.data?.detail || "Failed to change password";
+    ApiResponseHandler.handleError(error, "Password change failed");
+
+    dispatch(authSlice.actions.setError(errorMessage));
+    return rejectWithValue({
+      message: errorMessage,
+      status: error.response?.status || 500,
+      code: error.response?.data?.code,
+    });
+  }
+});

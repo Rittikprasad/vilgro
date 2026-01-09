@@ -3,11 +3,15 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { cn } from "../../lib/utils"
 import logo from "../../assets/logo.png"
 import { BackgroundGradients } from "../ui/BackgroundGradients"
+import { verifyCode, forgotPassword } from "../../features/auth/authThunks"
+import { clearError } from "../../features/auth/authSlice"
+import type { RootState } from "../../app/store"
 
 // Validation schema for enter code form
 const enterCodeSchema = z.object({
@@ -25,10 +29,13 @@ type EnterCodeFormData = z.infer<typeof enterCodeSchema>
  */
 const EnterCode: React.FC = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { isLoading, error, forgotPasswordEmail } = useSelector((state: RootState) => state.auth)
+  
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<EnterCodeFormData>({
     resolver: zodResolver(enterCodeSchema),
   })
@@ -40,8 +47,26 @@ const EnterCode: React.FC = () => {
   const onSubmit = async (data: EnterCodeFormData) => {
     try {
       console.log("Code submitted:", data)
-      // Navigate to create new password screen
-      navigate("/forgot-password/create-new-password")
+      
+      if (!forgotPasswordEmail) {
+        // If no email in state, redirect back to enter email
+        navigate("/forgot-password")
+        return
+      }
+
+      // Clear any previous errors
+      dispatch(clearError())
+
+      // Call verify code API
+      const result = await dispatch(
+        verifyCode({ email: forgotPasswordEmail, code: data.code }) as any
+      )
+
+      if (verifyCode.fulfilled.match(result)) {
+        // Navigate to create new password screen on success
+        navigate("/forgot-password/create-new-password")
+      }
+      // Error handling is done automatically in the thunk
     } catch (error) {
       console.error("Code submission error:", error)
     }
@@ -50,9 +75,20 @@ const EnterCode: React.FC = () => {
   /**
    * Handle resend code
    */
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     console.log("Resend code requested")
-    // Add resend code logic here
+    
+    if (!forgotPasswordEmail) {
+      // If no email in state, redirect back to enter email
+      navigate("/forgot-password")
+      return
+    }
+
+    // Clear any previous errors
+    dispatch(clearError())
+
+    // Resend the code by calling forgot password again
+    await dispatch(forgotPassword({ email: forgotPasswordEmail }) as any)
   }
 
   return (
@@ -94,14 +130,22 @@ const EnterCode: React.FC = () => {
                 )}
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="text-red-500 text-sm text-center">
+                  {error}
+                </div>
+              )}
+
               {/* Resend Code Link */}
               <div className="flex justify-end">
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  className="text-[14px] villgro-green-text underline hover:underline cursor-pointer font-golos font-[300]"
+                  disabled={isLoading}
+                  className="text-[14px] villgro-green-text underline hover:underline cursor-pointer font-golos font-[300] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Resend code
+                  {isLoading ? "Sending..." : "Resend code"}
                 </button>
               </div>
 
@@ -109,10 +153,10 @@ const EnterCode: React.FC = () => {
               <div className="flex justify-center">
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   className="w-[300px] h-12 text-black font-medium rounded-lg gradient-bg hover:opacity-90 transition-opacity"
                 >
-                  {isSubmitting ? "Verifying..." : "Create new password"}
+                  {isLoading ? "Verifying..." : "Create new password"}
                 </Button>
               </div>
             </form>

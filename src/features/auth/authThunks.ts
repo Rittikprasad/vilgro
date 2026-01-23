@@ -56,10 +56,10 @@ export const login = createAsyncThunk<
   } catch (error: any) {
     // Reset loading state on error
     dispatch(authSlice.actions.setLoading(false));
-    
+
     // Handle error with centralized error handler
     ApiResponseHandler.handleError(error, "Login failed");
-    
+
     const errorMessage = error.response?.data?.message || "Login failed";
     dispatch(authSlice.actions.setError(errorMessage));
     return rejectWithValue({
@@ -102,7 +102,7 @@ export const fetchUserProfile = createAsyncThunk<
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Failed to fetch user profile";
-      
+
       // Handle 404 errors gracefully - user might not have a profile yet
       if (error.response?.status === 404) {
         console.warn('User profile not found (404) - user may not have completed profile setup');
@@ -329,6 +329,9 @@ export const verifyCode = createAsyncThunk<
       }
     );
 
+    // Store the code for the next step (reset password)
+    dispatch(authSlice.actions.setResetCode(request.code));
+
     // Store token if provided by API
     if (response.data.token) {
       dispatch(authSlice.actions.setResetToken(response.data.token));
@@ -371,10 +374,13 @@ export const resetPassword = createAsyncThunk<
 
     const state = getState();
     const resetToken = state.auth.resetToken;
+    const resetCode = state.auth.resetCode;
 
     const payload: any = {
       email: request.email,
       new_password: request.newPassword,
+      confirm_password: request.confirmPassword,
+      code: resetCode,
     };
 
     // Include token if available

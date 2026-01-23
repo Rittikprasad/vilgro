@@ -53,14 +53,14 @@ const ProfilePage: React.FC = () => {
     // Validate phone number before submission
     const fullPhone = formState.phone.trim() ? `+91${formState.phone.trim()}` : '';
     const phoneValidationError = validatePhoneNumber(fullPhone);
-    
+
     if (phoneValidationError) {
       setPhoneError(phoneValidationError);
       return;
     }
-    
+
     setPhoneError(null);
-    
+
     try {
       await dispatch(
         updateAdminProfile({
@@ -69,7 +69,7 @@ const ProfilePage: React.FC = () => {
           phone: fullPhone,
         })
       ).unwrap();
-      
+
       // Show success notification
       showNotification({
         type: 'success',
@@ -80,6 +80,16 @@ const ProfilePage: React.FC = () => {
     } catch (err) {
       console.error("Failed to update profile", err);
     }
+  };
+
+  const hasChanges = () => {
+    if (!user) return false;
+    const currentPhone = user.phone?.replace(/^\+91/, '') ?? "";
+    return (
+      formState.first_name !== (user.first_name ?? "") ||
+      formState.last_name !== (user.last_name ?? "") ||
+      formState.phone !== currentPhone
+    );
   };
 
   return (
@@ -102,7 +112,7 @@ const ProfilePage: React.FC = () => {
               Profile
             </h1>
           </div>
-          <Button 
+          <Button
             variant="gradient"
             onClick={() => navigate("/profile/change-password")}
           >
@@ -179,10 +189,10 @@ const ProfilePage: React.FC = () => {
         </Card>
 
         <div className="flex justify-start">
-          <Button 
-            variant="gradient" 
+          <Button
+            variant="gradient"
             onClick={handleUpdate}
-            disabled={isUpdating}
+            disabled={isUpdating || !hasChanges()}
           >
             {isUpdating ? "Updating..." : "Update Profile"}
           </Button>
@@ -233,7 +243,7 @@ const PhoneField: React.FC<PhoneFieldProps & { error?: string | null }> = ({ lab
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let inputValue = e.target.value.replace(/[^+\d]/g, ""); // Keep only + and digits
     const digitsOnly = inputValue.replace("+", "");
-    
+
     // If user starts typing without +91, auto-prepend 91
     let processedValue = digitsOnly;
     if (digitsOnly.length > 0 && !digitsOnly.startsWith("91")) {
@@ -244,13 +254,13 @@ const PhoneField: React.FC<PhoneFieldProps & { error?: string | null }> = ({ lab
         processedValue = "91" + digitsOnly;
       }
     }
-    
+
     // Limit to 12 digits (91 + 10 digits)
     processedValue = processedValue.substring(0, 12);
-    
+
     // Display only digits after +91
     const displayValue = processedValue.length > 2 ? processedValue.substring(2) : processedValue;
-    
+
     // Update the input value (show only digits after +91)
     e.target.value = displayValue;
     onChange({ ...e, target: { ...e.target, value: displayValue } } as React.ChangeEvent<HTMLInputElement>);
@@ -258,28 +268,27 @@ const PhoneField: React.FC<PhoneFieldProps & { error?: string | null }> = ({ lab
 
   return (
     <div className="flex flex-col gap-1">
-  <div className="flex items-center gap-2">
-    <span className="w-40 font-golos text-[14px] font-[500] text-gray-600">{label}</span>
-    <div className="relative flex-1">
-      <span className="absolute left-0 top-1/2 -translate-y-1/2 font-golos text-sm text-gray-600">
-        +91
-      </span>
-      <Input
-        type="tel"
-        value={value}
+      <div className="flex items-center gap-2">
+        <span className="w-40 font-golos text-[14px] font-[500] text-gray-600">{label}</span>
+        <div className="relative flex-1">
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 font-golos text-sm text-gray-600">
+            +91
+          </span>
+          <Input
+            type="tel"
+            value={value}
             onChange={handlePhoneChange}
             maxLength={10}
-            className={`rounded-none border-0 border-b bg-transparent pl-10 pr-0 font-golos text-sm text-gray-900 focus:outline-none focus:ring-0 ${
-              error ? "border-red-500" : "border-[#69C24E] focus:border-[#46B753]"
-            }`}
-      />
-    </div>
+            className={`rounded-none border-0 border-b bg-transparent pl-10 pr-0 font-golos text-sm text-gray-900 focus:outline-none focus:ring-0 ${error ? "border-red-500" : "border-[#69C24E] focus:border-[#46B753]"
+              }`}
+          />
+        </div>
       </div>
       {error && (
         <p className="ml-[168px] text-red-500 text-xs">{error}</p>
       )}
-  </div>
-);
+    </div>
+  );
 };
 
 export default ProfilePage;

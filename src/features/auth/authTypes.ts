@@ -32,6 +32,7 @@ export interface AuthState {
   } | null;
   forgotPasswordEmail: string | null;
   resetToken: string | null;
+  resetCode: string | null;
 }
 
 // Login request payload

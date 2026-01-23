@@ -39,9 +39,10 @@ const getForgotPasswordData = () => {
     return {
       email: sessionStorage.getItem("forgotPasswordEmail"),
       token: sessionStorage.getItem("resetToken"),
+      code: sessionStorage.getItem("resetCode"),
     };
   } catch (error) {
-    return { email: null, token: null };
+    return { email: null, token: null, code: null };
   }
 };
 
@@ -57,6 +58,7 @@ const initialState: AuthState = {
   onboarding: storedData.onboarding,
   forgotPasswordEmail: forgotPasswordData.email,
   resetToken: forgotPasswordData.token,
+  resetCode: forgotPasswordData.code,
 };
 
 /**
@@ -225,14 +227,25 @@ export const authSlice = createSlice({
     },
 
     /**
+     * Sets reset code
+     * Stores code from verify code step for password reset
+     */
+    setResetCode: (state, action: PayloadAction<string>) => {
+      state.resetCode = action.payload;
+      sessionStorage.setItem("resetCode", action.payload);
+    },
+
+    /**
      * Clears forgot password data
      * Clears email and token after password reset is complete
      */
     clearForgotPasswordData: (state) => {
       state.forgotPasswordEmail = null;
       state.resetToken = null;
+      state.resetCode = null;
       sessionStorage.removeItem("forgotPasswordEmail");
       sessionStorage.removeItem("resetToken");
+      sessionStorage.removeItem("resetCode");
     },
   },
 });
@@ -251,6 +264,7 @@ export const {
   updateProfileCompletion,
   setForgotPasswordEmail,
   setResetToken,
+  setResetCode,
   clearForgotPasswordData,
 } = authSlice.actions;
 

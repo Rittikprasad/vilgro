@@ -41,10 +41,10 @@ type CreateNewPasswordFormData = z.infer<typeof createNewPasswordSchema>
 const CreateNewPassword: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { isLoading, error, forgotPasswordEmail } = useSelector((state: RootState) => state.auth)
+  const { isLoading, error, forgotPasswordEmail, resetCode } = useSelector((state: RootState) => state.auth)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  
+
   const {
     register,
     handleSubmit,
@@ -57,12 +57,17 @@ const CreateNewPassword: React.FC = () => {
   // Set email from Redux state if available
   useEffect(() => {
     if (forgotPasswordEmail) {
-      setValue("email", forgotPasswordEmail)
+      if (!resetCode) {
+        // If no reset code in state, redirect back to enter code
+        navigate("/forgot-password/enter-code")
+      } else {
+        setValue("email", forgotPasswordEmail)
+      }
     } else {
       // If no email in state, redirect back to enter email
       navigate("/forgot-password")
     }
-  }, [forgotPasswordEmail, setValue, navigate])
+  }, [forgotPasswordEmail, resetCode, setValue, navigate])
 
   /**
    * Handle form submission
@@ -71,7 +76,7 @@ const CreateNewPassword: React.FC = () => {
   const onSubmit = async (data: CreateNewPasswordFormData) => {
     try {
       console.log("New password created:", data)
-      
+
       if (!forgotPasswordEmail) {
         // If no email in state, redirect back to enter email
         navigate("/forgot-password")

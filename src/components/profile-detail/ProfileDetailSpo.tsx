@@ -56,7 +56,7 @@ const ProfileDetailSpo: React.FC = () => {
           phone: formState.phone.trim() ? `+91${formState.phone.trim()}` : formState.phone.trim(),
         })
       ).unwrap();
-      
+
       // Show success notification
       showNotification({
         type: 'success',
@@ -82,126 +82,136 @@ const ProfileDetailSpo: React.FC = () => {
     }
   };
 
+  const hasChanges = () => {
+    if (!user) return false;
+    const currentPhone = user.phone?.replace(/^\+91/, '') ?? "";
+    return (
+      formState.first_name !== (user.first_name ?? "") ||
+      formState.last_name !== (user.last_name ?? "") ||
+      formState.phone !== currentPhone
+    );
+  };
+
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-[#F8F6F0] px-6 pb-10 pt-28">
         <div className="mx-auto max-w-6xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => window.history.back()} aria-label="Go back">
-              <img src={BackIcon} alt="Back" className="w-8 h-8" />
-            </button>
-            <h1
-              className="text-gray-800"
-              style={{
-                fontFamily: "Baskervville",
-                fontWeight: 600,
-                fontStyle: "normal",
-                fontSize: "30px",
-              }}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={() => window.history.back()} aria-label="Go back">
+                <img src={BackIcon} alt="Back" className="w-8 h-8" />
+              </button>
+              <h1
+                className="text-gray-800"
+                style={{
+                  fontFamily: "Baskervville",
+                  fontWeight: 600,
+                  fontStyle: "normal",
+                  fontSize: "30px",
+                }}
+              >
+                Profile
+              </h1>
+            </div>
+            <Button
+              variant="gradient"
+              onClick={() => navigate("/profile/change-password")}
             >
-              Profile
-            </h1>
+              Change Password
+            </Button>
           </div>
-          <Button 
-            variant="gradient"
-            onClick={() => navigate("/profile/change-password")}
-          >
-            Change Password
-          </Button>
-        </div>
 
-        {error && (
-          <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            <span>{error}</span>
-            <button
-              type="button"
-              onClick={() => {
-                dispatch(clearAdminProfileError());
-                void dispatch(fetchAdminProfile());
-              }}
-              className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+          {error && (
+            <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <span>{error}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  dispatch(clearAdminProfileError());
+                  void dispatch(fetchAdminProfile());
+                }}
+                className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
-        {updateError && (
-          <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            <span>{updateError}</span>
-            <button
-              type="button"
-              onClick={() => {
-                dispatch(clearUpdateError());
-              }}
-              className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
+          {updateError && (
+            <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <span>{updateError}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  dispatch(clearUpdateError());
+                }}
+                className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
-        <Card className="overflow-hidden shadow-lg">
-          <CardContent className="p-8">
-            {isLoading && !user ? (
-              <div className="flex justify-center py-16 text-sm text-gray-500">
-                Loading profile...
-              </div>
-            ) : (
-              <div className="grid gap-8 lg:grid-cols-[1fr_auto_1fr]">
-                <div className="space-y-6">
-                  <EditableField
-                    label="First Name"
-                    value={formState.first_name}
-                    onChange={handleInputChange("first_name")}
-                  />
-                  <EditableField
-                    label="Last Name"
-                    value={formState.last_name}
-                    onChange={handleInputChange("last_name")}
-                  />
-                  <ReadOnlyEmailField
-                    label="Email"
-                    value={formState.email}
-                  />
-                  <PhoneField
-                    label="Phone Number"
-                    value={formState.phone}
-                    onChange={handleInputChange("phone")}
-                  />
+          <Card className="overflow-hidden shadow-lg">
+            <CardContent className="p-8">
+              {isLoading && !user ? (
+                <div className="flex justify-center py-16 text-sm text-gray-500">
+                  Loading profile...
                 </div>
+              ) : (
+                <div className="grid gap-8 lg:grid-cols-[1fr_auto_1fr]">
+                  <div className="space-y-6">
+                    <EditableField
+                      label="First Name"
+                      value={formState.first_name}
+                      onChange={handleInputChange("first_name")}
+                    />
+                    <EditableField
+                      label="Last Name"
+                      value={formState.last_name}
+                      onChange={handleInputChange("last_name")}
+                    />
+                    <ReadOnlyEmailField
+                      label="Email"
+                      value={formState.email}
+                    />
+                    <PhoneField
+                      label="Phone Number"
+                      value={formState.phone}
+                      onChange={handleInputChange("phone")}
+                    />
+                  </div>
 
-                <div className="hidden h-full w-px rounded-full bg-[#69C24E] lg:block" />
+                  <div className="hidden h-full w-px rounded-full bg-[#69C24E] lg:block" />
 
-                <div className="space-y-6">
-                  <ReadOnlyField label="Name of Organisation" value={organization?.name ?? "-"} />
-                  <ReadOnlyField
-                    label="Date of incorporation"
-                    value={formatDate(organization?.date_of_incorporation ?? null)}
-                  />
-                  <ReadOnlyField label="DPIIT Number" value={organization?.gst_number ?? "-"} />
-                  <ReadOnlyField
-                    label="Legal Registration type"
-                    value={organization?.registration_type ?? "-"}
-                  />
-                  <ReadOnlyField label="CIN Number" value={organization?.cin_number ?? "-"} />
+                  <div className="space-y-6">
+                    <ReadOnlyField label="Name of Organisation" value={organization?.name ?? "-"} />
+                    <ReadOnlyField
+                      label="Date of incorporation"
+                      value={formatDate(organization?.date_of_incorporation ?? null)}
+                    />
+                    <ReadOnlyField label="DPIIT Number" value={organization?.gst_number ?? "-"} />
+                    <ReadOnlyField
+                      label="Legal Registration type"
+                      value={organization?.registration_type ?? "-"}
+                    />
+                    <ReadOnlyField label="CIN Number" value={organization?.cin_number ?? "-"} />
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
 
-        <div className="flex justify-start">
-          <Button 
-            variant="gradient" 
-            onClick={handleUpdate}
-            disabled={isUpdating}
-          >
-            {isUpdating ? "Updating..." : "Update Profile"}
-          </Button>
-        </div>
+          <div className="flex justify-start">
+            <Button
+              variant="gradient"
+              onClick={handleUpdate}
+              disabled={isUpdating || !hasChanges()}
+            >
+              {isUpdating ? "Updating..." : "Update Profile"}
+            </Button>
+          </div>
         </div>
       </div>
     </>

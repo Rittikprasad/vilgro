@@ -92,6 +92,14 @@ const ProfileDetailSpo: React.FC = () => {
     );
   };
 
+  const areAllFieldsFilled = () => {
+    return (
+      formState.first_name.trim() !== "" &&
+      formState.last_name.trim() !== "" &&
+      formState.phone.trim() !== ""
+    );
+  };
+
   return (
     <>
       <Navbar />
@@ -207,7 +215,7 @@ const ProfileDetailSpo: React.FC = () => {
             <Button
               variant="gradient"
               onClick={handleUpdate}
-              disabled={isUpdating || !hasChanges()}
+              disabled={isUpdating || !hasChanges() || !areAllFieldsFilled()}
             >
               {isUpdating ? "Updating..." : "Update Profile"}
             </Button>

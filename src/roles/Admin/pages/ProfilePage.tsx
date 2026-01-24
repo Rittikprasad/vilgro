@@ -92,6 +92,14 @@ const ProfilePage: React.FC = () => {
     );
   };
 
+  const areAllFieldsFilled = () => {
+    return (
+      formState.first_name.trim() !== "" &&
+      formState.last_name.trim() !== "" &&
+      formState.phone.trim() !== ""
+    );
+  };
+
   return (
     <LayoutWrapper>
       <div className="space-y-6">
@@ -192,7 +200,7 @@ const ProfilePage: React.FC = () => {
           <Button
             variant="gradient"
             onClick={handleUpdate}
-            disabled={isUpdating || !hasChanges()}
+            disabled={isUpdating || !hasChanges() || !areAllFieldsFilled()}
           >
             {isUpdating ? "Updating..." : "Update Profile"}
           </Button>

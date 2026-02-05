@@ -95,7 +95,11 @@ export const fetchUserProfile = createAsyncThunk<
       );
 
       // Update user data
-      dispatch(authSlice.actions.setUser(response.data.user));
+      const userData = { ...response.data.user };
+      if (response.data.organization) {
+        userData.organization = response.data.organization;
+      }
+      dispatch(authSlice.actions.setUser(userData));
       dispatch(authSlice.actions.setLoading(false));
 
       return response.data;

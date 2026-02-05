@@ -4,6 +4,14 @@
  */
 
 // User interface representing the authenticated user
+export interface Organization {
+  name: string;
+  registration_type: string;
+  date_of_incorporation: string;
+  gst_number: string;
+  cin_number: string;
+}
+
 export interface User {
   id?: string;
   email: string;
@@ -15,6 +23,8 @@ export interface User {
   has_completed_profile?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  phone?: string;
+  organization?: Organization;
 }
 
 // Authentication state interface
@@ -68,6 +78,7 @@ export interface RefreshTokenResponse {
 // User profile response
 export interface UserProfileResponse {
   user: User;
+  organization?: Organization;
 }
 
 // Onboarding progress response

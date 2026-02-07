@@ -19,11 +19,13 @@ export interface AdminSpoOrganization {
   annual_operating_budget: string | null;
   use_of_questionnaire: string | null;
   received_philanthropy_before: boolean | null;
+  org_desc: string | null;
 }
 
 export interface AdminSpoInstrument {
   id: number;
   name: string;
+  description?: string;
 }
 
 export interface AdminSpoScores {

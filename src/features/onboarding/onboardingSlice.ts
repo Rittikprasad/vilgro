@@ -38,7 +38,7 @@ export const fetchOnboardingProgress = createAsyncThunk<
       isAuthenticated: state.auth.isAuthenticated,
       token: state.auth.accessToken ? "Present" : "Missing"
     });
-    
+
     // Don't make the request if we don't have a token
     if (!state.auth.accessToken) {
       console.warn("No access token available, skipping onboarding progress fetch");
@@ -48,7 +48,7 @@ export const fetchOnboardingProgress = createAsyncThunk<
         code: "NO_TOKEN"
       });
     }
-    
+
     console.log(
       "fetchOnboardingProgress API call - URL:",
       endpoints.onboarding.getProgress
@@ -203,7 +203,7 @@ export const onboardingSlice = createSlice({
     // ✅ Store local Step 3 data (sector/stage/impact)
     setStep3Data: (
       state,
-      action: PayloadAction<{ focusSector: string; stage: string; impactFocus: string }>
+      action: PayloadAction<{ focusSector: string; stage: string; impactFocus: string; extra_info?: string }>
     ) => {
       if (!state.progress) state.progress = { current_step: 1, data: {}, is_complete: false };
       state.progress.data = { ...state.progress.data, ...action.payload };

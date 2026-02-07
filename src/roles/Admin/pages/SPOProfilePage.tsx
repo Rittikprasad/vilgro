@@ -16,7 +16,7 @@ import {
   clearAdminSpoDeleteError,
 } from "../../../features/adminSpo/adminSpoSlice";
 import type { AdminSpoEntry } from "../../../features/adminSpo/adminSpoTypes";
-import { generatePDFReport } from "../../../utils/generatePDFReport";
+import { generateUserAssessmentPDF } from "../../../utils/generateUserAssessmentPDF";
 
 const formatDate = (value: string | null | undefined) => {
   if (!value) {
@@ -112,9 +112,9 @@ const SPOProfilePage: React.FC = () => {
     );
 
     // Get instrument name
-    const instrumentName = activeSpo.instrument?.name ?? 
-                          activeSpo.organization?.type_of_innovation ?? 
-                          "Not specified";
+    const instrumentName = activeSpo.instrument?.name ??
+      activeSpo.organization?.type_of_innovation ??
+      "Not specified";
 
     return [
       {
@@ -163,13 +163,46 @@ const SPOProfilePage: React.FC = () => {
     }
   };
 
-  const handleGeneratePDFReport = () => {
+  const handleGeneratePDFReport = async () => {
     if (!activeSpo) {
       return;
     }
 
     try {
-      generatePDFReport(activeSpo);
+      // Map AdminSpoEntry to User interface for PDF generation
+      const mockUser: any = {
+        name: `${activeSpo.first_name} ${activeSpo.last_name}`,
+        email: activeSpo.email,
+        phone: activeSpo.phone,
+        organization: activeSpo.organization ? {
+          name: activeSpo.organization.name || '',
+          registration_type: activeSpo.organization.registration_type || '',
+          date_of_incorporation: activeSpo.organization.date_of_incorporation || '',
+          gst_number: activeSpo.organization.gst_number || '',
+          cin_number: activeSpo.organization.cin_number || '',
+          org_desc: activeSpo.organization.org_desc || undefined,
+        } : undefined,
+      };
+
+      // Map AdminSpoEntry to AssessmentResult interface
+      const mockResult: any = {
+        instrument: activeSpo.instrument?.name,
+        instrument_description: activeSpo.instrument?.description,
+        graph: {
+          scores: {
+            sections: {
+              IMPACT: activeSpo.scores?.sections?.IMPACT || 0,
+              RISK: activeSpo.scores?.sections?.RISK || 0,
+              RETURN: activeSpo.scores?.sections?.RETURN || 0,
+            }
+          }
+        }
+      };
+
+      await generateUserAssessmentPDF({
+        user: mockUser,
+        assessmentResult: mockResult,
+      });
     } catch (err) {
       console.error("Failed to generate PDF report", err);
     }
@@ -334,11 +367,10 @@ const SPOProfilePage: React.FC = () => {
                           <td className="px-4 py-3 text-center">
                             <button
                               type="button"
-                              className={`${
-                                activeSpo?.assessment_id
-                                  ? "text-[#69C24E] underline transition-colors hover:text-[#46B753]"
-                                  : "text-gray-400 cursor-not-allowed"
-                              }`}
+                              className={`${activeSpo?.assessment_id
+                                ? "text-[#69C24E] underline transition-colors hover:text-[#46B753]"
+                                : "text-gray-400 cursor-not-allowed"
+                                }`}
                               onClick={() => {
                                 if (activeSpo?.assessment_id) {
                                   navigate(`/admin/spos/${activeSpo.id}/responses`);

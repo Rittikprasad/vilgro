@@ -16,7 +16,7 @@ import type { RootState } from "../../app/store"
 // Validation schema for Step 5
 const step5Schema = z.object({
   annualBudget: z.string().min(1, "Annual operating budget is required"),
-  companyDescription: z.string().optional(),
+  org_desc: z.string().optional(),
   fundingSource: z.string().min(1, "Please select funding source"),
   philanthropicFunding: z.enum(["yes", "no"]).refine((val) => val !== undefined, {
     message: "Please select if you have received philanthropic funding"
@@ -142,19 +142,19 @@ const SignupStep5: React.FC<SignupStep5Props> = ({ onComplete, onBack: _onBack }
                 </div>
               </div>
 
-               <div className="space-y-3">
-                 <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
-                   Tell us about your company
-                 </label>
-                 <div className="space-y-1">
-                   <Input
-                     {...register("companyDescription")}
-                     placeholder="Type here"
-                     type="text"
-                     className="w-full border-0 border-b border-gray-300 bg-transparent px-0 py-2 focus:outline-none focus:border-gray-500 transition-colors"
-                   />
-                 </div>
-               </div>
+              <div className="space-y-3">
+                <label className="block text-[15px] font-[500] text-gray-900 font-golos mb-3">
+                  Tell us about your company
+                </label>
+                <div className="space-y-1">
+                  <Input
+                    {...register("org_desc")}
+                    placeholder="Type here"
+                    type="text"
+                    className="w-full border-0 border-b border-gray-300 bg-transparent px-0 py-2 focus:outline-none focus:border-gray-500 transition-colors"
+                  />
+                </div>
+              </div>
 
               {/* Funding Source */}
               <div className="space-y-3 pb-6 border-b border-gray-200">

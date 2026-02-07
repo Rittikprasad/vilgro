@@ -10,6 +10,7 @@ export interface Organization {
   date_of_incorporation: string;
   gst_number: string;
   cin_number: string;
+  org_desc?: string;
 }
 
 export interface User {

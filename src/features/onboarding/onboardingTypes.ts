@@ -12,6 +12,7 @@ export interface OnboardingProgress {
     focusSector?: string;
     stage?: string;
     impactFocus?: string;
+    extra_info?: string;
   };
   is_complete: boolean;
 }
@@ -29,6 +30,8 @@ export interface Step3Data {
   annual_operating_budget: string;
   use_of_questionnaire: string;
   received_philanthropy_before: boolean;
+  extra_info?: string;
+  org_desc?: string;
 }
 
 export interface Step2Request {
@@ -44,6 +47,8 @@ export interface Step3Request {
   annual_operating_budget: string;
   use_of_questionnaire: string;
   received_philanthropy_before: boolean;
+  extra_info?: string;
+  org_desc?: string;
 }
 
 export interface OnboardingStepResponse {

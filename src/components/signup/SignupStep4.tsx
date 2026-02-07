@@ -18,7 +18,8 @@ import { Input } from "../ui/Input"
 const step4Schema = z.object({
   focusSector: z.string().min(1, "Please select your main focus sector"),
   stage: z.string().min(1, "Please select your current stage"),
-  impactFocus: z.string().min(1, "Please select your impact focus")
+  impactFocus: z.string().min(1, "Please select your impact focus"),
+  extra_info: z.string().optional(),
 })
 
 type Step4FormData = z.infer<typeof step4Schema>
@@ -40,6 +41,7 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
     handleSubmit,
     setValue,
     watch,
+    register,
     formState: { errors, isSubmitting },
   } = useForm<Step4FormData>({
     resolver: zodResolver(step4Schema),
@@ -47,6 +49,7 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
       focusSector: "",
       stage: "",
       impactFocus: "",
+      extra_info: "",
     },
     mode: "onChange",
   })
@@ -109,8 +112,8 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                   <div className="text-sm text-gray-500">Loading focus sectors...</div>
                 ) : (
                   <div className="space-y-1">
-                    <Select 
-                      value={selectedFocusSector || undefined} 
+                    <Select
+                      value={selectedFocusSector || undefined}
                       onValueChange={(value) => {
                         setValue("focusSector", value, { shouldValidate: true, shouldDirty: true });
                       }}
@@ -125,8 +128,8 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                         {sectors.map((sector: any, index: number) => {
                           const sectorValue = sector.value || sector.key;
                           return (
-                            <SelectItem 
-                              key={`${sectorValue}-${index}`} 
+                            <SelectItem
+                              key={`${sectorValue}-${index}`}
                               value={sectorValue}
                             >
                               {sector.label}
@@ -198,12 +201,13 @@ const SignupStep4: React.FC<SignupStep4Props> = ({ onNext, onBack }) => {
                 )}
               </div>
               <div>
-                   <Input
-                     placeholder="Give some information"
-                     type="text"
-                     className="w-full border-0 border-b border-gray-300 bg-transparent px-0 py-2 focus:outline-none focus:border-gray-500 transition-colors"
-                   />
-                 </div>
+                <Input
+                  {...register("extra_info")}
+                  placeholder="Give some information"
+                  type="text"
+                  className="w-full border-0 border-b border-gray-300 bg-transparent px-0 py-2 focus:outline-none focus:border-gray-500 transition-colors"
+                />
+              </div>
 
               {/* Navigation Buttons */}
               <div className="flex justify-start pt-6">

@@ -92,6 +92,15 @@ export const generateUserAssessmentPDF = async (data: UserAssessmentPDFData): Pr
     yPosition += 7;
   });
 
+  const orgDesc = user?.organization?.org_desc || '';
+  if (orgDesc) {
+    yPosition += 10;
+    doc.setFont('helvetica', 'normal');
+    const splitDesc = doc.splitTextToSize(orgDesc, contentWidth);
+    doc.text(splitDesc, margin, yPosition);
+    yPosition += (splitDesc.length * 5);
+  }
+
   yPosition += 10;
 
   // Instrument Recommendation Section
@@ -208,27 +217,13 @@ export const generateUserAssessmentPDF = async (data: UserAssessmentPDFData): Pr
   // Note
   doc.setFont('helvetica', 'bold');
   doc.text('Note:', margin, yPosition);
+
   const noteLabelWidth = doc.getTextWidth('Note: ');
+  const fullNote = noteText.replace('Note: ', '');
+  const splitFullNote = doc.splitTextToSize(fullNote, contentWidth - noteLabelWidth);
+
   doc.setFont('helvetica', 'normal');
-  const splitNote = doc.splitTextToSize(noteText.replace('Note: ', ''), contentWidth - noteLabelWidth);
-  // Actually simpler to just print Note: then the text wrapping around? 
-  // Easier to print bold 'Note:' then normal text.
-  // Or just print "Note: ..." where "Note:" is bold.
-  // I'll print Note: bold, then the rest.
-
-  // Quick hack for bold prefix: print bold prefix, then print text starting at offset.
-  // But text wrapping makes this hard.
-  // I'll just print the whole paragraph in normal font but start with "Note: " 
-  // or print "Note:" on one line and text below? No, image is inline.
-  // I'll make the whole text normal for simplicity or try to use splitTextToSize with indentation?
-  // Let's just standard print.
-
-  const fullNote = noteText;
-  const splitFullNote = doc.splitTextToSize(fullNote, contentWidth);
-  // Highlight "Note:" if possible? jsPDF is low level.
-  // I'll just print it.
-
-  doc.text(splitFullNote, margin, yPosition);
+  doc.text(splitFullNote, margin + noteLabelWidth, yPosition);
   yPosition += (splitFullNote.length * 5) + 5;
 
   // Disclaimer

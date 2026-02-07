@@ -149,7 +149,7 @@ const SignupFlow: React.FC = () => {
       console.error("User must be authenticated to complete step 5");
       return;
     }
-    
+
     const step3Data = progress?.data;
     if (!step3Data?.focusSector || !step3Data?.stage || !step3Data?.impactFocus) {
       console.error("Missing step 3 data:", {
@@ -159,7 +159,7 @@ const SignupFlow: React.FC = () => {
       });
       return;
     }
-    
+
     const payload = {
       focus_sector: step3Data.focusSector,
       org_stage: step3Data.stage,
@@ -167,8 +167,10 @@ const SignupFlow: React.FC = () => {
       annual_operating_budget: formData.annualBudget,
       use_of_questionnaire: formData.fundingSource,
       received_philanthropy_before: formData.philanthropicFunding === "yes",
+      extra_info: step3Data.extra_info,
+      org_desc: formData.org_desc,
     };
-    
+
     try {
       // Update step 3
       const step3Result = await dispatch(updateStep3(payload) as any);
@@ -186,10 +188,10 @@ const SignupFlow: React.FC = () => {
 
       // Update profile completion status immediately
       dispatch(updateProfileCompletion(true));
-      
+
       // Navigate immediately - don't wait for API calls
       navigate("/assessment", { replace: true });
-      
+
       // Fetch latest data in background (non-blocking)
       Promise.all([
         dispatch(fetchOnboardingProgress() as any),
@@ -199,7 +201,7 @@ const SignupFlow: React.FC = () => {
       ]).catch(() => {
         // Silently fail - navigation already happened
       });
-      
+
     } catch (error) {
       console.error("Error completing onboarding:", error);
       // Navigate even on error

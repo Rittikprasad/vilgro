@@ -192,9 +192,7 @@ const SubmissionSuccess: React.FC = () => {
                   <div className="flex-1">
                     {isEligible ? (
                       <p className="text-[15px] font-[400] text-gray-700">
-                        Based on your responses,<br /> we believe <span className="text-green-600 font-semibold">
-                          you are eligible
-                        </span> for philanthropic funding.
+                        The result is derived from an evaluation of impact, risk, and return potential bench-marked for the sector. It employs a standardised methodology developed by Villgro, based on our experience assessing key parameters via user inputs.
                       </p>
                     ) : (
                       <p className="text-[15px] font-[400] text-gray-700">

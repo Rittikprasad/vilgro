@@ -8,11 +8,10 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
   clearBankingSpoDetailError,
   fetchBankSpoById,
-  fetchBankSpoReport,
-  clearBankingSpoReportError,
   resetSelectedBankingSpo,
 } from "../../../features/bankingSpo/bankingSpoSlice";
 import type { BankingSpoEntry } from "../../../features/bankingSpo/bankingSpoTypes";
+import { generateUserAssessmentPDF } from "../../../utils/generateUserAssessmentPDF";
 
 const formatDate = (value: string | null | undefined) => {
   if (!value) return "-";
@@ -33,7 +32,7 @@ const BankingSPOProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
   const numericId = spoId ? Number(spoId) : NaN;
 
-  const { selected, isDetailLoading, detailError, isReportDownloading, reportError } =
+  const { selected, isDetailLoading, detailError, reportError } =
     useAppSelector((state) => state.bankingSpo);
 
   const activeSpo: BankingSpoEntry | null =
@@ -114,20 +113,40 @@ const BankingSPOProfilePage: React.FC = () => {
     void dispatch(fetchBankSpoById(numericId));
   };
 
-  const handleGenerateReport = async () => {
+  const handleGeneratePDFReport = async () => {
     if (!activeSpo) return;
     try {
-      const result = await dispatch(fetchBankSpoReport(activeSpo.id)).unwrap();
-      const link = document.createElement("a");
-      link.href = result.url;
-      link.setAttribute("download", result.filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(result.url);
-      dispatch(clearBankingSpoReportError());
-    } catch (error) {
-      console.error("Banking SPO report generation failed", error);
+      // Map BankingSpoEntry to User interface for PDF generation
+      const mockUser: any = {
+        name: `${activeSpo.first_name} ${activeSpo.last_name}`,
+        email: activeSpo.email,
+        organization: {
+          name: activeSpo.organization_name || '',
+        },
+      };
+
+      // Map BankingSpoEntry to AssessmentResult interface
+      const mockResult: any = {
+        instrument: activeSpo.instrument?.name,
+        instrument_description: undefined,
+        graph: {
+          scores: {
+            sections: {
+              IMPACT: activeSpo.scores?.sections?.IMPACT || 0,
+              RISK: activeSpo.scores?.sections?.RISK || 0,
+              RETURN: activeSpo.scores?.sections?.RETURN || 0,
+            },
+          },
+          sector: activeSpo.focus_sector,
+        },
+      };
+
+      await generateUserAssessmentPDF({
+        user: mockUser,
+        assessmentResult: mockResult,
+      });
+    } catch (err) {
+      console.error("Failed to generate PDF report", err);
     }
   };
 
@@ -172,8 +191,8 @@ const BankingSPOProfilePage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="gradient" onClick={handleGenerateReport} disabled={isReportDownloading || !activeSpo}>
-              {isReportDownloading ? "Generating..." : "Generate Report"}
+            <Button variant="gradient" onClick={handleGeneratePDFReport} disabled={!activeSpo}>
+              Generate Report
             </Button>
           </div>
         </div>

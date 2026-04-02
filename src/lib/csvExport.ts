@@ -8,16 +8,23 @@
  */
 const escapeCsvField = (value: string | number | boolean | null | undefined): string => {
   if (value === null || value === undefined) {
-    return '';
+    return "";
   }
-  
-  const stringValue = String(value);
-  
+
+  let stringValue = String(value);
+
+  // If the value is a long numeric string (10 or more digits),
+  // prepend a tab character to force Excel to treat it as text
+  // mapping to phone numbers, long IDs, etc.
+  if (/^\d{10,}$/.test(stringValue)) {
+    stringValue = `\t${stringValue}`;
+  }
+
   // If the value contains comma, quote, or newline, wrap it in quotes and escape quotes
-  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+  if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }
-  
+
   return stringValue;
 };
 

@@ -10,8 +10,8 @@ import {
   clearAdminSpoDetailError,
   fetchAdminSpoById,
   resetSelectedAdminSpo,
-  fetchAdminSpoReport,
-  clearAdminSpoReportError,
+  // fetchAdminSpoReport,
+  // clearAdminSpoReportError,
   deleteAdminSpo,
   clearAdminSpoDeleteError,
 } from "../../../features/adminSpo/adminSpoSlice";
@@ -44,7 +44,7 @@ const SPOProfilePage: React.FC = () => {
     selected,
     isDetailLoading,
     detailError,
-    isReportDownloading,
+    // isReportDownloading,
     reportError,
     isDeleting,
     deleteError,
@@ -142,26 +142,26 @@ const SPOProfilePage: React.FC = () => {
     }
   };
 
-  const handleGenerateReport = async () => {
-    if (!activeSpo) {
-      return;
-    }
+  // const handleGenerateReport = async () => {
+  //   if (!activeSpo) {
+  //     return;
+  //   }
 
-    try {
-      const result = await dispatch(fetchAdminSpoReport(activeSpo.id)).unwrap();
-      const link = document.createElement("a");
-      link.href = result.url;
-      link.setAttribute("download", result.filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(result.url);
-      dispatch(clearAdminSpoReportError());
-    } catch (err) {
-      // No-op: error state is handled by slice for user feedback.
-      console.error("Failed to generate report", err);
-    }
-  };
+  //   try {
+  //     const result = await dispatch(fetchAdminSpoReport(activeSpo.id)).unwrap();
+  //     const link = document.createElement("a");
+  //     link.href = result.url;
+  //     link.setAttribute("download", result.filename);
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     link.remove();
+  //     window.URL.revokeObjectURL(result.url);
+  //     dispatch(clearAdminSpoReportError());
+  //   } catch (err) {
+  //     // No-op: error state is handled by slice for user feedback.
+  //     console.error("Failed to generate report", err);
+  //   }
+  // };
 
   const handleGeneratePDFReport = async () => {
     if (!activeSpo) {
@@ -195,7 +195,8 @@ const SPOProfilePage: React.FC = () => {
               RISK: activeSpo.scores?.sections?.RISK || 0,
               RETURN: activeSpo.scores?.sections?.RETURN || 0,
             }
-          }
+          },
+          sector: activeSpo.organization?.focus_sector,
         }
       };
 
@@ -220,12 +221,13 @@ const SPOProfilePage: React.FC = () => {
     setIsDeletingOrDeleted(true);
 
     try {
-      await dispatch(deleteAdminSpo(activeSpo.id)).unwrap();
-      dispatch(clearAdminSpoDeleteError());
-      setIsDeleteModalOpen(false);
-      // Reset selected SPO before navigating to prevent refetch
-      dispatch(resetSelectedAdminSpo());
-      navigate("/admin/spos");
+      await dispatch(deleteAdminSpo(activeSpo.id)).unwrap().then(() => {
+        dispatch(clearAdminSpoDeleteError());
+        setIsDeleteModalOpen(false);
+        // Reset selected SPO before navigating to prevent refetch
+        dispatch(resetSelectedAdminSpo());
+        navigate("/admin/spos");
+      })
     } catch (err) {
       console.error("Failed to delete SPO", err);
       // Reset flag on error so user can retry

@@ -77,7 +77,8 @@ export const generateUserAssessmentPDF = async (data: UserAssessmentPDFData): Pr
   const details = [
     { label: 'Name:', value: name },
     { label: 'Email:', value: email },
-    { label: 'Organisation:', value: orgName }
+    { label: 'Organisation:', value: orgName },
+    { label: 'Sector:', value: assessmentResult?.sector || 'N/A' }
   ];
 
   details.forEach(item => {
@@ -152,9 +153,12 @@ export const generateUserAssessmentPDF = async (data: UserAssessmentPDFData): Pr
     const rowFromBottom = 4 - row;
 
     if (rowFromBottom < filledCount) {
-      if (column === 'impact') return [96, 196, 96]; // Green #60C460
-      if (column === 'risk') return [210, 220, 100]; // Light yellow/Chartreuse #D2DC64
-      if (column === 'return') return [240, 170, 50]; // Orange/Amber #F0AA32
+      // Score-dependent coloring (Red to Green)
+      if (filledCount <= 1) return [239, 68, 68];   // Red #EF4444
+      if (filledCount <= 2) return [249, 115, 22];  // Orange #F97316
+      if (filledCount <= 3) return [234, 179, 8];   // Yellow #EAB308
+      if (filledCount <= 4) return [132, 204, 22];  // Light Green #84CC16
+      return [34, 197, 94];                         // Green #22C55E
     }
     return [240, 240, 240]; // Light grey
   };
@@ -211,30 +215,62 @@ export const generateUserAssessmentPDF = async (data: UserAssessmentPDFData): Pr
   doc.setTextColor(0, 0, 0); // Reset to black
   doc.setFontSize(10);
 
-  const noteText = "Note: The result is derived from an evaluation of impact, risk, and return potential bench-marked for the sector. It employs a standardised methodology developed by Villgro, based on our experience assessing key parameters via user inputs.";
+  const noteText = "The result is derived from an evaluation of impact, risk, and return potential bench-marked for the sector. Each bar represents a 20-point increment on a 100-point scale for the respective section. It employs a standardised methodology developed by Villgro, based on our experience assessing key parameters via user inputs.";
   const disclaimerText = "Disclaimer: This tool provides indicative financing suggestions based solely on user inputs. It is not exhaustive or definitive advice.";
+
+  // Helper for simple text justification
+  const drawJustifiedText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number): number => {
+    const words = text.split(/\s+/);
+    const lines: string[][] = [];
+    let currentLine: string[] = [];
+    let currentWidth = 0;
+
+    words.forEach(word => {
+      const wordWidth = doc.getTextWidth(word + ' ');
+      if (currentWidth + wordWidth > maxWidth && currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = [word];
+        currentWidth = doc.getTextWidth(word + ' ');
+      } else {
+        currentLine.push(word);
+        currentWidth += wordWidth;
+      }
+    });
+    lines.push(currentLine);
+
+    let currentY = y;
+    lines.forEach((line, index) => {
+      if (index === lines.length - 1 || line.length === 1) {
+        // Last line or single word line - left align
+        doc.text(line.join(' '), x, currentY);
+      } else {
+        // Justify
+        const totalWordWidth = line.reduce((sum, word) => sum + doc.getTextWidth(word), 0);
+        const totalSpacing = maxWidth - totalWordWidth;
+        const spacingPerGap = totalSpacing / (line.length - 1);
+        
+        let currentX = x;
+        line.forEach((word) => {
+          doc.text(word, currentX, currentY);
+          currentX += doc.getTextWidth(word) + spacingPerGap;
+        });
+      }
+      currentY += lineHeight;
+    });
+    return currentY;
+  };
 
   // Note
   doc.setFont('helvetica', 'bold');
   doc.text('Note:', margin, yPosition);
 
-  const noteLabelWidth = doc.getTextWidth('Note: ');
-  const fullNote = noteText.replace('Note: ', '');
-  const splitFullNote = doc.splitTextToSize(fullNote, contentWidth - noteLabelWidth);
-
   doc.setFont('helvetica', 'normal');
-  doc.text(splitFullNote, margin + noteLabelWidth, yPosition);
-  yPosition += (splitFullNote.length * 5) + 5;
+  const noteY = drawJustifiedText(noteText, margin + doc.getTextWidth('Note: '), yPosition, contentWidth - doc.getTextWidth('Note: '), 5);
+  yPosition = Math.max(yPosition + 5, noteY) + 2;
 
   // Disclaimer
-  const fullDisclaimer = disclaimerText;
-  const splitFullDisclaimer = doc.splitTextToSize(fullDisclaimer, contentWidth);
-
-  // Make "Disclaimer:" bold if I really want to be fancy, but standard text is fine.
-  // If I want to bold the prefix "Disclaimer:", I can print it separately.
-  // But line wrapping makes it tricky if the text continues on same line.
-
-  doc.text(splitFullDisclaimer, margin, yPosition);
+  doc.setFont('helvetica', 'italic');
+  yPosition = drawJustifiedText(disclaimerText, margin, yPosition, contentWidth, 5);
 
   // Save PDF
   const safeName = (user?.name || 'User').replace(/[^a-zA-Z0-9]/g, '_');

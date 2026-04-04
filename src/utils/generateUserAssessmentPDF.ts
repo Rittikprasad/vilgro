@@ -248,7 +248,7 @@ export const generateUserAssessmentPDF = async (data: UserAssessmentPDFData): Pr
         const totalWordWidth = line.reduce((sum, word) => sum + doc.getTextWidth(word), 0);
         const totalSpacing = maxWidth - totalWordWidth;
         const spacingPerGap = totalSpacing / (line.length - 1);
-        
+
         let currentX = x;
         line.forEach((word) => {
           doc.text(word, currentX, currentY);

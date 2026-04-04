@@ -99,19 +99,17 @@ const SubmissionSuccess: React.FC = () => {
   // Row 0 is top, row 4 is bottom. We fill from bottom up.
   const getCellColor = (row: number, column: 'impact' | 'risk' | 'return'): string => {
     const filledCount = column === 'impact' ? impactFilledRows : column === 'risk' ? riskFilledRows : returnFilledRows;
-
-    // Calculate which rows should be filled (from bottom up)
-    // If filledCount is 3, rows 2, 3, 4 should be colored (0-indexed: 2, 3, 4)
-    // Row index from bottom: 4 - row (so row 4 = 0 from bottom, row 0 = 4 from bottom)
     const rowFromBottom = 4 - row;
 
-    // If this row is within the filled range (from bottom), color it
     if (rowFromBottom < filledCount) {
-      if (column === 'impact') return '#60C460'; // Green
-      if (column === 'risk') return '#D2DC64'; // Light yellow/Chartreuse
-      if (column === 'return') return '#F0AA32'; // Orange/Amber
+      // Score-dependent coloring (Red to Green)
+      if (filledCount <= 1) return 'rgb(239, 68, 68)';   // Red #EF4444
+      if (filledCount <= 2) return 'rgb(249, 115, 22)';  // Orange #F97316
+      if (filledCount <= 3) return 'rgb(234, 179, 8)';   // Yellow #EAB308
+      if (filledCount <= 4) return 'rgb(132, 204, 22)';  // Light Green #84CC16
+      return 'rgb(34, 197, 94)';                         // Green #22C55E
     }
-    return '#F0F0F0'; // Light grey for inactive cells
+    return 'rgb(240, 240, 240)'; // Light grey
   };
 
   // Get overall score

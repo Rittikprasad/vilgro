@@ -4,6 +4,7 @@ import { pluginReact } from '@rsbuild/plugin-react';
 export default defineConfig({
   plugins: [pluginReact()],
   html: {
-    title: 'blendedfinancetool',
+    title: 'Blended Finance Tool',
+    favicon: './src/assets/villgro-favicon.png',
   },
 });
